@@ -1,6 +1,21 @@
 // site/scripts/vote.js
 const PICKS = ["pick_1", "pick_2", "pick_3"];
 
+function buildOptions(select, submissions) {
+  select.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Choose a project";
+  select.appendChild(placeholder);
+
+  submissions.forEach((s) => {
+    const option = document.createElement("option");
+    option.value = s.id;
+    option.textContent = `${s.project_title} — ${s.team_name}`;
+    select.appendChild(option);
+  });
+}
+
 async function setupBallot() {
   const form = document.getElementById("ballot-form");
   const error = document.getElementById("ballot-error");
@@ -16,13 +31,8 @@ async function setupBallot() {
     return;
   }
 
-  const options =
-    '<option value="">Choose a project</option>' +
-    submissions
-      .map((s) => `<option value="${s.id}">${s.project_title} — ${s.team_name}</option>`)
-      .join("");
   PICKS.forEach((name) => {
-    form.elements[name].innerHTML = options;
+    buildOptions(form.elements[name], submissions);
   });
 
   form.addEventListener("submit", (event) => {
