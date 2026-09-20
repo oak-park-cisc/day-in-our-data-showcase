@@ -81,10 +81,24 @@ def test_all_abstentions_advance_the_higher_seed():
 
 
 def test_even_split_advances_the_higher_seed():
-    """Spec amendment 1: a 2-2 tie after abstentions goes to the higher seed."""
+    """Spec amendment 1: a 2-2 tie after abstentions goes to the higher seed.
+    Votes reordered so P-02 is counted first; without tie rule would return P-02."""
     votes = [
-        Vote("civic-impact", "P-01", True), Vote("data-integrity", "P-01", True),
         Vote("usability-access", "P-02", True), Vote("craft", "P-02", True),
+        Vote("civic-impact", "P-01", True), Vote("data-integrity", "P-01", True),
         Vote("continuation", "P-02", False),
     ]
     assert resolve(votes, "P-01", "P-02", {"P-01": 1, "P-02": 2}) == "P-01"
+
+
+def test_build_rounds_empty_input():
+    """Empty input returns one empty round."""
+    rounds = build_rounds([])
+    assert rounds == [[]]
+
+
+def test_build_rounds_single_entry():
+    """Single entry returns one bye pairing."""
+    e = entry("P-01", [5, 5, 5, 5, 5])
+    rounds = build_rounds([e])
+    assert rounds == [[Pairing(a="P-01", b=None)]]

@@ -63,14 +63,20 @@ def _bracket_size(n: int) -> int:
 
 def build_rounds(seeded: list[SeedEntry]) -> list[list[Pairing]]:
     """Round one only; later rounds depend on results and are built as they resolve."""
+    if len(seeded) == 0:
+        return [[]]
+
     size = _bracket_size(len(seeded))
     by_seed = {i + 1: e.anon_id for i, e in enumerate(seeded)}
     ordered = [by_seed.get(s) for s in bracket_slots(size)]
     first: list[Pairing] = []
+
+    if size == 1:
+        first.append(Pairing(a=ordered[0], b=None))
+        return [first]
+
     for i in range(0, size, 2):
         a, b = ordered[i], ordered[i + 1]
-        if a is None and b is None:
-            continue
         if a is None:
             a, b = b, None
         first.append(Pairing(a=a, b=b))
