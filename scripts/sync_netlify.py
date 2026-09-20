@@ -153,11 +153,42 @@ def _hash_code(code: str) -> str:
     tally job hashes each BALLOT_CODES entry with this same function before
     comparing -- no change to voting/tally.py was needed or made.
 
-    Not a secret-keyed HMAC: the code space is 32**10 (~1.13e15) possible
-    values (see voting/generate_codes.py), so a plain hash is not brute-
-    forceable from data/ballots.json alone, and using the BALLOT_CODES value
-    itself as an HMAC key would require the sync job -- which never sees
-    BALLOT_CODES -- to know a secret it isn't given.
+    This is NOT a strong defence on its own. The code alphabet is 32
+    characters, 10 characters long (see voting/generate_codes.py), i.e. a
+    2**50-ish space -- and unsalted SHA-256 over 2**50 candidates is a
+    roughly 14-hour job on a single commodity GPU (~2.2e10 hashes/sec), or
+    about 14 minutes expected time to the first hit against the ~60-odd
+    hashes actually published in data/ballots.json at once. Sixty-plus bits
+    is where a plain-hash argument starts holding; fifty is not enough on
+    its own.
+
+    What actually makes this acceptable is not the hash -- it's what's
+    IN data/ballots.json: a code only appears there once someone has
+    already POSTed a ballot with it, i.e. it already has a cast_at
+    timestamp on record. tally.yml may run well after sync-submissions.yml
+    publishes that code's hash, but tally() sorts all ballots by cast_at
+    and keeps only the first VALID ballot per code (voting/tally.py; see
+    tests/test_tally.py::test_reused_code_keeps_only_the_first_ballot). So
+    even if an attacker cracks the hash minutes after it's published and
+    immediately submits a competing ballot with the recovered code, that
+    ballot's cast_at is later and loses at tally time regardless of when
+    tally.yml happens to run -- the ordering, not the timing of tally.yml,
+    is what protects it. (The one gap this doesn't close: if the genuine
+    voter's own first submission was itself invalid -- e.g. duplicate
+    picks -- and they haven't yet corrected it, a faster attacker's valid
+    ballot on the same code could become the one that counts. Narrow, but
+    real; not addressed by this hash.) The hash's job is only to keep an
+    already-submitted code from sitting in the repo as recognizable
+    plaintext, not to withstand an offline attack against a still-live,
+    never-submitted code.
+
+    This construction would NOT be safe for codes that are still unspent
+    (e.g. if data/ballots.json ever held pending/unvalidated submissions,
+    or if BALLOT_CODES itself were ever hashed and published this same way)
+    -- an unspent code's hash is exactly as attackable as the 14-hour/
+    14-minute figures above say. A keyed HMAC (using a secret the sync job
+    doesn't currently receive) would be needed for that case; the repo
+    owner is deciding separately whether to add a fourth secret for it.
     """
     normalized = code.strip().upper()
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()

@@ -34,7 +34,7 @@ schedule:
   16:00-21:59 UTC) and on demand. Needs the `NETLIFY_TOKEN` secret.
 - **`judge.yml`** — runs the AI judging panel and commits `data/results/`.
   Defaults to a `mock` dry run (zero API spend); set `mock: false` on
-  dispatch to spend real `claude-opus-5` tokens. Needs `ANTHROPIC_API_KEY`.
+  dispatch to spend real `claude-sonnet-5` tokens. Needs `ANTHROPIC_API_KEY`.
 - **`tally.yml`** — validates and counts the participant vote, and commits
   `data/results/vote.json` and `comparison.json`. Needs the `BALLOT_CODES`
   secret (printed once, offline, by `python -m voting.generate_codes` — see

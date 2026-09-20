@@ -4,8 +4,10 @@ name: Run AI judging panel
 # defaults to true: this project's standing rule is no per-token Anthropic
 # API spend in CI (see docs/superpowers/specs/2026-09-19-day-in-our-data-showcase-design.md
 # §5.4), and a manual-dispatch default of `false` would mean a mis-click
-# bills real tokens against claude-opus-5 across ~200 calls. Flip `mock` to
-# false explicitly, only when you mean to spend.
+# bills real tokens across roughly 200-300 calls. Flip `mock` to
+# false explicitly, only when you mean to spend. Model is claude-sonnet-5
+# (owner's cost decision: ~290 calls for a 20-project event runs roughly
+# $2.00 on Sonnet 5 vs $5.00 on Opus 5 vs $1.00 on Haiku 4.5).
 on:
   workflow_dispatch:
     inputs:
@@ -28,7 +30,7 @@ jobs:
       - name: Run the panel
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          JUDGE_MODEL: claude-opus-5
+          JUDGE_MODEL: claude-sonnet-5
         run: |
           python -m judging.run_panel \
             --submissions data/submissions.json \

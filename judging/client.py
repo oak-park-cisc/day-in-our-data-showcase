@@ -5,7 +5,7 @@ from typing import Protocol
 
 from judging.schemas import MatchupOutput, ScoreOutput
 
-DEFAULT_MODEL = os.environ.get("JUDGE_MODEL", "claude-opus-5")
+DEFAULT_MODEL = os.environ.get("JUDGE_MODEL", "claude-sonnet-5")
 MAX_TOKENS = 16000
 
 

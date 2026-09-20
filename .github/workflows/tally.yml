@@ -29,6 +29,7 @@ jobs:
           import hashlib
           import json
           import os
+          import sys
           from datetime import datetime
           from pathlib import Path
 
@@ -37,6 +38,19 @@ jobs:
 
           def hash_code(code: str) -> str:
               return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
+
+          # Both files are written by sync-submissions.yml. Fail with one clear
+          # line naming the fix, rather than a bare FileNotFoundError traceback,
+          # if this job is ever dispatched before that workflow has run once.
+          missing = [p for p in ("data/submissions.json", "data/ballots.json") if not Path(p).exists()]
+          if missing:
+              print(
+                  f"tally.yml: missing {', '.join(missing)}. "
+                  "Run the 'Sync Netlify submissions' workflow (sync-submissions.yml) "
+                  "at least once before dispatching tally.yml.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
 
           submissions = json.loads(Path("data/submissions.json").read_text())
           known_ids = {s["id"] for s in submissions}
