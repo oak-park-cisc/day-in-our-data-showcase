@@ -56,21 +56,27 @@ function renderAgreement(comparison, byPublic) {
   const crowdRanking = comparison.crowd_ranking || [];
   const panelRanking = comparison.panel_ranking || [];
   const crowdCounts = comparison.crowd_counts || {};
+  const panelMeans = comparison.panel_means || {};
   const rows = crowdRanking
     .map((id, i) => {
       const panelAt = panelRanking[i];
       const count = crowdCounts[id];
+      // panelMeans is keyed by the project named in THIS row's "Panel chose"
+      // cell (panelAt), not by the crowd's pick (id) — those are two
+      // different projects whenever the rankings disagree.
+      const mean = panelAt ? panelMeans[panelAt] : undefined;
       return `<tr>
         <td class="rank">${i + 1}</td>
         <td>${escapeHtml(titleOf(byPublic, id))}</td>
         <td>${count === undefined ? "—" : escapeHtml(String(count))}</td>
         <td>${panelAt ? escapeHtml(titleOf(byPublic, panelAt)) : "—"}</td>
+        <td>${mean === null || mean === undefined ? "—" : mean.toFixed(2)}</td>
       </tr>`;
     })
     .join("");
   document.getElementById("side-by-side").innerHTML = `
     <caption>Crowd ranking beside the panel's</caption>
-    <thead><tr><th>#</th><th>Residents chose</th><th>Votes</th><th>Panel chose</th></tr></thead>
+    <thead><tr><th>#</th><th>Residents chose</th><th>Votes</th><th>Panel chose</th><th>Panel mean</th></tr></thead>
     <tbody>${rows}</tbody>`;
 
   const perPersona = Object.entries(comparison.per_persona || {})

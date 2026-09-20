@@ -147,6 +147,71 @@ test("comparison table escapes hostile project titles and team-derived data", as
   assert.ok(agreementHtml.includes("Not enough variation to measure agreement."));
 });
 
+test("Panel mean is paired with the Panel-chose project in each row, not the crowd's pick or the row index", async () => {
+  const submissions = [
+    { id: "sub_001", anon_id: "P-01", project_title: "Alpha Project", team_name: "Team A" },
+    { id: "sub_002", anon_id: "P-02", project_title: "Beta Project", team_name: "Team B" },
+    { id: "sub_003", anon_id: "P-03", project_title: "Gamma Project", team_name: "Team C" },
+  ];
+  const elements = await render({
+    "/data/submissions.json": submissions,
+    "/data/results/bracket.json": {
+      model_generated: true,
+      mode: "ranked_list",
+      ranking: ["P-01", "P-02", "P-03"],
+      champion: "P-01",
+      rounds: [],
+    },
+    "/data/results/comparison.json": {
+      // Crowd and panel disagree on every row, so pairing panel_means by the
+      // crowd's id (or by row index) instead of by that row's own
+      // "Panel chose" id produces a WRONG number, not a coincidentally right
+      // one — an ordering-agrees fixture could not catch this bug.
+      crowd_ranking: ["sub_001", "sub_002", "sub_003"],
+      panel_ranking: ["sub_003", "sub_001", "sub_002"],
+      crowd_counts: { sub_001: 9, sub_002: 6, sub_003: 3 },
+      panel_means: { sub_001: 4.2, sub_002: 2.5, sub_003: 3.75 },
+      spearman: -0.5,
+      per_persona: {},
+      n: 18,
+      invalid_ballots: 0,
+      indicative: true,
+      caveat: "",
+    },
+  });
+
+  const sideHtml = elements["side-by-side"].innerHTML;
+  assert.ok(
+    sideHtml.includes("<th>Panel mean</th>"),
+    "side-by-side table needs a Panel mean column header"
+  );
+
+  const tbody = sideHtml.split("<tbody>")[1].split("</tbody>")[0];
+  const rows = tbody.split("<tr>").slice(1).map((r) => "<tr>" + r);
+  assert.equal(rows.length, 3);
+
+  // Row 1: crowd picked Alpha (sub_001); this row's Panel-chose entry is
+  // Gamma (sub_003, mean 3.75) — not Alpha's own mean (4.20).
+  assert.ok(rows[0].includes("Alpha Project"));
+  assert.ok(rows[0].includes("Gamma Project"));
+  assert.ok(rows[0].includes("3.75"), "row 1's mean should be Gamma's (the row's own Panel-chose pick)");
+  assert.ok(!rows[0].includes("4.20"), "row 1 must not show Alpha's mean (the crowd's pick, not the panel's)");
+
+  // Row 2: crowd picked Beta (sub_002); this row's Panel-chose entry is
+  // Alpha (sub_001, mean 4.20) — not Beta's own mean (2.50).
+  assert.ok(rows[1].includes("Beta Project"));
+  assert.ok(rows[1].includes("Alpha Project"));
+  assert.ok(rows[1].includes("4.20"), "row 2's mean should be Alpha's (the row's own Panel-chose pick)");
+  assert.ok(!rows[1].includes("2.50"), "row 2 must not show Beta's mean (the crowd's pick, not the panel's)");
+
+  // Row 3: crowd picked Gamma (sub_003); this row's Panel-chose entry is
+  // Beta (sub_002, mean 2.50) — not Gamma's own mean (3.75).
+  assert.ok(rows[2].includes("Gamma Project"));
+  assert.ok(rows[2].includes("Beta Project"));
+  assert.ok(rows[2].includes("2.50"), "row 3's mean should be Beta's (the row's own Panel-chose pick)");
+  assert.ok(!rows[2].includes("3.75"), "row 3 must not show Gamma's mean (the crowd's pick, not the panel's)");
+});
+
 test("bracket entrants escape hostile titles and team names, byes render as byes", async () => {
   const elements = await render({
     "/data/submissions.json": baseSubmissions(),
