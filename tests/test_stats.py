@@ -39,3 +39,23 @@ def test_returns_none_when_a_side_has_no_variance():
 
 def test_returns_none_below_two_items():
     assert spearman({"a": 1}, {"a": 1}) is None
+
+
+def test_mismatched_key_sets_ranks_only_intersection():
+    """Regression: ranks must be computed on intersection only, not full dicts.
+
+    When key sets differ, ranking the full dicts leaves gaps that distort
+    the shared entries' relative ranks. This test has b with extra keys
+    whose values sort between a's shared keys, pushing down the ranking
+    of a's rightmost shared key under the broken code.
+
+    Shared keys: x, y, z with identical values in both dicts.
+    b has extras that sort between y and z.
+
+    Old code would rank b on all 5 items, giving z rank 5 instead of 3.
+    New code ranks b on only {x, y, z}, giving z rank 3.
+    Perfect agreement only if fixed.
+    """
+    a = {"x": 50, "y": 40, "z": 30}
+    b = {"x": 50, "y": 40, "z": 30, "extra_a": 35, "extra_b": 32}
+    assert spearman(a, b) == pytest.approx(1.0)

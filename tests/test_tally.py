@@ -66,3 +66,22 @@ def test_at_floor_turnout_is_not_indicative():
 def test_codes_are_absent_from_the_result():
     result = tally(valid_set(10), CODES, KNOWN)
     assert "CODE001" not in repr(result)
+
+
+def test_first_invalid_ballot_does_not_forfeit_the_vote():
+    """An invalid first ballot on a code does not prevent a valid second ballot.
+
+    The deduplication rule keeps only the first VALID ballot per code, so a
+    voter whose first attempt has duplicate picks can correct it with a second
+    attempt on the same code and have the second (valid) ballot counted.
+    """
+    ballots = valid_set(10) + [
+        ballot("CODE011", ["sub_001", "sub_001", "sub_002"], 40),  # invalid: duplicate picks
+        ballot("CODE011", ["sub_001", "sub_002", "sub_003"], 41),  # valid: second attempt
+    ]
+    result = tally(ballots, CODES, KNOWN)
+    assert result.valid == 11
+    assert result.invalid == 1
+    assert result.counts["sub_001"] == 11
+    assert result.counts["sub_002"] == 11
+    assert result.counts["sub_003"] == 11

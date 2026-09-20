@@ -35,5 +35,6 @@ def spearman(a: dict[str, float], b: dict[str, float]) -> float | None:
     keys = sorted(set(a) & set(b))
     if len(keys) < 2:
         return None
-    ra, rb = average_ranks(a), average_ranks(b)
+    ra = average_ranks({k: a[k] for k in keys})
+    rb = average_ranks({k: b[k] for k in keys})
     return _pearson([ra[k] for k in keys], [rb[k] for k in keys])

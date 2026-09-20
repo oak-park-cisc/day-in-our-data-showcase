@@ -29,6 +29,18 @@ def tally(
     known_ids: set[str],
     floor: int = TURNOUT_FLOOR,
 ) -> TallyResult:
+    """Count votes per project and validate ballots.
+
+    Ballots are processed in timestamp order. For each code, the first VALID
+    ballot is counted; any subsequent ballot with the same code (valid or not)
+    is rejected. This means a voter whose first attempt is malformed (e.g.,
+    duplicate picks) does not forfeit their right to vote — a second valid
+    attempt on the same code will be counted instead.
+
+    Returns TallyResult with vote counts, valid/invalid ballot counts, and an
+    indicative flag (True if valid votes < floor, indicating insufficient
+    sample size for statistical confidence).
+    """
     counts: Counter[str] = Counter({pid: 0 for pid in known_ids})
     seen: set[str] = set()
     valid = invalid = 0
