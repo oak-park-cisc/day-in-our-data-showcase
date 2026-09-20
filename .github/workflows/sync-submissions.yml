@@ -1,0 +1,30 @@
+name: Sync Netlify submissions
+
+# Every 15 minutes during Saturday event hours (16:00-21:59 UTC = 11 a.m.-
+# 4:59 p.m. Central on 2026-10-03), plus on-demand via workflow_dispatch.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 16-21 * * 6"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Sync submissions and ballots from Netlify Forms
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: python scripts/sync_netlify.py --data-dir data
+      - name: Commit synced data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/submissions.json data/ballots.json
+          git diff --staged --quiet || git commit -m "chore: sync submissions and ballots from Netlify"
+          git push

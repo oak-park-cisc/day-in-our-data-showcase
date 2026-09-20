@@ -17,9 +17,33 @@ The interesting output is not a winner. It is the agreement between the two: how
 
 ## Status
 
-Design approved. Implementation not started.
+Implementation complete, pending the Netlify site connection.
 
 - [Design spec](docs/superpowers/specs/2026-09-19-day-in-our-data-showcase-design.md)
+
+## Deployment
+
+The site publishes on Netlify from `site/`; see `netlify.toml` for the build
+command. Three GitHub Actions workflows do the rest, all `workflow_dispatch`
+(manually triggered) except the submissions sync, which also runs on a
+schedule:
+
+- **`sync-submissions.yml`** — polls the Netlify Forms API via
+  `scripts/sync_netlify.py` and commits `data/submissions.json` and
+  `data/ballots.json`. Runs every 15 minutes during event hours (Saturdays,
+  16:00-21:59 UTC) and on demand. Needs the `NETLIFY_TOKEN` secret.
+- **`judge.yml`** — runs the AI judging panel and commits `data/results/`.
+  Defaults to a `mock` dry run (zero API spend); set `mock: false` on
+  dispatch to spend real `claude-opus-5` tokens. Needs `ANTHROPIC_API_KEY`.
+- **`tally.yml`** — validates and counts the participant vote, and commits
+  `data/results/vote.json` and `comparison.json`. Needs the `BALLOT_CODES`
+  secret (printed once, offline, by `python -m voting.generate_codes` — see
+  that file's docstring; the code list itself never enters the repo).
+
+`data/` is committed (seeded with an empty `data/submissions.json` before
+the event) and copied into the Netlify publish directory at build time,
+because the site fetches everything from absolute `/data/...` paths.
+`site/data/` is the build-time copy and stays gitignored.
 
 ## Ground rules inherited from the event
 

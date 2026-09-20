@@ -1,0 +1,21 @@
+# Netlify build config.
+#
+# `data/` is committed to the repo (submissions.json, ballots.json, and
+# results/ once judge.yml and tally.yml have run) and copied into the
+# publish directory at build time, because the site fetches everything from
+# absolute /data/... paths (see site/scripts/*.js). `rm -rf site/data` first
+# is deliberate: a bare `cp -r data site/data` nests site/data/data on every
+# re-run once site/data already exists from a prior build, silently
+# breaking every fetch on the site. `mkdir -p data` guards the very first
+# deploy against a missing source directory (data/ is seeded in the repo,
+# but this keeps the build resilient either way).
+[build]
+  publish = "site"
+  command = "mkdir -p data && rm -rf site/data && cp -r data site/data"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
