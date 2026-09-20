@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import sys
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -87,7 +89,9 @@ BALLOTS_PAYLOAD = [
 
 
 def fake_get_json(urls: dict[str, object]):
-    def _get(url: str, token: str):
+    def _get(url: str, token: str, **kwargs):
+        # **kwargs absorbs include_body_in_errors -- the fake never makes a
+        # real HTTP call so it has no body to withhold or include either way.
         assert token == "test-token"
         if url not in urls:
             raise AssertionError(f"unexpected URL requested: {url}")
@@ -222,7 +226,7 @@ def test_sync_raises_and_writes_nothing_on_form_lookup_failure(tmp_path):
 
 
 def test_sync_raises_and_writes_nothing_on_submissions_fetch_failure(tmp_path):
-    def get_json(url: str, token: str):
+    def get_json(url: str, token: str, **kwargs):
         if url == f"{sync_netlify.NETLIFY_API}/forms":
             return FORMS_PAYLOAD
         raise sync_netlify.NetlifySyncError("Netlify API returned 500 for " + url)
@@ -238,3 +242,138 @@ def test_main_exits_nonzero_when_token_missing(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["sync_netlify.py"])
     assert sync_netlify.main() == 1
     assert "NETLIFY_TOKEN" in capsys.readouterr().err
+
+
+class _FakeHTTPResponse:
+    """Minimal stand-in for the object urllib.request.urlopen() returns."""
+
+    def __init__(self, body: bytes):
+        self._body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        return False
+
+    def read(self) -> bytes:
+        return self._body
+
+
+def _http_error(url: str, code: int, body: bytes) -> urllib.error.HTTPError:
+    return urllib.error.HTTPError(url, code, "Error", {}, io.BytesIO(body))
+
+
+def test_http_get_json_withholds_response_body_by_default(monkeypatch):
+    """Finding 2, direct unit test: the safe default. Would fail against the
+    pre-fix code, which always interpolated exc.read() into the message."""
+    raw_code = "SUPERSECRETVOTERCODE9"
+    body = json.dumps({"error": f"rejected: duplicate code {raw_code}"}).encode("utf-8")
+    ballot_submissions_url = f"{sync_netlify.NETLIFY_API}/forms/form-ballot-456/submissions"
+
+    def fake_urlopen(request, timeout=30):
+        raise _http_error(request.full_url, 500, body)
+
+    monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
+        sync_netlify._http_get_json(ballot_submissions_url, "test-token")
+
+    message = str(excinfo.value)
+    assert raw_code not in message
+    assert "500" in message
+    assert ballot_submissions_url in message
+
+
+def test_http_get_json_includes_response_body_when_explicitly_opted_in(monkeypatch):
+    """The opt-in path still works, for the one call site (GET /forms) that
+    has no voter data to protect and wants the detail for debugging."""
+    body = b'{"error": "site not found or token lacks access"}'
+    forms_url = f"{sync_netlify.NETLIFY_API}/forms"
+
+    def fake_urlopen(request, timeout=30):
+        raise _http_error(request.full_url, 404, body)
+
+    monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
+        sync_netlify._http_get_json(forms_url, "test-token", include_body_in_errors=True)
+
+    assert "site not found or token lacks access" in str(excinfo.value)
+
+
+def test_http_get_json_error_names_status_and_url_even_when_body_is_withheld(monkeypatch):
+    body = b"raw upstream html error page, never shown"
+
+    def fake_urlopen(request, timeout=30):
+        raise _http_error(request.full_url, 503, body)
+
+    monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
+        sync_netlify._http_get_json("https://api.netlify.com/api/v1/forms/x/submissions", "test-token")
+
+    message = str(excinfo.value)
+    assert "503" in message
+    assert "forms/x/submissions" in message
+    assert "raw upstream html error page" not in message
+
+
+def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fails(monkeypatch, tmp_path):
+    """The test that matters for Finding 2: exercises sync()'s REAL wiring
+    (the actual _http_get_json, not a test fake), through the real HTTP code
+    path with only urllib.request.urlopen mocked -- so this proves sync()
+    itself never opts the ballot-submissions fetch into body-in-errors, not
+    just that _http_get_json's default is safe in isolation. Built to fail
+    against the pre-fix code: before the fix, _http_get_json always included
+    exc.read() verbatim regardless of which endpoint it came from, so a raw
+    code in this response body would have landed directly in the raised
+    error's message.
+    """
+    raw_code = "ZQ7MFPLNK4XX"
+    forms_body = json.dumps(FORMS_PAYLOAD).encode("utf-8")
+    submissions_body = json.dumps(SUBMISSIONS_PAYLOAD).encode("utf-8")
+    ballot_error_body = json.dumps({
+        "message": f"could not process ballot with code={raw_code}",
+    }).encode("utf-8")
+
+    def fake_urlopen(request, timeout=30):
+        url = request.full_url
+        if url == f"{sync_netlify.NETLIFY_API}/forms":
+            return _FakeHTTPResponse(forms_body)
+        if url == f"{sync_netlify.NETLIFY_API}/forms/form-sub-123/submissions":
+            return _FakeHTTPResponse(submissions_body)
+        if url == f"{sync_netlify.NETLIFY_API}/forms/form-ballot-456/submissions":
+            raise _http_error(url, 500, ballot_error_body)
+        raise AssertionError(f"unexpected URL requested: {url}")
+
+    monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
+        sync_netlify.sync(
+            "test-token", tmp_path, site_id="site-abc", get_json=sync_netlify._http_get_json
+        )
+
+    message = str(excinfo.value)
+    assert raw_code not in message
+    assert not (tmp_path / "submissions.json").exists()
+    assert not (tmp_path / "ballots.json").exists()
+
+
+def test_sync_forms_listing_error_may_include_its_body(monkeypatch, tmp_path):
+    """Contrast case: the /forms listing call carries no voter data, so its
+    error body is allowed through -- confirms the opt-in wiring in sync()
+    actually reaches the real HTTP path, not just the default."""
+    forms_error_body = b'{"error": "invalid or expired token"}'
+
+    def fake_urlopen(request, timeout=30):
+        raise _http_error(request.full_url, 401, forms_error_body)
+
+    monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
+        sync_netlify.sync(
+            "test-token", tmp_path, site_id="site-abc", get_json=sync_netlify._http_get_json
+        )
+
+    assert "invalid or expired token" in str(excinfo.value)

@@ -34,26 +34,47 @@ NETLIFY_API = "https://api.netlify.com/api/v1"
 SUBMISSION_FORM_NAME = "submission"
 BALLOT_FORM_NAME = "ballot"
 
-GetJSON = Callable[[str, str], Any]
+GetJSON = Callable[..., Any]
 
 
 class NetlifySyncError(RuntimeError):
     """Raised for any failure that should make the sync exit non-zero."""
 
 
-def _http_get_json(url: str, token: str) -> Any:
-    """Real HTTP GET against the Netlify API. Not used directly by tests."""
+def _http_get_json(url: str, token: str, *, include_body_in_errors: bool = False) -> Any:
+    """Real HTTP GET against the Netlify API. Not used directly by tests.
+
+    `include_body_in_errors` defaults to False -- an HTTPError's response
+    body is withheld from the raised error's message *unless a caller opts
+    in explicitly, per call*. This matters because GET .../submissions
+    responses carry submitted form data, and for the ballot form that
+    includes a voter's raw `code`. GitHub Actions only masks registered
+    `secrets.*` values in a log; a voter's submitted code is never
+    registered as one, so nothing redacts it if it ends up in a printed
+    exception on a public repo's Actions log. Status code, method, and the
+    endpoint path are always safe to include and always are.
+
+    Defaulting to False (rather than True with call sites remembering to
+    opt out) means a future call site added without thinking about this
+    gets the safe behaviour automatically. Only sync()'s GET /forms listing
+    call -- which returns form metadata, never submitted field data -- opts
+    in, because its body is genuinely useful for debugging a 404/permission
+    error and carries no voter data.
+    """
     request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", "replace")
-        raise NetlifySyncError(f"Netlify API returned {exc.code} for {url}: {body}") from exc
+        if include_body_in_errors:
+            detail = exc.read().decode("utf-8", "replace")
+        else:
+            detail = "(response body withheld -- may contain submitted form data)"
+        raise NetlifySyncError(f"Netlify API GET {url} returned HTTP {exc.code}: {detail}") from exc
     except urllib.error.URLError as exc:
-        raise NetlifySyncError(f"Netlify API request failed for {url}: {exc.reason}") from exc
+        raise NetlifySyncError(f"Netlify API GET {url} failed: {exc.reason}") from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise NetlifySyncError(f"Netlify API returned unparseable JSON for {url}: {exc}") from exc
+        raise NetlifySyncError(f"Netlify API GET {url} returned unparseable JSON: {exc}") from exc
 
 
 def resolve_form_id(forms: list[dict], name: str, site_id: str | None) -> str:
@@ -214,8 +235,16 @@ def _write_json(path: Path, payload: Any) -> None:
 
 
 def sync(token: str, data_dir: Path, site_id: str | None = None, get_json: GetJSON = _http_get_json) -> None:
-    """Fetch everything first; only write files once every fetch has succeeded."""
-    forms = get_json(f"{NETLIFY_API}/forms", token)
+    """Fetch everything first; only write files once every fetch has succeeded.
+
+    Only the GET /forms listing opts into `include_body_in_errors` -- it
+    returns form metadata, never submitted field data. The two
+    /submissions fetches below deliberately do NOT opt in (they take
+    _http_get_json's safe default): one of them is the ballot form, whose
+    submitted data includes a voter's raw code (see _http_get_json's
+    docstring for why that specifically must never reach an error message).
+    """
+    forms = get_json(f"{NETLIFY_API}/forms", token, include_body_in_errors=True)
     submission_form_id = resolve_form_id(forms, SUBMISSION_FORM_NAME, site_id)
     ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, site_id)
 
