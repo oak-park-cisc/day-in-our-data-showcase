@@ -1,0 +1,60 @@
+[
+  {
+    "id": "sub_001", "anon_id": "P-01", "team_name": "Bike Lane Brigade",
+    "project_title": "Safe Routes Gap Map",
+    "description": "A map layering the bike network against school attendance zones and five years of crash records, showing which blocks on a walk-to-school route have no protected infrastructure.",
+    "solves_for": "Parents deciding whether their kid can bike to school alone.",
+    "starter_project": "04-can-a-kid-bike-to-school-safely",
+    "repo_url": "https://github.com/example/safe-routes", "demo_url": "https://example.com/safe-routes",
+    "artifacts": [{"filename": "gap-map.png", "url": "https://files.example/gap-map.png", "bytes": 482000}],
+    "large_file_url": null, "submitted_at": "2026-10-03T14:31:00Z"
+  },
+  {
+    "id": "sub_002", "anon_id": "P-02", "team_name": "Parcel People",
+    "project_title": "Assessment Fairness Dataset",
+    "description": "A cleaned, documented dataset of assessed value per square foot for every Oak Park residential parcel, with a data dictionary and a written note on the three joins that were ambiguous.",
+    "solves_for": "Anyone who wants to check whether their assessment is in line with comparable homes.",
+    "starter_project": "01-is-my-assessment-fair",
+    "repo_url": null, "demo_url": null,
+    "artifacts": [{"filename": "assessments-clean.csv", "url": "https://files.example/assessments.csv", "bytes": 2100000}],
+    "large_file_url": "https://drive.example/full-parcel-export", "submitted_at": "2026-10-03T14:45:00Z"
+  },
+  {
+    "id": "sub_003", "anon_id": "P-03", "team_name": "Canopy Count",
+    "project_title": "Urban Forest 10-20-30 Check",
+    "description": "A chart testing Oak Park's 18,800 public trees against the 10-20-30 diversity rule, by species, genus, and family, with the three streets most exposed to a single-species loss.",
+    "solves_for": "The Forestry division planning replacement planting.",
+    "starter_project": "11-how-resilient-is-our-urban-forest",
+    "repo_url": "https://github.com/example/canopy", "demo_url": null,
+    "artifacts": [{"filename": "diversity.png", "url": "https://files.example/diversity.png", "bytes": 310000}],
+    "large_file_url": null, "submitted_at": "2026-10-03T14:50:00Z"
+  },
+  {
+    "id": "sub_004", "anon_id": "P-04", "team_name": "Broken Link Crew",
+    "project_title": "Commission Finder",
+    "description": "A tool to match a resident interest to one of the eighteen citizen boards and commissions, with meeting schedules and application links.",
+    "solves_for": "Residents who want to serve but cannot tell the commissions apart.",
+    "starter_project": "13-what-do-our-commissions-do",
+    "repo_url": "https://github.com/example/does-not-exist-404", "demo_url": null,
+    "artifacts": [], "large_file_url": null, "submitted_at": "2026-10-03T14:55:00Z"
+  },
+  {
+    "id": "sub_005", "anon_id": "P-05", "team_name": "Quiet Submitters",
+    "project_title": "Transit Stop Audit",
+    "description": "",
+    "solves_for": "",
+    "starter_project": "06-which-bus-stops-need-help",
+    "repo_url": null, "demo_url": null,
+    "artifacts": [], "large_file_url": null, "submitted_at": "2026-10-03T14:58:00Z"
+  },
+  {
+    "id": "sub_006", "anon_id": "P-06", "team_name": "ECHO Watchers",
+    "project_title": "What ECHO Sees",
+    "description": "An aggregate view of the Village's non-police response team call types by month, with a written caution about what the categories do and do not capture.",
+    "solves_for": "Residents and trustees evaluating the ECHO program.",
+    "starter_project": "15-what-does-echo-see",
+    "repo_url": "https://github.com/example/echo", "demo_url": "https://example.com/echo",
+    "artifacts": [{"filename": "echo-calls.png", "url": "https://files.example/echo.png", "bytes": 205000}],
+    "large_file_url": null, "submitted_at": "2026-10-03T15:02:00Z"
+  }
+]
