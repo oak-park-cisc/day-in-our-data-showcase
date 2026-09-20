@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vote &middot; Day in Our Data</title>
+  <meta name="description" content="Cast your ballot for Day in Our Data. The participant vote decides the awards." />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/showcase.css" />
+  <style>
+    .ballot__error {
+      font-family: var(--display);
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--glass);
+      border-radius: var(--pane-radius);
+      padding: .75em 1em;
+      max-width: 34rem;
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="wrap">
+      <ul>
+        <li><a href="/">Showcase</a></li>
+        <li><a href="/vote.html" aria-current="page">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <h1>Vote</h1>
+    <p class="vote__lede">
+      Pick your three favourite projects. Your ballot code is on the slip you were
+      handed at check-in. One ballot per code.
+    </p>
+    <p class="ai-label">The participant vote decides the awards</p>
+
+    <form name="ballot" method="POST" data-netlify="true" id="ballot-form">
+      <input type="hidden" name="form-name" value="ballot" />
+      <label>Ballot code <input type="text" name="code" required autocomplete="off" /></label>
+      <label>First pick <select name="pick_1" required></select></label>
+      <label>Second pick <select name="pick_2" required></select></label>
+      <label>Third pick <select name="pick_3" required></select></label>
+      <p id="ballot-error" class="ballot__error" role="alert" hidden></p>
+      <button type="submit">Cast ballot</button>
+    </form>
+  </main>
+
+  <script src="scripts/vote.js"></script>
+</body>
+</html>
