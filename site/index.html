@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Day in Our Data &middot; Oak Park civic hackathon</title>
+  <meta name="description" content="A one-day civic hackathon run by the Village of Oak Park's Civic Information Systems Commission. Enter a project and browse the showcase." />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/showcase.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="wrap">
+      <ul>
+        <li><a href="/" aria-current="page">Showcase</a></li>
+        <li><a href="/vote.html">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <svg class="hero__mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 760" role="img" aria-labelledby="logo-title">
+        <title id="logo-title">Day in Our Data</title>
+
+        <g id="logo-sun">
+          <ellipse cx="348.59866333007812" cy="371.9625244140625" rx="169" ry="169" fill="#ffc629" />
+          <rect x="285.4369812011719" y="150.73817443847656" width="24" height="74" fill="#ffc629" transform="rotate(-15.7, 297.4369812011719, 187.73817443847656)" />
+          <rect x="175.5740203857422" y="221.93482971191406" width="24" height="74" fill="#ffc629" transform="rotate(-52, 187.5740203857422, 258.93482971191406)" />
+          <rect x="144.2925567626953" y="337.4511413574219" width="24" height="70" fill="#ffc629" transform="rotate(269.9, 156.2925567626953, 372.4511413574219)" />
+          <rect x="418.5943298339844" y="157.17764282226562" width="24" height="74" fill="#ffc629" transform="rotate(24.9, 430.5943298339844, 194.17764282226562)" />
+          <rect x="510.0111083984375" y="252.7369384765625" width="24" height="70" fill="#ffc629" transform="rotate(63.7, 522.0111083984375, 287.7369384765625)" />
+        </g>
+
+        <g id="logo-bars">
+          <rect x="140" y="490" width="120" height="190" fill="#1559d6" />
+          <rect x="300" y="405" width="120" height="275" fill="#1559d6" />
+          <rect x="460" y="305" width="120" height="375" fill="#1559d6" />
+        </g>
+
+        <rect x="196.895" y="539.5" width="166.21" height="26" fill="#ffffff" transform="rotate(15.71, 280, 552.5)" />
+        <rect x="317.68" y="469.5" width="244.64" height="26" fill="#ffffff" transform="rotate(-49.15, 440, 482.5)" />
+        <ellipse cx="200" cy="530" rx="22" ry="22" fill="#ffffff" />
+        <ellipse cx="360" cy="575" rx="22" ry="22" fill="#ffffff" />
+        <ellipse cx="520" cy="390" rx="22" ry="22" fill="#ffffff" />
+
+        <g id="logo-line">
+          <rect x="196.895" y="545.5" width="166.21" height="14" fill="#e53935" transform="rotate(15.71, 280, 552.5)" />
+          <rect x="317.68" y="475.5" width="244.64" height="14" fill="#e53935" transform="rotate(-49.15, 440, 482.5)" />
+          <ellipse cx="200" cy="530" rx="14" ry="14" fill="#e53935" />
+          <ellipse cx="360" cy="575" rx="14" ry="14" fill="#e53935" />
+          <ellipse cx="520" cy="390" rx="14" ry="14" fill="#e53935" />
+        </g>
+
+        <text x="630.3873291015625" y="324.33619689941406" dominant-baseline="hanging" text-anchor="start" font-family="'Jost', 'Century Gothic', 'Avenir Next', system-ui, sans-serif" font-weight="800" font-size="229.15517461262777" fill="#102a56" style="letter-spacing: 3px;">DAY IN</text>
+        <text x="634.6712036132812" y="533.2575073242188" dominant-baseline="hanging" text-anchor="start" font-family="'Jost', 'Century Gothic', 'Avenir Next', system-ui, sans-serif" font-weight="800" font-size="214.19505940413703" fill="#1559d6" style="letter-spacing: -2px;">OUR DATA</text>
+      </svg>
+
+      <p class="hero__lede">
+        One day. Oak Park's own data. Fifteen starter projects and whatever you bring.
+      </p>
+      <p class="hero__meta">
+        Saturday, October 3, 2026 &middot; Dole Branch Library
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="submit">
+      <h2>Enter your project</h2>
+      <p class="submit__lede">
+        No code required &mdash; a dataset, a map, or a well-documented question is a real
+        submission. Everyone leaves with an entry, whether or not a line of code was written.
+      </p>
+      <form name="submission" method="POST" data-netlify="true" enctype="multipart/form-data">
+        <input type="hidden" name="form-name" value="submission" />
+
+        <label>Team name <input type="text" name="team_name" required /></label>
+        <label>Project title <input type="text" name="project_title" required /></label>
+
+        <label>What did you build?
+          <textarea name="description" rows="4" required></textarea>
+        </label>
+
+        <label>What does it solve for?
+          <textarea name="solves_for" rows="3" required></textarea>
+          <small>Who has this problem, and what can they do now that they could not before?</small>
+        </label>
+
+        <label>Which starter project?
+          <select name="starter_project" required>
+            <option value="">Choose one</option>
+            <option value="01-is-my-assessment-fair">01 &middot; Is my assessment fair?</option>
+            <option value="02-where-does-my-tax-dollar-go">02 &middot; Where does my tax dollar go?</option>
+            <option value="03-where-is-business-activity-changing">03 &middot; Where is business activity changing?</option>
+            <option value="04-can-a-kid-bike-to-school-safely">04 &middot; Can a kid bike to school safely?</option>
+            <option value="05-can-i-park-here-right-now">05 &middot; Can I park here right now?</option>
+            <option value="06-which-bus-stops-need-help">06 &middot; Which bus stops need help?</option>
+            <option value="07-are-the-worst-alleys-getting-fixed">07 &middot; Are the worst alleys getting fixed?</option>
+            <option value="08-build-the-oak-park-transit-dashboard">08 &middot; Build the Oak Park transit dashboard</option>
+            <option value="09-oak-park-over-time">09 &middot; Oak Park over time</option>
+            <option value="10-how-are-our-schools-doing">10 &middot; How are our schools doing?</option>
+            <option value="11-how-resilient-is-our-urban-forest">11 &middot; How resilient is our urban forest?</option>
+            <option value="12-build-an-architecture-walking-tour">12 &middot; Build an architecture walking tour</option>
+            <option value="13-what-do-our-commissions-do">13 &middot; What do our commissions do?</option>
+            <option value="14-oak-park-crime-explorer">14 &middot; Oak Park crime data explorer</option>
+            <option value="15-what-does-echo-see">15 &middot; What does ECHO see?</option>
+            <option value="pitch-your-own">I pitched my own</option>
+          </select>
+        </label>
+
+        <label>Repository link <input type="url" name="repo_url" placeholder="https://github.com/..." /></label>
+        <label>Live demo link <input type="url" name="demo_url" /></label>
+
+        <label>One artifact
+          <input type="file" name="artifact" />
+          <small>
+            A map, a chart, a cleaned CSV, a slide, a PDF. <strong>8 MB maximum.</strong>
+            No code required &mdash; a dataset or a well-documented question is a real submission.
+          </small>
+        </label>
+
+        <label>Something bigger than 8 MB?
+          <input type="url" name="large_file_url" />
+          <small>Paste a Drive, Dropbox, or repository release link instead &mdash; uploads over
+            8 MB are rejected, so link out rather than risk losing your work to a silent failure.</small>
+        </label>
+
+        <button type="submit">Enter project</button>
+      </form>
+    </section>
+
+    <section id="showcase">
+      <h2>What teams built</h2>
+      <div id="gallery" class="gallery"></div>
+    </section>
+  </main>
+
+  <script src="scripts/escape.js"></script>
+  <script src="scripts/gallery.js"></script>
+</body>
+</html>

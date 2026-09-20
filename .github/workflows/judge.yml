@@ -1,0 +1,45 @@
+name: Run AI judging panel
+
+# workflow_dispatch only, deliberately no `schedule:` trigger. `mock`
+# defaults to true: this project's standing rule is no per-token Anthropic
+# API spend in CI (see docs/superpowers/specs/2026-09-19-day-in-our-data-showcase-design.md
+# §5.4), and a manual-dispatch default of `false` would mean a mis-click
+# bills real tokens across roughly 200-300 calls. Flip `mock` to
+# false explicitly, only when you mean to spend. Model is claude-sonnet-5
+# (owner's cost decision: ~290 calls for a 20-project event runs roughly
+# $2.00 on Sonnet 5 vs $5.00 on Opus 5 vs $1.00 on Haiku 4.5).
+on:
+  workflow_dispatch:
+    inputs:
+      mock:
+        description: "Dry run with no API calls"
+        type: boolean
+        default: true
+
+jobs:
+  judge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Run the panel
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: claude-sonnet-5
+        run: |
+          python -m judging.run_panel \
+            --submissions data/submissions.json \
+            --out data/results \
+            ${{ inputs.mock && '--mock' || '' }}
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/results
+          git diff --staged --quiet || git commit -m "chore: publish AI panel results"
+          git push

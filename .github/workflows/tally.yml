@@ -1,0 +1,122 @@
+name: Tally participant vote
+
+# workflow_dispatch only. Reads the BALLOT_CODES secret (comma-joined,
+# printed by `python -m voting.generate_codes` -- see voting/generate_codes.py)
+# to validate cast ballots; the raw code list never enters the repo (§6.1 of
+# the design spec). data/ballots.json holds only a SHA-256 hash of each
+# submitted code (see scripts/sync_netlify.py's _hash_code docstring for
+# why), so this job hashes each BALLOT_CODES entry the same way before
+# comparing -- voting/tally.py's equality checks work unchanged on hashes.
+on:
+  workflow_dispatch:
+
+jobs:
+  tally:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Tally ballots and build the crowd-vs-panel comparison
+        env:
+          BALLOT_CODES: ${{ secrets.BALLOT_CODES }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sys
+          from datetime import datetime
+          from pathlib import Path
+
+          from voting.compare import build_comparison
+          from voting.ranking import ranking_summary
+          from voting.tally import Ballot, tally
+
+          def hash_code(code: str) -> str:
+              return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
+
+          # Both files are written by sync-submissions.yml. Fail with one clear
+          # line naming the fix, rather than a bare FileNotFoundError traceback,
+          # if this job is ever dispatched before that workflow has run once.
+          missing = [p for p in ("data/submissions.json", "data/ballots.json") if not Path(p).exists()]
+          if missing:
+              print(
+                  f"tally.yml: missing {', '.join(missing)}. "
+                  "Run the 'Sync Netlify submissions' workflow (sync-submissions.yml) "
+                  "at least once before dispatching tally.yml.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          submissions = json.loads(Path("data/submissions.json").read_text())
+          known_ids = {s["id"] for s in submissions}
+          id_of = {s["anon_id"]: s["id"] for s in submissions}
+
+          raw_ballots = json.loads(Path("data/ballots.json").read_text())
+          ballots = [
+              Ballot(
+                  code=b["code_hash"],
+                  picks=b["picks"],
+                  cast_at=datetime.fromisoformat(b["cast_at"].replace("Z", "+00:00")),
+              )
+              for b in raw_ballots
+          ]
+
+          codes = os.environ.get("BALLOT_CODES", "")
+          valid_code_hashes = {hash_code(c) for c in codes.split(",") if c.strip()}
+
+          result = tally(ballots, valid_code_hashes, known_ids)
+
+          out_dir = Path("data/results")
+          out_dir.mkdir(parents=True, exist_ok=True)
+
+          # Ties share a rank; a tie on the gift-card boundary is flagged here
+          # so CISC can decide it (§6.3). The tally never invents a tiebreak.
+          ranks = ranking_summary(result.counts)
+          (out_dir / "vote.json").write_text(json.dumps({
+              "counts": result.counts,
+              "ranking": ranks["ranking"],
+              "ranks": ranks["ranks"],
+              "ties": ranks["ties"],
+              "award_count": ranks["award_count"],
+              "award_boundary_tie": ranks["award_boundary_tie"],
+              "award_boundary_tie_ids": ranks["award_boundary_tie_ids"],
+              "valid": result.valid,
+              "invalid": result.invalid,
+              "indicative": result.indicative,
+          }, indent=2))
+
+          bracket_path = out_dir / "bracket.json"
+          scores_path = out_dir / "scores.json"
+          if bracket_path.exists() and scores_path.exists():
+              bracket_ranking = json.loads(bracket_path.read_text())["ranking"]
+              scores = json.loads(scores_path.read_text())["scores"]
+              comparison = build_comparison(result, scores, bracket_ranking, id_of)
+          else:
+              # judge.yml has not run yet -- publish the crowd side alone rather
+              # than fail the whole tally. results.html tolerates a missing
+              # panel_ranking/spearman by rendering its "not available" fallback.
+              #
+              # This calls build_comparison with empty scores and an empty
+              # ranking rather than hand-building the dict. The hand-built copy
+              # that used to live here had already drifted from the real one,
+              # and -- worse -- it set "caveat" unconditionally, overwriting
+              # §6.4's required indicative-only disclosure: a 9-valid-ballot
+              # result published with no caveat at all. The panel note is
+              # appended to `notes`, which is additive by construction.
+              comparison = build_comparison(result, {}, [], id_of)
+              comparison["notes"].append("AI panel results are not published yet.")
+          (out_dir / "comparison.json").write_text(json.dumps(comparison, indent=2, default=str))
+          PY
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/results
+          git diff --staged --quiet || git commit -m "chore: publish participant vote tally"
+          git push

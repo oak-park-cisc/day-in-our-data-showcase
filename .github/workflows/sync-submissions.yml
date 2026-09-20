@@ -1,0 +1,41 @@
+name: Sync Netlify submissions
+
+# Every 15 minutes during Saturday event hours (16:00-21:59 UTC = 11 a.m.-
+# 4:59 p.m. Central on 2026-10-03), plus on-demand via workflow_dispatch.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 16-21 * * 6"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Sync submissions and ballots from Netlify Forms
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          # Only needed if the token can see same-named forms on more than
+          # one site (scripts/sync_netlify.py's resolve_form_id uses it to
+          # disambiguate); unset here means an unset secret, which the
+          # script already treats as "no site filter." Declaring it is what
+          # makes the secret reachable at all -- an env var not listed here
+          # is invisible to the script no matter what secret is set.
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: python scripts/sync_netlify.py --data-dir data
+      - name: Commit synced data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # data/id_map.json is what keeps a submission's public sub_NNN
+          # stable when another submission is deleted. If it is not committed,
+          # the next sync renumbers everything and every cast ballot re-points
+          # (scripts/sync_netlify.py's assign_public_numbers).
+          git add data/submissions.json data/ballots.json data/id_map.json
+          git diff --staged --quiet || git commit -m "chore: sync submissions and ballots from Netlify"
+          git push

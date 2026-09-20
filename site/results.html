@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Results &middot; Day in Our Data</title>
+  <meta name="description" content="The resident vote beside the AI judging panel's ranking for Day in Our Data. The participant vote decides the awards; the panel decides nothing." />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/showcase.css" />
+  <link rel="stylesheet" href="styles/bracket.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="wrap">
+      <ul>
+        <li><a href="/">Showcase</a></li>
+        <li><a href="/vote.html">Vote</a></li>
+        <li><a href="/results.html" aria-current="page">Results</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <h1>Results</h1>
+
+    <section id="comparison">
+      <h2>What the crowd chose, and what the machines chose</h2>
+      <p class="results__standing">
+        <strong>The participant vote decides the awards.</strong>
+        The AI panel below ran independently and decides nothing.
+      </p>
+      <p class="ai-label">Panel scores are AI-generated</p>
+      <p class="ai-method">Repository contents were not fetched: the panel read each team's
+        submitted description and artifact list, and nothing else.</p>
+      <div id="agreement"></div>
+      <div class="scroll-x"><table id="side-by-side"></table></div>
+      <div class="scroll-x"><table id="per-persona"></table></div>
+    </section>
+
+    <section id="bracket">
+      <h2>The panel's bracket</h2>
+      <p class="ai-label">AI-generated</p>
+      <p class="ai-method">Same evidence as above: submitted text and artifacts only,
+        with repository contents not fetched.</p>
+      <div class="scroll-x"><div id="glass" class="glass"></div></div>
+    </section>
+  </main>
+
+  <script src="scripts/escape.js"></script>
+  <script src="scripts/results.js"></script>
+</body>
+</html>
