@@ -24,6 +24,12 @@
 
 .agreement--empty { color: var(--canopy); font-weight: 400; }
 
+.agreement__basis {
+  color: var(--canopy);
+  font-size: .9rem;
+  margin: 0 0 1em;
+}
+
 .agreement__caveat {
   color: var(--canopy);
   font-size: .9rem;

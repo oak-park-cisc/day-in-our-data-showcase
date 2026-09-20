@@ -4,7 +4,14 @@ import argparse
 import json
 from pathlib import Path
 
-from judging.bracket import Pairing, SeedEntry, build_rounds, mean_score, seed_entries
+from judging.bracket import (
+    Pairing,
+    SeedEntry,
+    build_rounds,
+    finish_order,
+    mean_score,
+    seed_entries,
+)
 from judging.client import JudgeClient, MockJudgeClient
 from judging.models import Submission, load_submissions
 from judging.pass1 import score_all
@@ -42,12 +49,19 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
     ]
     seeded = seed_entries(entries)
     seed_of = {e.anon_id: i + 1 for i, e in enumerate(seeded)}
-    ranking = [e.anon_id for e in seeded]
+    # Pass-1 seeding order. It is NOT the published ranking when a bracket is
+    # played -- see the finish_order() call below -- but it is kept in
+    # bracket.json so the seeding can be audited against the finish.
+    seed_ranking = [e.anon_id for e in seeded]
 
     if len(seeded) < MIN_BRACKET:
+        # Fewer than four entrants: no bracket is played, so there is no
+        # finish to rank by and the seed order IS the ranking (spec §8,
+        # "Bracket degrades to a ranked list").
         _write(out_dir / "bracket.json", {
             "model_generated": True, "mode": "ranked_list",
-            "ranking": ranking, "champion": ranking[0] if ranking else None, "rounds": [],
+            "ranking": seed_ranking, "seed_ranking": seed_ranking,
+            "champion": seed_ranking[0] if seed_ranking else None, "rounds": [],
         })
         return
 
@@ -95,8 +109,14 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
         ]
         round_no += 1
 
+    # The published ranking is the bracket's FINISH order, not the seeding.
+    # Pass 2 is ~130 of the panel's ~200 calls; ranking by seed would mean
+    # none of them reached the page, and the "Panel chose" column could name
+    # a different project than the champion pane directly below it.
     _write(out_dir / "bracket.json", {
-        "model_generated": True, "mode": "bracket", "ranking": ranking,
+        "model_generated": True, "mode": "bracket",
+        "ranking": finish_order(rounds_out, seed_of, champion),
+        "seed_ranking": seed_ranking,
         "seeds": seed_of, "rounds": rounds_out, "champion": champion,
     })
 

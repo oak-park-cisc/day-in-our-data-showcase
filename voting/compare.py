@@ -65,6 +65,20 @@ def build_comparison(
     # this is here to prevent.
     crowd_rank = ranking_summary(crowd, award_count=award_count)
 
+    # The panel's published ranking is its BRACKET FINISH (judging/bracket.py's
+    # finish_order), so that is what the headline coefficient correlates
+    # against. Ranks are turned into higher-is-better values by negating the
+    # position, because spearman() ranks descending like the crowd counts it
+    # is being compared with. Correlating mean score instead would leave pass
+    # 2 -- ~130 of the panel's ~200 calls -- out of the published finding
+    # entirely; the mean-based coefficient is kept below as `spearman_by_mean`,
+    # the labelled secondary view.
+    panel_finish = {
+        id_of[anon_id]: -(position + 1)
+        for position, anon_id in enumerate(bracket_ranking)
+        if anon_id in id_of
+    }
+
     # Translate the panel's per-anon_id means into the public namespace.
     # This is the only place scores cross from the panel's blind ids into
     # submission ids - get it wrong and every later lookup misses.
@@ -95,7 +109,9 @@ def build_comparison(
         "crowd_counts": crowd,
         "panel_ranking": [id_of[anon_id] for anon_id in bracket_ranking if anon_id in id_of],
         "panel_means": panel_by_id,
-        "spearman": _rounded(spearman(crowd, panel_by_id)),
+        "spearman": _rounded(spearman(crowd, panel_finish)),
+        "spearman_basis": "bracket finish",
+        "spearman_by_mean": _rounded(spearman(crowd, panel_by_id)),
         "per_persona": per_persona,
         "n": result.valid,
         "invalid_ballots": result.invalid,

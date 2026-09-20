@@ -55,6 +55,12 @@ function renderAgreement(comparison, byPublic) {
         String(comparison.n ?? 0)
       )} ballots.`
     : "Not enough variation to measure agreement.";
+  // Spec §7: the panel's ranking is its bracket finish, with mean persona
+  // score as the secondary view. Saying which ordering the coefficient is
+  // computed over is the difference between a statistic and a number.
+  const basis = hasRho
+    ? `<p class="agreement__basis">Resident vote order against the panel's bracket finish.</p>`
+    : "";
   const caveat = comparison.caveat
     ? `<p class="agreement__caveat">${escapeHtml(comparison.caveat)}</p>`
     : "";
@@ -67,6 +73,7 @@ function renderAgreement(comparison, byPublic) {
     : "";
   document.getElementById("agreement").innerHTML = `
     <p class="agreement${hasRho ? "" : " agreement--empty"}">${headline}</p>
+    ${basis}
     ${caveat}
     ${boundary}`;
 
@@ -99,7 +106,7 @@ function renderAgreement(comparison, byPublic) {
     })
     .join("");
   document.getElementById("side-by-side").innerHTML = `
-    <caption>Crowd ranking beside the panel's</caption>
+    <caption>Crowd ranking beside the panel's bracket finish</caption>
     <thead><tr><th>#</th><th>Residents chose</th><th>Votes</th><th>Panel chose</th><th>Panel mean</th></tr></thead>
     <tbody>${rows}</tbody>`;
 
