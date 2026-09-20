@@ -32,7 +32,9 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
         "means": {a: mean_score(p) for a, p in pass1.scores.items() if p},
     })
     for anon, personas in pass1.justifications.items():
-        _write(out_dir / "transcripts" / f"score-{anon}.json", personas)
+        _write(out_dir / "transcripts" / f"score-{anon}.json", {
+            "model_generated": True, "anon_id": anon, "justifications": personas,
+        })
 
     entries = [
         SeedEntry(anon_id=s.anon_id, scores=pass1.scores[s.anon_id], submitted_at=s.submitted_at)
@@ -73,7 +75,9 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
             })
             advancing.append(record.winner)
         rounds_out.append(played)
-        _write(out_dir / "transcripts" / f"round-{round_no}.json", played)
+        _write(out_dir / "transcripts" / f"round-{round_no}.json", {
+            "model_generated": True, "round": round_no, "matchups": played,
+        })
 
         # Guard: an empty `advancing` must never reach pairing construction or
         # a final `advancing[0]` lookup. Only a non-empty, single-entry

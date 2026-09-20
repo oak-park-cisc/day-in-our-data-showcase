@@ -42,3 +42,23 @@ def test_fewer_than_four_submissions_degrades_to_a_ranked_list(tmp_path: Path):
     bracket = json.loads((tmp_path / "bracket.json").read_text())
     assert bracket["mode"] == "ranked_list"
     assert len(bracket["ranking"]) == 3
+
+
+def test_every_transcript_file_carries_the_model_generated_flag(tmp_path: Path):
+    subs = load_submissions(FIXTURES / "submissions.json")
+    run(subs, MockJudgeClient(responses(len(subs))), tmp_path)
+
+    score_files = sorted((tmp_path / "transcripts").glob("score-*.json"))
+    round_files = sorted((tmp_path / "transcripts").glob("round-*.json"))
+    assert score_files, "expected at least one score transcript"
+    assert round_files, "expected at least one round transcript"
+
+    for path in score_files:
+        payload = json.loads(path.read_text())
+        assert payload["model_generated"] is True
+        assert "justifications" in payload
+
+    for path in round_files:
+        payload = json.loads(path.read_text())
+        assert payload["model_generated"] is True
+        assert "matchups" in payload
