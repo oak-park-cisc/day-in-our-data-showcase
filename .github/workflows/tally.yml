@@ -34,6 +34,7 @@ jobs:
           from pathlib import Path
 
           from voting.compare import build_comparison
+          from voting.ranking import ranking_summary
           from voting.tally import Ballot, tally
 
           def hash_code(code: str) -> str:
@@ -73,8 +74,18 @@ jobs:
 
           out_dir = Path("data/results")
           out_dir.mkdir(parents=True, exist_ok=True)
+
+          # Ties share a rank; a tie on the gift-card boundary is flagged here
+          # so CISC can decide it (§6.3). The tally never invents a tiebreak.
+          ranks = ranking_summary(result.counts)
           (out_dir / "vote.json").write_text(json.dumps({
               "counts": result.counts,
+              "ranking": ranks["ranking"],
+              "ranks": ranks["ranks"],
+              "ties": ranks["ties"],
+              "award_count": ranks["award_count"],
+              "award_boundary_tie": ranks["award_boundary_tie"],
+              "award_boundary_tie_ids": ranks["award_boundary_tie_ids"],
               "valid": result.valid,
               "invalid": result.invalid,
               "indicative": result.indicative,

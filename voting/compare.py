@@ -10,6 +10,7 @@ every downstream lookup misses silently.
 """
 from __future__ import annotations
 
+from voting.ranking import DEFAULT_AWARD_COUNT, ranking_summary
 from voting.stats import spearman
 from voting.tally import TallyResult
 
@@ -40,6 +41,7 @@ def build_comparison(
     scores: dict[str, dict[str, int]],
     bracket_ranking: list[str],
     id_of: dict[str, str],
+    award_count: int = DEFAULT_AWARD_COUNT,
 ) -> dict:
     """Crowd ranking beside the panel's, with agreement statistics.
 
@@ -51,11 +53,17 @@ def build_comparison(
         id_of: anon_id -> submission id. The one translation point between
             the panel's blind namespace and the public namespace the site
             renders.
+        award_count: how many projects receive gift cards. Not fixed by the
+            spec - see voting/ranking.py's module docstring.
 
     Everything in the returned dict is keyed by submission id.
     """
     crowd = dict(result.counts)
-    crowd_ranking = sorted(crowd, key=lambda s: (-crowd[s], s))
+    # Ties share a rank and are never broken by submission id (spec 6.3).
+    # `crowd_ranking` is display order only; `crowd_ranks` is what says who
+    # placed where, and a renderer that ignores it re-invents the ordinals
+    # this is here to prevent.
+    crowd_rank = ranking_summary(crowd, award_count=award_count)
 
     # Translate the panel's per-anon_id means into the public namespace.
     # This is the only place scores cross from the panel's blind ids into
@@ -78,7 +86,12 @@ def build_comparison(
     return {
         "model_generated_panel": True,
         "awards_determined_by": "participant vote",
-        "crowd_ranking": crowd_ranking,
+        "crowd_ranking": crowd_rank["ranking"],
+        "crowd_ranks": crowd_rank["ranks"],
+        "crowd_ties": crowd_rank["ties"],
+        "award_count": crowd_rank["award_count"],
+        "award_boundary_tie": crowd_rank["award_boundary_tie"],
+        "award_boundary_tie_ids": crowd_rank["award_boundary_tie_ids"],
         "crowd_counts": crowd,
         "panel_ranking": [id_of[anon_id] for anon_id in bracket_ranking if anon_id in id_of],
         "panel_means": panel_by_id,

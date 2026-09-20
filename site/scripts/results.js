@@ -12,6 +12,11 @@
 // Every piece of participant- or model-supplied text (titles, team names,
 // the caveat, persona names, reasoning) is routed through escapeHtml()
 // before it reaches innerHTML. That data is hostile by default.
+//
+// RANKS ARE DATA, NOT ROW NUMBERS. The "#" column reads comparison.crowd_ranks
+// (spec §6.3: tied projects share a rank and are displayed as tied). Rendering
+// the row index instead would publish two projects on identical vote counts as
+// 3rd and 4th — an order that came from nothing but who filed first.
 
 async function loadJSON(path) {
   const response = await fetch(path, { cache: "no-store" });
@@ -36,6 +41,10 @@ function titleOf(map, id) {
   return entry && entry.title ? entry.title : id;
 }
 
+function titleList(map, ids) {
+  return (ids || []).map((id) => escapeHtml(titleOf(map, id))).join(", ");
+}
+
 // ---- comparison ----
 
 function renderAgreement(comparison, byPublic) {
@@ -49,14 +58,27 @@ function renderAgreement(comparison, byPublic) {
   const caveat = comparison.caveat
     ? `<p class="agreement__caveat">${escapeHtml(comparison.caveat)}</p>`
     : "";
+  // §6.3: the tally never breaks a tie that decides a gift card. It says so
+  // on the page and hands the decision to CISC.
+  const boundary = comparison.award_boundary_tie
+    ? `<p class="agreement__boundary"><strong>A tie falls on the gift-card boundary.</strong>
+        ${titleList(byPublic, comparison.award_boundary_tie_ids)} finished level on votes.
+        The participant vote does not break that tie — CISC decides.</p>`
+    : "";
   document.getElementById("agreement").innerHTML = `
     <p class="agreement${hasRho ? "" : " agreement--empty"}">${headline}</p>
-    ${caveat}`;
+    ${caveat}
+    ${boundary}`;
 
   const crowdRanking = comparison.crowd_ranking || [];
   const panelRanking = comparison.panel_ranking || [];
   const crowdCounts = comparison.crowd_counts || {};
   const panelMeans = comparison.panel_means || {};
+  // crowd_ranks is authoritative for placing; the row index is only a
+  // fallback for comparison.json files written before ties were modelled.
+  const crowdRanks = comparison.crowd_ranks || {};
+  const tiedIds = new Set();
+  (comparison.crowd_ties || []).forEach((group) => group.forEach((id) => tiedIds.add(id)));
   const rows = crowdRanking
     .map((id, i) => {
       const panelAt = panelRanking[i];
@@ -65,8 +87,10 @@ function renderAgreement(comparison, byPublic) {
       // cell (panelAt), not by the crowd's pick (id) — those are two
       // different projects whenever the rankings disagree.
       const mean = panelAt ? panelMeans[panelAt] : undefined;
+      const rank = crowdRanks[id] === undefined ? i + 1 : crowdRanks[id];
+      const tie = tiedIds.has(id) ? ' <span class="rank__tie">tied</span>' : "";
       return `<tr>
-        <td class="rank">${i + 1}</td>
+        <td class="rank">${escapeHtml(String(rank))}${tie}</td>
         <td>${escapeHtml(titleOf(byPublic, id))}</td>
         <td>${count === undefined ? "—" : escapeHtml(String(count))}</td>
         <td>${panelAt ? escapeHtml(titleOf(byPublic, panelAt)) : "—"}</td>

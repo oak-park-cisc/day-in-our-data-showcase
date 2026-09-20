@@ -156,3 +156,46 @@ def test_succeeds_with_full_comparison_when_judge_results_already_exist(tmp_path
     assert comparison["panel_ranking"] == ["sub_001", "sub_002", "sub_003"]
     assert comparison["panel_means"]["sub_001"] == 4.0
     assert comparison["caveat"] != "AI panel results are not published yet."
+
+
+# ---- C1: vote.json carries the tie information CISC needs (spec §6.3) ----
+
+
+def _write_tied_fixture_data(data_dir: Path) -> None:
+    """Three ballots over four projects, engineered so sub_002, sub_003 and
+    sub_004 all finish on two votes -- a three-way tie for second that spans
+    positions 2, 3 and 4 and therefore straddles the third gift card."""
+    data_dir.mkdir()
+    (data_dir / "submissions.json").write_text(json.dumps([
+        {"id": f"sub_00{i}", "anon_id": f"P-0{i}"} for i in range(1, 5)
+    ]), encoding="utf-8")
+    ballots = [
+        {"code_hash": _hash_code("CODE001"),
+         "picks": ["sub_001", "sub_002", "sub_003"],
+         "cast_at": "2026-10-03T16:05:00Z"},
+        {"code_hash": _hash_code("CODE002"),
+         "picks": ["sub_001", "sub_002", "sub_004"],
+         "cast_at": "2026-10-03T16:06:00Z"},
+        {"code_hash": _hash_code("CODE003"),
+         "picks": ["sub_001", "sub_003", "sub_004"],
+         "cast_at": "2026-10-03T16:07:00Z"},
+    ]
+    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+
+
+def test_vote_json_shares_a_rank_for_tied_projects_and_flags_the_award_boundary(tmp_path):
+    data_dir = tmp_path / "data"
+    _write_tied_fixture_data(data_dir)
+
+    result = _run_script(tmp_path)
+    assert result.returncode == 0, result.stderr
+
+    vote = json.loads((data_dir / "results" / "vote.json").read_text())
+    assert vote["counts"] == {"sub_001": 3, "sub_002": 2, "sub_003": 2, "sub_004": 2}
+    # Shared rank, not 2/3/4 by submission id.
+    assert vote["ranks"] == {"sub_001": 1, "sub_002": 2, "sub_003": 2, "sub_004": 2}
+    assert vote["ties"] == [["sub_002", "sub_003", "sub_004"]]
+    # Three gift cards, three projects tied across the third -- CISC decides.
+    assert vote["award_count"] == 3
+    assert vote["award_boundary_tie"] is True
+    assert vote["award_boundary_tie_ids"] == ["sub_002", "sub_003", "sub_004"]
