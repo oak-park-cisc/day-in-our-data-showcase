@@ -9,8 +9,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: pip install -e ".[dev]"
       - run: python -m pytest tests/ -v
         env:
           CI: "true"
           # ANTHROPIC_API_KEY deliberately unset - see tests/test_environment.py
+      # tests/js is the ONLY automated guard on the rendering layer of
+      # results.html -- including the escaping assertions that closed this
+      # project's one Critical finding. It needs no install: node:test and
+      # node:vm are both built in.
+      #
+      # The glob is required. `node --test tests/js` (the bare directory)
+      # fails with MODULE_NOT_FOUND on Node 20.19+/22+/24, where the bare
+      # path is resolved as a module specifier rather than walked for test
+      # files. tests/test_ci_workflow.py pins both the glob and the fact
+      # that every file in tests/js matches it.
+      - run: node --test tests/js/*.test.js

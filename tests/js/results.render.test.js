@@ -7,7 +7,10 @@
 // gallery.js/vote.js (commit 836c6b9): it runs the real, unmodified script —
 // no test-only exports, no duplicated logic — and inspects what it writes.
 //
-// Run with: node --test tests/js
+// Run with: node --test tests/js/*.test.js
+// (The glob is required: the bare directory form `node --test tests/js`
+// fails with MODULE_NOT_FOUND on Node 20.19+/22+/24. .github/workflows/ci.yml
+// runs this suite with the glob form.)
 
 const fs = require("node:fs");
 const path = require("node:path");
