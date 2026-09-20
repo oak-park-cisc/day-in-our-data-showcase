@@ -179,7 +179,10 @@ def test_build_submissions_empty_optional_fields_become_none_not_empty_string():
 
 
 def test_missing_artifact_field_yields_empty_artifacts_list():
-    raw = [{"created_at": "2026-10-03T15:00:00Z", "data": {}}]
+    # A Netlify `id` is now required on every raw submission: it is what
+    # keeps the public sub_NNN stable when another submission is deleted
+    # (see tests/test_sync_stable_ids.py).
+    raw = [{"id": "nl-x", "created_at": "2026-10-03T15:00:00Z", "data": {}}]
     submissions = sync_netlify.build_submissions(raw)
     assert submissions[0]["artifacts"] == []
 

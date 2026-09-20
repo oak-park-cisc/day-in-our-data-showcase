@@ -43,7 +43,25 @@ schedule:
 `data/` is committed (seeded with an empty `data/submissions.json` before
 the event) and copied into the Netlify publish directory at build time,
 because the site fetches everything from absolute `/data/...` paths.
-`site/data/` is the build-time copy and stays gitignored.
+`site/data/` is the build-time copy and stays gitignored. `data/ballots.json`
+is deliberately stripped from that copy so cast ballots are never served at a
+public URL.
+
+### Deleting a submission after voting opens
+
+Ballots record the public id (`sub_003`) of each project a voter picked, so a
+public id must mean the same project forever. `data/id_map.json` — written and
+committed by `sync-submissions.yml` — pins each Netlify submission to the
+number it was issued, and that number is never reused, even after the
+submission is deleted.
+
+**Do not hand-edit `data/id_map.json` or `data/submissions.json`, and do not
+delete a submission from Netlify after the showcase publishes without checking
+the tally afterwards.** If that mapping is ever bypassed or lost, the ids shift
+down, ballots cast for one project start counting for another, and nothing
+errors — the awards are simply wrong. The safe way to remove a spam entry once
+voting has begun is to leave it in place and exclude it at the tally, or to
+delete it and confirm `data/id_map.json` still holds its old number.
 
 ## Ground rules inherited from the event
 

@@ -32,6 +32,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/submissions.json data/ballots.json
+          # data/id_map.json is what keeps a submission's public sub_NNN
+          # stable when another submission is deleted. If it is not committed,
+          # the next sync renumbers everything and every cast ballot re-points
+          # (scripts/sync_netlify.py's assign_public_numbers).
+          git add data/submissions.json data/ballots.json data/id_map.json
           git diff --staged --quiet || git commit -m "chore: sync submissions and ballots from Netlify"
           git push

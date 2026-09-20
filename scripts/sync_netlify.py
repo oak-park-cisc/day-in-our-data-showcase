@@ -33,6 +33,9 @@ from typing import Any, Callable
 NETLIFY_API = "https://api.netlify.com/api/v1"
 SUBMISSION_FORM_NAME = "submission"
 BALLOT_FORM_NAME = "ballot"
+#: Committed alongside submissions.json. Maps each Netlify submission id to
+#: the public number it was issued, permanently. See assign_public_numbers.
+ID_MAP_FILENAME = "id_map.json"
 
 GetJSON = Callable[..., Any]
 
@@ -126,11 +129,12 @@ def _or_none(value: Any) -> str | None:
 def map_submission(raw: dict, index: int) -> dict:
     """Map one raw Netlify submission to the §4.1 Submission shape.
 
-    `index` is the submission's 1-based rank by submitted_at across the
-    whole batch; it drives both `id` (sub_NNN, the public namespace) and
-    `anon_id` (P-NN, the panel's blind namespace), assigned from the same
-    ordering so the two stay in lockstep the way tests/fixtures/submissions.json
-    already does (sub_001 <-> P-01, sub_002 <-> P-02, ...).
+    `index` is this submission's permanent public number (see
+    assign_public_numbers); it drives both `id` (sub_NNN, the public
+    namespace) and `anon_id` (P-NN, the panel's blind namespace), assigned
+    from the same number so the two stay in lockstep the way
+    tests/fixtures/submissions.json already does (sub_001 <-> P-01,
+    sub_002 <-> P-02, ...).
     """
     data = raw.get("data", {}) or {}
     artifact = _artifact_from(data.get("artifact"))
@@ -150,9 +154,76 @@ def map_submission(raw: dict, index: int) -> dict:
     }
 
 
-def build_submissions(raw_submissions: list[dict]) -> list[dict]:
+def load_id_map(path: Path) -> dict[str, int]:
+    """Read the committed Netlify-id -> public-number map, or {} on first run.
+
+    A map that exists but cannot be read is a hard error: silently falling
+    back to {} would renumber every submission, which is precisely the
+    failure this file exists to prevent.
+    """
+    path = Path(path)
+    if not path.exists():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise NetlifySyncError(f"{path} is not readable JSON: {exc}") from exc
+    if not isinstance(loaded, dict) or not all(isinstance(v, int) for v in loaded.values()):
+        raise NetlifySyncError(f"{path} is not a mapping of submission id -> integer.")
+    return loaded
+
+
+def assign_public_numbers(
+    raw_submissions: list[dict], existing: dict[str, int] | None = None
+) -> dict[str, int]:
+    """Netlify submission id -> permanent public number.
+
+    A submission's public number is assigned once and never changes, because
+    ballots store the public id (sub_NNN) captured at vote time. Index-based
+    numbering -- sort by created_at, number 1..N -- means that deleting ONE
+    submission shifts every later one down, and every ballot naming sub_005
+    silently starts counting for a different project. Spec §2.1 puts deleting
+    a submission in scope as an admin action, and a public civic form will
+    attract spam that someone will delete, so this is a matter of when.
+
+    The returned map is a superset of `existing`: numbers issued to
+    submissions that have since been deleted are RETAINED, so a deleted
+    number is never reissued to a later team (which would be the same bug
+    wearing a different hat). New submissions take the next free numbers in
+    created_at order.
+
+    A submission with no Netlify `id` raises rather than falling back to
+    positional numbering.
+    """
+    numbers = dict(existing or {})
     ordered = sorted(raw_submissions, key=lambda r: r.get("created_at") or "")
-    return [map_submission(r, i + 1) for i, r in enumerate(ordered)]
+    next_number = max(numbers.values(), default=0) + 1
+    for raw in ordered:
+        netlify_id = raw.get("id")
+        if not netlify_id:
+            raise NetlifySyncError(
+                "A Netlify submission arrived with no `id`; refusing to assign public "
+                "ids positionally, because that silently re-points cast ballots."
+            )
+        if netlify_id not in numbers:
+            numbers[netlify_id] = next_number
+            next_number += 1
+    return numbers
+
+
+def build_submissions(
+    raw_submissions: list[dict], numbers: dict[str, int] | None = None
+) -> list[dict]:
+    """The §4.1 records, in created_at order, with stable public ids.
+
+    `numbers` is the merged map from assign_public_numbers. Omitting it
+    numbers this batch from scratch, which is only correct for a one-off or
+    a first run -- sync() always passes the committed map.
+    """
+    if numbers is None:
+        numbers = assign_public_numbers(raw_submissions)
+    ordered = sorted(raw_submissions, key=lambda r: r.get("created_at") or "")
+    return [map_submission(r, numbers[r["id"]]) for r in ordered]
 
 
 def _hash_code(code: str) -> str:
@@ -275,9 +346,14 @@ def sync(token: str, data_dir: Path, site_id: str | None = None, get_json: GetJS
     raw_submissions = get_json(f"{NETLIFY_API}/forms/{submission_form_id}/submissions", token)
     raw_ballots = get_json(f"{NETLIFY_API}/forms/{ballot_form_id}/submissions", token)
 
-    submissions = build_submissions(raw_submissions)
+    # The committed map is what makes sub_NNN survive a deleted submission.
+    # It is read before anything is written and written back merged, never
+    # pruned.
+    numbers = assign_public_numbers(raw_submissions, load_id_map(data_dir / ID_MAP_FILENAME))
+    submissions = build_submissions(raw_submissions, numbers)
     ballots = build_ballots(raw_ballots)
 
+    _write_json(data_dir / ID_MAP_FILENAME, numbers)
     _write_json(data_dir / "submissions.json", submissions)
     _write_json(data_dir / "ballots.json", ballots)
 
@@ -299,7 +375,10 @@ def main() -> int:
         print(f"Netlify sync failed: {exc}", file=sys.stderr)
         return 1
 
-    print(f"Wrote {args.data_dir / 'submissions.json'} and {args.data_dir / 'ballots.json'}")
+    print(
+        f"Wrote {args.data_dir / 'submissions.json'}, "
+        f"{args.data_dir / 'ballots.json'} and {args.data_dir / ID_MAP_FILENAME}"
+    )
     return 0
 
 
