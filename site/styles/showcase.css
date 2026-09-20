@@ -1,0 +1,190 @@
+/* site/styles/showcase.css */
+
+/* ---- hero ---- */
+
+.hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  padding: calc(var(--gap) * 2) 0 var(--gap);
+  text-align: center;
+}
+
+.hero__mark {
+  display: block;
+  width: 100%;
+  max-width: min(100%, 42rem);
+  height: auto;
+  margin: 0 auto var(--gap);
+}
+
+.hero__lede {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  color: var(--ink);
+  max-width: 42rem;
+  margin: 0 auto .5em;
+}
+
+.hero__meta {
+  font: 600 var(--step-0)/1.4 var(--body);
+  color: var(--canopy);
+  margin: 0;
+}
+
+/* ---- hero animation: runs once on load, suppressed under prefers-reduced-motion ---- */
+
+#logo-bars rect {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: bar-rise .6s cubic-bezier(.2, .8, .2, 1) backwards;
+}
+#logo-bars rect:nth-child(1) { animation-delay: .1s; }
+#logo-bars rect:nth-child(2) { animation-delay: .25s; }
+#logo-bars rect:nth-child(3) { animation-delay: .4s; }
+
+@keyframes bar-rise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+#logo-line {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: line-draw .7s ease-out .55s backwards;
+}
+
+@keyframes line-draw {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+#logo-sun rect {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ray-ease .5s ease-out backwards;
+}
+#logo-sun rect:nth-of-type(1) { animation-delay: 0s; }
+#logo-sun rect:nth-of-type(2) { animation-delay: .08s; }
+#logo-sun rect:nth-of-type(3) { animation-delay: .16s; }
+#logo-sun rect:nth-of-type(4) { animation-delay: .24s; }
+#logo-sun rect:nth-of-type(5) { animation-delay: .32s; }
+
+@keyframes ray-ease {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #logo-bars rect, #logo-line, #logo-sun rect {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---- submission form ---- */
+
+#submit { padding: calc(var(--gap) * 2) 0; }
+
+.submit__lede {
+  max-width: 42rem;
+  color: var(--canopy);
+}
+
+form[name="submission"], form[name="ballot"] {
+  display: grid;
+  gap: var(--gap);
+  max-width: 34rem;
+}
+
+form label {
+  display: grid;
+  gap: .4em;
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+form input[type="text"],
+form input[type="url"],
+form input[type="file"],
+form select,
+form textarea {
+  width: 100%;
+  font: var(--step-0)/1.5 var(--body);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--pane-radius);
+  padding: .6em .7em;
+}
+
+form small {
+  font-weight: 400;
+  color: var(--canopy);
+  font-size: .85rem;
+}
+
+form button[type="submit"] {
+  justify-self: start;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: var(--step-0);
+  color: #ffffff;
+  background: var(--civic);
+  border: none;
+  border-radius: var(--pane-radius);
+  padding: .75em 1.75em;
+  cursor: pointer;
+}
+
+form button[type="submit"]:hover { background: var(--ink); }
+
+/* ---- showcase gallery ---- */
+
+#showcase { padding-bottom: calc(var(--gap) * 3); }
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--gap);
+}
+
+.gallery__empty {
+  color: var(--canopy);
+  font-family: var(--display);
+  font-weight: 700;
+}
+
+.pane {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--sprout);
+  border-radius: var(--pane-radius);
+  padding: var(--gap);
+}
+
+.pane h3 { margin-bottom: .25em; }
+
+.pane__team {
+  font: 600 .85rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--canopy);
+  margin: 0 0 .75em;
+}
+
+.pane__solves { color: var(--canopy); }
+
+.pane__links a {
+  margin-right: 1em;
+  font-weight: 600;
+}
+
+/* ---- responsive ---- */
+
+@media (max-width: 40rem) {
+  .hero { padding: var(--gap) 0; }
+  form[name="submission"], form[name="ballot"] { max-width: none; }
+}
