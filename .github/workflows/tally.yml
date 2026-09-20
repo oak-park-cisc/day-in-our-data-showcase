@@ -101,20 +101,16 @@ jobs:
               # judge.yml has not run yet -- publish the crowd side alone rather
               # than fail the whole tally. results.html tolerates a missing
               # panel_ranking/spearman by rendering its "not available" fallback.
-              comparison = {
-                  "model_generated_panel": True,
-                  "awards_determined_by": "participant vote",
-                  "crowd_ranking": sorted(result.counts, key=lambda s: (-result.counts[s], s)),
-                  "crowd_counts": result.counts,
-                  "panel_ranking": [],
-                  "panel_means": {},
-                  "spearman": None,
-                  "per_persona": {},
-                  "n": result.valid,
-                  "invalid_ballots": result.invalid,
-                  "indicative": result.indicative,
-                  "caveat": "AI panel results are not published yet.",
-              }
+              #
+              # This calls build_comparison with empty scores and an empty
+              # ranking rather than hand-building the dict. The hand-built copy
+              # that used to live here had already drifted from the real one,
+              # and -- worse -- it set "caveat" unconditionally, overwriting
+              # §6.4's required indicative-only disclosure: a 9-valid-ballot
+              # result published with no caveat at all. The panel note is
+              # appended to `notes`, which is additive by construction.
+              comparison = build_comparison(result, {}, [], id_of)
+              comparison["notes"].append("AI panel results are not published yet.")
           (out_dir / "comparison.json").write_text(json.dumps(comparison, indent=2, default=str))
           PY
       - name: Commit results

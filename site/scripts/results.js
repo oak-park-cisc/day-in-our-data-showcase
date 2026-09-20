@@ -18,6 +18,13 @@
 // the row index instead would publish two projects on identical vote counts as
 // 3rd and 4th — an order that came from nothing but who filed first.
 
+// The §6.4 disclosure, duplicated from voting/compare.py's CAVEAT only as a
+// fallback: if `indicative` is true and `caveat` is empty for any reason, the
+// page says it anyway rather than publishing a below-floor result bare.
+const INDICATIVE_CAVEAT =
+  "Fewer than 10 valid ballots were cast. The crowd ranking is indicative only " +
+  "and the correlation should not be read as a result.";
+
 async function loadJSON(path) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(path);
@@ -61,9 +68,23 @@ function renderAgreement(comparison, byPublic) {
   const basis = hasRho
     ? `<p class="agreement__basis">Resident vote order against the panel's bracket finish.</p>`
     : "";
-  const caveat = comparison.caveat
-    ? `<p class="agreement__caveat">${escapeHtml(comparison.caveat)}</p>`
-    : "";
+  // §6.4: under the turnout floor the crowd ranking is indicative only, the
+  // sample size is stated, and the correlation is reported with an explicit
+  // caveat. That disclosure is derived from `indicative` — a boolean the
+  // tally computes — not from whatever text happens to be in `caveat`, which
+  // is how it once got silently overwritten upstream and published as
+  // nothing at all. `notes` is additive and never displaces it.
+  const notices = [];
+  if (comparison.indicative) {
+    notices.push(comparison.caveat || INDICATIVE_CAVEAT);
+    notices.push(`${comparison.n ?? 0} valid ballots were cast.`);
+  } else if (comparison.caveat) {
+    notices.push(comparison.caveat);
+  }
+  (comparison.notes || []).forEach((note) => notices.push(String(note)));
+  const caveat = notices
+    .map((note) => `<p class="agreement__caveat">${escapeHtml(note)}</p>`)
+    .join("");
   // §6.3: the tally never breaks a tie that decides a gift card. It says so
   // on the page and hands the decision to CISC.
   const boundary = comparison.award_boundary_tie

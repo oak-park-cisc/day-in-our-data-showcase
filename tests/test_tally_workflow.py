@@ -44,13 +44,16 @@ def _hash_code(code: str) -> str:
     return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
 
 
-def _run_script(cwd: Path) -> subprocess.CompletedProcess:
+DEFAULT_CODES = "CODE001,CODE002,CODE003"
+
+
+def _run_script(cwd: Path, codes: str = DEFAULT_CODES) -> subprocess.CompletedProcess:
     script = _extract_tally_script()
     script_path = cwd / "_extracted_tally.py"
     script_path.write_text(script, encoding="utf-8")
     env = dict(os.environ)
     env["PYTHONPATH"] = str(REPO_ROOT)
-    env["BALLOT_CODES"] = "CODE001,CODE002,CODE003"
+    env["BALLOT_CODES"] = codes
     return subprocess.run(
         [sys.executable, str(script_path)],
         cwd=cwd,
@@ -132,7 +135,13 @@ def test_succeeds_and_writes_vote_json_when_both_files_present(tmp_path):
     # No bracket.json/scores.json yet (judge.yml hasn't run) -> crowd-only fallback.
     assert comparison["spearman"] is None
     assert comparison["panel_ranking"] == []
-    assert comparison["caveat"] == "AI panel results are not published yet."
+    assert comparison["panel_published"] is False
+    # I4: the panel-pending note is a NOTE. It used to be written into
+    # "caveat", overwriting §6.4's indicative-only disclosure; this fixture
+    # has one valid ballot, so that disclosure is required here.
+    assert "AI panel results are not published yet." in comparison["notes"]
+    assert comparison["indicative"] is True
+    assert "indicative only" in comparison["caveat"]
 
 
 def test_succeeds_with_full_comparison_when_judge_results_already_exist(tmp_path):
@@ -159,7 +168,8 @@ def test_succeeds_with_full_comparison_when_judge_results_already_exist(tmp_path
     comparison = json.loads((results_dir / "comparison.json").read_text())
     assert comparison["panel_ranking"] == ["sub_001", "sub_002", "sub_003"]
     assert comparison["panel_means"]["sub_001"] == 4.0
-    assert comparison["caveat"] != "AI panel results are not published yet."
+    assert comparison["panel_published"] is True
+    assert comparison["notes"] == []
 
 
 # ---- C1: vote.json carries the tie information CISC needs (spec §6.3) ----
@@ -203,3 +213,88 @@ def test_vote_json_shares_a_rank_for_tied_projects_and_flags_the_award_boundary(
     assert vote["award_count"] == 3
     assert vote["award_boundary_tie"] is True
     assert vote["award_boundary_tie_ids"] == ["sub_002", "sub_003", "sub_004"]
+
+
+# ---- I4: the turnout floor disclosure survives the judge-hasn't-run branch ----
+
+
+def _write_below_floor_fixture(data_dir: Path, ballots_cast: int) -> None:
+    """`ballots_cast` valid ballots over three projects, each on its own code."""
+    data_dir.mkdir()
+    (data_dir / "submissions.json").write_text(json.dumps([
+        {"id": "sub_001", "anon_id": "P-01"},
+        {"id": "sub_002", "anon_id": "P-02"},
+        {"id": "sub_003", "anon_id": "P-03"},
+    ]), encoding="utf-8")
+    ballots = [
+        {
+            "code_hash": _hash_code(f"CODE{i:03d}"),
+            "picks": ["sub_001", "sub_002", "sub_003"],
+            "cast_at": f"2026-10-03T16:{i:02d}:00Z",
+        }
+        for i in range(1, ballots_cast + 1)
+    ]
+    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+
+
+def _codes(n: int) -> str:
+    return ",".join(f"CODE{i:03d}" for i in range(1, n + 1))
+
+
+def test_nine_ballots_without_a_panel_still_publish_the_turnout_floor_caveat(tmp_path):
+    # Spec §6.4: under 10 valid ballots the crowd ranking is indicative only
+    # and the correlation is reported with an explicit caveat. tally.yml's
+    # hand-built dict used to set "caveat" unconditionally, so this exact
+    # case -- 9 ballots, judge.yml not yet run -- published with NO caveat
+    # at all.
+    data_dir = tmp_path / "data"
+    _write_below_floor_fixture(data_dir, 9)
+
+    result = _run_script(tmp_path, codes=_codes(9))
+    assert result.returncode == 0, result.stderr
+
+    comparison = json.loads((data_dir / "results" / "comparison.json").read_text())
+    assert comparison["n"] == 9
+    assert comparison["indicative"] is True
+    assert "indicative only" in comparison["caveat"], (
+        "the §6.4 disclosure must survive the judge-hasn't-run branch"
+    )
+    assert "AI panel results are not published yet." in comparison["notes"]
+
+
+def test_ten_ballots_without_a_panel_carry_the_note_but_no_floor_caveat(tmp_path):
+    data_dir = tmp_path / "data"
+    _write_below_floor_fixture(data_dir, 10)
+
+    result = _run_script(tmp_path, codes=_codes(10))
+    assert result.returncode == 0, result.stderr
+
+    comparison = json.loads((data_dir / "results" / "comparison.json").read_text())
+    assert comparison["indicative"] is False
+    assert comparison["caveat"] == ""
+    assert comparison["notes"] == ["AI panel results are not published yet."]
+
+
+def test_the_crowd_only_branch_has_the_same_shape_as_a_full_comparison(tmp_path):
+    # Root cause of I4 was a hand-duplicated dict that drifted from
+    # build_comparison. Both branches must now produce the same keys.
+    data_dir = tmp_path / "data"
+    _write_below_floor_fixture(data_dir, 9)
+    assert _run_script(tmp_path, codes=_codes(9)).returncode == 0
+    crowd_only = json.loads((data_dir / "results" / "comparison.json").read_text())
+
+    results_dir = data_dir / "results"
+    (results_dir / "bracket.json").write_text(json.dumps({
+        "ranking": ["P-01", "P-02", "P-03"],
+    }), encoding="utf-8")
+    (results_dir / "scores.json").write_text(json.dumps({
+        "scores": {
+            "P-01": {p: 4 for p in PERSONAS},
+            "P-02": {p: 3 for p in PERSONAS},
+            "P-03": {p: 2 for p in PERSONAS},
+        },
+    }), encoding="utf-8")
+    assert _run_script(tmp_path, codes=_codes(9)).returncode == 0
+    full = json.loads((results_dir / "comparison.json").read_text())
+
+    assert sorted(crowd_only) == sorted(full)

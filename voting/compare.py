@@ -128,5 +128,12 @@ def build_comparison(
         "n": result.valid,
         "invalid_ballots": result.invalid,
         "indicative": result.indicative,
+        # `caveat` carries the §6.4 turnout-floor disclosure and NOTHING else.
+        # It used to be the one free-text slot, so tally.yml's crowd-only
+        # branch overwrote it with a note about the panel and the required
+        # disclosure vanished. Anything else a caller wants to say goes in
+        # `notes`, which is additive.
         "caveat": CAVEAT if result.indicative else "",
+        "notes": [],
+        "panel_published": bool(bracket_ranking),
     }
