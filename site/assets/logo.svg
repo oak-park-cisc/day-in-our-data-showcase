@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 760" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">Day in Our Data</title>
+
+  <g id="logo-sun">
+    <ellipse cx="348.59866333007812" cy="371.9625244140625" rx="169" ry="169" fill="#ffc629" />
+    <rect x="285.4369812011719" y="150.73817443847656" width="24" height="74" fill="#ffc629" transform="rotate(-15.7, 297.4369812011719, 187.73817443847656)" />
+    <rect x="175.5740203857422" y="221.93482971191406" width="24" height="74" fill="#ffc629" transform="rotate(-52, 187.5740203857422, 258.93482971191406)" />
+    <rect x="144.2925567626953" y="337.4511413574219" width="24" height="70" fill="#ffc629" transform="rotate(269.9, 156.2925567626953, 372.4511413574219)" />
+    <rect x="418.5943298339844" y="157.17764282226562" width="24" height="74" fill="#ffc629" transform="rotate(24.9, 430.5943298339844, 194.17764282226562)" />
+    <rect x="510.0111083984375" y="252.7369384765625" width="24" height="70" fill="#ffc629" transform="rotate(63.7, 522.0111083984375, 287.7369384765625)" />
+  </g>
+
+  <g id="logo-bars">
+    <rect x="140" y="490" width="120" height="190" fill="#1559d6" />
+    <rect x="300" y="405" width="120" height="275" fill="#1559d6" />
+    <rect x="460" y="305" width="120" height="375" fill="#1559d6" />
+  </g>
+
+  <rect x="196.895" y="539.5" width="166.21" height="26" fill="#ffffff" transform="rotate(15.71, 280, 552.5)" />
+  <rect x="317.68" y="469.5" width="244.64" height="26" fill="#ffffff" transform="rotate(-49.15, 440, 482.5)" />
+  <ellipse cx="200" cy="530" rx="22" ry="22" fill="#ffffff" />
+  <ellipse cx="360" cy="575" rx="22" ry="22" fill="#ffffff" />
+  <ellipse cx="520" cy="390" rx="22" ry="22" fill="#ffffff" />
+
+  <g id="logo-line">
+    <rect x="196.895" y="545.5" width="166.21" height="14" fill="#e53935" transform="rotate(15.71, 280, 552.5)" />
+    <rect x="317.68" y="475.5" width="244.64" height="14" fill="#e53935" transform="rotate(-49.15, 440, 482.5)" />
+    <ellipse cx="200" cy="530" rx="14" ry="14" fill="#e53935" />
+    <ellipse cx="360" cy="575" rx="14" ry="14" fill="#e53935" />
+    <ellipse cx="520" cy="390" rx="14" ry="14" fill="#e53935" />
+  </g>
+
+  <text x="630.3873291015625" y="324.33619689941406" dominant-baseline="hanging" text-anchor="start" font-family="'Jost', 'Century Gothic', 'Avenir Next', system-ui, sans-serif" font-weight="800" font-size="229.15517461262777" fill="#102a56" style="letter-spacing: 3px;">DAY IN</text>
+  <text x="634.6712036132812" y="533.2575073242188" dominant-baseline="hanging" text-anchor="start" font-family="'Jost', 'Century Gothic', 'Avenir Next', system-ui, sans-serif" font-weight="800" font-size="214.19505940413703" fill="#1559d6" style="letter-spacing: -2px;">OUR DATA</text>
+</svg>

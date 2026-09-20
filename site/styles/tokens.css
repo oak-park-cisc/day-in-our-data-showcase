@@ -1,0 +1,26 @@
+/* site/styles/tokens.css */
+:root {
+  --ink: #102a56;
+  --civic: #1559d6;
+  --canopy: #14503a;
+  --leaf: #2d7a55;
+  --sprout: #7fb996;
+  --glass: #ffc629;
+  --paper: #eef2ef;
+  --rule: #c9d3e4;
+  --slate: #8a94a6;          /* eliminated. never red. */
+  --surface: #ffffff;
+
+  --display: "Jost", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+  --step-4: clamp(2.75rem, 6vw, 4.5rem);
+
+  --gap: 1.5rem;
+  --pane-radius: 2px;        /* art glass is cut, not rounded */
+}
