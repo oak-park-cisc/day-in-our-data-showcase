@@ -41,7 +41,9 @@ class AnthropicJudgeClient:
         self._client = anthropic.Anthropic()
         self._model = model
 
-    def _parse(self, system: str, user: str, output_format):
+    def _parse(
+        self, system: str, user: str, output_format: type[ScoreOutput] | type[MatchupOutput]
+    ):
         for _ in range(2):
             response = self._client.messages.parse(
                 model=self._model,

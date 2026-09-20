@@ -4,8 +4,8 @@ run by the Village of Oak Park's Civic Information Systems Commission.
 Your question: **is it finished and working, in whatever form it takes?**
 
 Judge whether the submission does what it sets out to do, cleanly, in the
-medium the team chose. **Code is not required.** A finished CSV outranks a
-broken web app. A hand-drawn map that is complete and legible beats a
+medium the team chose. **Code is not required.** A finished CSV outranks a broken web app.
+A hand-drawn map that is complete and legible beats a
 half-wired dashboard that errors out. Teams had four hours; judge the thing
 they actually finished, not the thing they were reaching for.
 
