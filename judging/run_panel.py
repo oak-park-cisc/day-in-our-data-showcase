@@ -13,6 +13,7 @@ from judging.bracket import (
     seed_entries,
 )
 from judging.client import JudgeClient, MockJudgeClient
+from judging.inclusion import panel_scored
 from judging.models import Submission, load_submissions
 from judging.pass1 import score_all
 from judging.pass2 import judge_matchup
@@ -43,9 +44,13 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
             "model_generated": True, "anon_id": anon, "justifications": personas,
         })
 
+    # judging.inclusion.panel_scored is the ONE rule for "the panel scored
+    # this" -- voting/compare.py applies the same call, so a submission can
+    # never be dropped from the bracket while its mean still reaches the
+    # published correlation.
     entries = [
         SeedEntry(anon_id=s.anon_id, scores=pass1.scores[s.anon_id], submitted_at=s.submitted_at)
-        for s in submissions if len(pass1.scores.get(s.anon_id, {})) == 5
+        for s in submissions if panel_scored(pass1.scores.get(s.anon_id))
     ]
     seeded = seed_entries(entries)
     seed_of = {e.anon_id: i + 1 for i, e in enumerate(seeded)}

@@ -71,11 +71,22 @@ function renderAgreement(comparison, byPublic) {
         ${titleList(byPublic, comparison.award_boundary_tie_ids)} finished level on votes.
         The participant vote does not break that tie — CISC decides.</p>`
     : "";
+  // §8: a submission the panel did not fully score is excluded from the
+  // bracket, the ranking and every statistic — and is named here, because
+  // that path must be "shown in the UI. Never silent."
+  const abstained = (comparison.panel_abstained || []).length
+    ? `<p class="agreement__abstained">The panel abstained on
+        ${titleList(byPublic, comparison.panel_abstained)}: at least one judge returned no score,
+        so ${comparison.panel_abstained.length === 1 ? "it is" : "they are"} left out of the
+        panel's ranking and the statistics above. The resident vote still counts
+        ${comparison.panel_abstained.length === 1 ? "it" : "them"} in full.</p>`
+    : "";
   document.getElementById("agreement").innerHTML = `
     <p class="agreement${hasRho ? "" : " agreement--empty"}">${headline}</p>
     ${basis}
     ${caveat}
-    ${boundary}`;
+    ${boundary}
+    ${abstained}`;
 
   const crowdRanking = comparison.crowd_ranking || [];
   const panelRanking = comparison.panel_ranking || [];

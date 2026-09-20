@@ -10,6 +10,7 @@ every downstream lookup misses silently.
 """
 from __future__ import annotations
 
+from judging.inclusion import split_scored
 from voting.ranking import DEFAULT_AWARD_COUNT, ranking_summary
 from voting.stats import spearman
 from voting.tally import TallyResult
@@ -79,17 +80,27 @@ def build_comparison(
         if anon_id in id_of
     }
 
+    # One inclusion rule, shared with judging/run_panel.py: a submission
+    # counts as scored only when every persona scored it. A submission two
+    # personas abstained on is dropped from seeding, the bracket and the
+    # panel ranking over there; accepting its 2-persona mean here would put
+    # a different measurement into the same correlation. Excluded ids are
+    # disclosed as `panel_abstained` -- spec §8, "shown in the UI. Never
+    # silent."
+    scored, abstained = split_scored(scores)
+    panel_abstained = sorted(id_of[anon_id] for anon_id in abstained if anon_id in id_of)
+
     # Translate the panel's per-anon_id means into the public namespace.
     # This is the only place scores cross from the panel's blind ids into
     # submission ids - get it wrong and every later lookup misses.
-    panel_by_id = {id_of[anon_id]: mean for anon_id, mean in _panel_means(scores).items() if anon_id in id_of}
+    panel_by_id = {id_of[anon_id]: mean for anon_id, mean in _panel_means(scored).items() if anon_id in id_of}
 
-    personas = sorted({p for per in scores.values() for p in per})
+    personas = sorted({p for per in scored.values() for p in per})
     per_persona: dict[str, float | None] = {}
     for persona in personas:
         vals = {
             id_of[anon_id]: per[persona]
-            for anon_id, per in scores.items()
+            for anon_id, per in scored.items()
             if persona in per and anon_id in id_of
         }
         # spearman() already ranks only the intersection of its two dicts'
@@ -109,6 +120,7 @@ def build_comparison(
         "crowd_counts": crowd,
         "panel_ranking": [id_of[anon_id] for anon_id in bracket_ranking if anon_id in id_of],
         "panel_means": panel_by_id,
+        "panel_abstained": panel_abstained,
         "spearman": _rounded(spearman(crowd, panel_finish)),
         "spearman_basis": "bracket finish",
         "spearman_by_mean": _rounded(spearman(crowd, panel_by_id)),

@@ -25,6 +25,8 @@ import sys
 import textwrap
 from pathlib import Path
 
+from judging.prompts import PERSONAS
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "tally.yml"
 
@@ -141,11 +143,13 @@ def test_succeeds_with_full_comparison_when_judge_results_already_exist(tmp_path
     (results_dir / "bracket.json").write_text(json.dumps({
         "ranking": ["P-01", "P-02", "P-03"],
     }), encoding="utf-8")
+    # A full panel: I3's inclusion rule drops any submission a persona did
+    # not score, so a one-persona fixture would now be excluded outright.
     (results_dir / "scores.json").write_text(json.dumps({
         "scores": {
-            "P-01": {"civic-impact": 4},
-            "P-02": {"civic-impact": 3},
-            "P-03": {"civic-impact": 2},
+            "P-01": {p: 4 for p in PERSONAS},
+            "P-02": {p: 3 for p in PERSONAS},
+            "P-03": {p: 2 for p in PERSONAS},
         },
     }), encoding="utf-8")
 

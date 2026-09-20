@@ -6,6 +6,7 @@ mean none of them reached the published finding.
 """
 from __future__ import annotations
 
+from judging.prompts import PERSONAS
 from voting.compare import build_comparison
 from voting.tally import TallyResult
 
@@ -23,9 +24,9 @@ def _fixture():
         indicative=False,
     )
     scores = {
-        "P-01": {"civic-impact": 2, "craft": 2},
-        "P-02": {"civic-impact": 3, "craft": 3},
-        "P-03": {"civic-impact": 5, "craft": 5},
+        "P-01": {p: 2 for p in PERSONAS},
+        "P-02": {p: 3 for p in PERSONAS},
+        "P-03": {p: 5 for p in PERSONAS},
     }
     finish = ["P-01", "P-02", "P-03"]
     return result, scores, finish
