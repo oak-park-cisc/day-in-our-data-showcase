@@ -14,9 +14,13 @@ site/index.html and site/vote.html). If NETLIFY_SITE_ID is set, matches are
 also filtered to that site, which only matters if the token has access to
 more than one site.
 
-Exits non-zero on any HTTP error (a form not found counts as one) *before*
-writing anything, so a failed sync never touches the previously committed,
-known-good JSON.
+Both /submissions endpoints are PAGED (see fetch_all_submissions): the first
+response is not the whole set, and treating it as such would make the tally
+count a subset of ballots and publish it as the residents' verdict.
+
+Exits non-zero on any HTTP error (a form not found counts as one, as does any
+single page of a paginated fetch) *before* writing anything, so a failed sync
+never touches the previously committed, known-good JSON.
 """
 from __future__ import annotations
 
@@ -36,6 +40,13 @@ BALLOT_FORM_NAME = "ballot"
 #: Committed alongside submissions.json. Maps each Netlify submission id to
 #: the public number it was issued, permanently. See assign_public_numbers.
 ID_MAP_FILENAME = "id_map.json"
+#: Netlify pages /submissions at 100 per request by default. Ask for that
+#: explicitly and page until a short page comes back.
+PAGE_SIZE = 100
+#: 50,000 records at this event is impossible; a loop that gets there is a
+#: paging bug or an API that ignores `page`, and must fail loudly rather
+#: than spin forever inside a scheduled job.
+MAX_PAGES = 500
 
 GetJSON = Callable[..., Any]
 
@@ -78,6 +89,38 @@ def _http_get_json(url: str, token: str, *, include_body_in_errors: bool = False
         raise NetlifySyncError(f"Netlify API GET {url} failed: {exc.reason}") from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise NetlifySyncError(f"Netlify API GET {url} returned unparseable JSON: {exc}") from exc
+
+
+def fetch_all_submissions(get_json: GetJSON, form_id: str, token: str) -> list[dict]:
+    """Every submission on a form, following pagination to the end.
+
+    GET /forms/{id}/submissions is paged. Taking the first response as the
+    whole set means that past 100 cast ballots the tally silently counts a
+    subset and publishes it as the residents' verdict -- no error, no
+    warning, wrong awards.
+
+    A page shorter than PAGE_SIZE ends the loop; an exactly-full page is
+    indistinguishable from "full, with more behind it" without asking, so it
+    always asks. Any failure inside get_json propagates, which is what keeps
+    sync()'s fetch-everything-before-writing-anything property: a failed page
+    aborts the whole sync rather than committing a partial set.
+    """
+    collected: list[dict] = []
+    for page in range(1, MAX_PAGES + 1):
+        url = f"{NETLIFY_API}/forms/{form_id}/submissions?per_page={PAGE_SIZE}&page={page}"
+        batch = get_json(url, token)
+        if not isinstance(batch, list):
+            raise NetlifySyncError(
+                f"Netlify API GET {url} returned {type(batch).__name__}, not a list of "
+                "submissions; refusing to treat that as an empty page."
+            )
+        collected.extend(batch)
+        if len(batch) < PAGE_SIZE:
+            return collected
+    raise NetlifySyncError(
+        f"Netlify API returned {MAX_PAGES} full pages for form {form_id} without ending; "
+        "aborting rather than looping."
+    )
 
 
 def resolve_form_id(forms: list[dict], name: str, site_id: str | None) -> str:
@@ -343,8 +386,8 @@ def sync(token: str, data_dir: Path, site_id: str | None = None, get_json: GetJS
     submission_form_id = resolve_form_id(forms, SUBMISSION_FORM_NAME, site_id)
     ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, site_id)
 
-    raw_submissions = get_json(f"{NETLIFY_API}/forms/{submission_form_id}/submissions", token)
-    raw_ballots = get_json(f"{NETLIFY_API}/forms/{ballot_form_id}/submissions", token)
+    raw_submissions = fetch_all_submissions(get_json, submission_form_id, token)
+    raw_ballots = fetch_all_submissions(get_json, ballot_form_id, token)
 
     # The committed map is what makes sub_NNN survive a deleted submission.
     # It is read before anything is written and written back merged, never

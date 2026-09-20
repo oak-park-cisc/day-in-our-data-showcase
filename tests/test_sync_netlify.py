@@ -100,11 +100,19 @@ def fake_get_json(urls: dict[str, object]):
     return _get
 
 
+def submissions_url(form_id: str, page: int = 1) -> str:
+    """The paginated URL sync() actually requests (see fetch_all_submissions)."""
+    return (
+        f"{sync_netlify.NETLIFY_API}/forms/{form_id}/submissions"
+        f"?per_page={sync_netlify.PAGE_SIZE}&page={page}"
+    )
+
+
 def default_urls():
     return {
         f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
-        f"{sync_netlify.NETLIFY_API}/forms/form-sub-123/submissions": SUBMISSIONS_PAYLOAD,
-        f"{sync_netlify.NETLIFY_API}/forms/form-ballot-456/submissions": BALLOTS_PAYLOAD,
+        submissions_url("form-sub-123"): SUBMISSIONS_PAYLOAD,
+        submissions_url("form-ballot-456"): BALLOTS_PAYLOAD,
     }
 
 
@@ -344,9 +352,9 @@ def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fa
         url = request.full_url
         if url == f"{sync_netlify.NETLIFY_API}/forms":
             return _FakeHTTPResponse(forms_body)
-        if url == f"{sync_netlify.NETLIFY_API}/forms/form-sub-123/submissions":
+        if url == submissions_url("form-sub-123"):
             return _FakeHTTPResponse(submissions_body)
-        if url == f"{sync_netlify.NETLIFY_API}/forms/form-ballot-456/submissions":
+        if url == submissions_url("form-ballot-456"):
             raise _http_error(url, 500, ballot_error_body)
         raise AssertionError(f"unexpected URL requested: {url}")
 
