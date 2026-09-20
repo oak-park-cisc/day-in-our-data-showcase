@@ -1,0 +1,290 @@
+/* site/styles/bracket.css
+   The art-glass bracket and the crowd-vs-panel comparison.
+   Prairie School art glass: a geometric grid of rectangular panes joined by
+   dark leaded cames. Advancing entrants take --leaf; eliminated take --slate;
+   the champion pane takes --glass once, and only once, on the whole page.
+   No red anywhere. */
+
+/* ---- comparison (plain, quiet — the deliberate contrast with the bracket) ---- */
+
+.results__standing {
+  max-width: 42rem;
+  color: var(--canopy);
+}
+
+#comparison .ai-label { margin: .5em 0 1.5em; }
+
+.agreement {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: var(--step-1);
+  color: var(--ink);
+  margin: 0 0 .5em;
+}
+
+.agreement--empty { color: var(--canopy); font-weight: 400; }
+
+.agreement__caveat {
+  color: var(--canopy);
+  font-size: .9rem;
+  max-width: 42rem;
+  margin: 0 0 1.5em;
+}
+
+#side-by-side,
+#per-persona {
+  margin-bottom: var(--gap);
+}
+
+#side-by-side caption,
+#per-persona caption {
+  text-align: left;
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--canopy);
+  padding-bottom: .5em;
+}
+
+#side-by-side th,
+#side-by-side td,
+#per-persona th,
+#per-persona td {
+  text-align: left;
+  padding: .6em .75em;
+  border-bottom: 1px solid var(--rule);
+}
+
+#side-by-side th,
+#per-persona th {
+  font: 600 .8rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--canopy);
+}
+
+#side-by-side td.rank {
+  font: 700 var(--step-0)/1 var(--display);
+  color: var(--civic);
+}
+
+/* ---- bracket ornament ---- */
+
+#bracket { padding: calc(var(--gap) * 2) 0 calc(var(--gap) * 3); }
+
+.glass { min-width: max-content; padding: .5rem .25rem; }
+
+.bracket__note,
+.bracket__empty {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--canopy);
+  max-width: 34rem;
+}
+
+.ranked-list {
+  display: grid;
+  gap: .75rem;
+  max-width: 34rem;
+  padding-left: 1.5rem;
+}
+
+.ranked-list li { color: var(--ink); }
+
+.rounds {
+  display: flex;
+  align-items: stretch;
+  gap: 2.5rem;
+  padding: .5rem 0 1rem;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  min-width: 16rem;
+}
+
+.round:not(.round--champion) {
+  position: relative;
+  padding-right: 2.5rem;
+}
+
+/* the leaded came running between two rounds of panes */
+.round:not(.round--champion)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  background: var(--ink);
+}
+
+.round--champion { justify-content: center; }
+
+.round__label {
+  font: 700 .8rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--canopy);
+  text-align: center;
+  margin: 0 0 1rem;
+}
+
+.round__matchups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.matchup { position: relative; }
+
+/* the came stub reaching from a pane into the vertical rule */
+.round:not(.round--champion) .matchup::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -2.5rem;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--ink);
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--ink);
+  border-radius: var(--pane-radius);
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.pane { appearance: none; }
+
+.entrant {
+  display: flex;
+  flex-direction: column;
+  gap: .15em;
+  padding: .6em .85em;
+  border-left: 4px solid transparent;
+}
+
+.entrant__title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.entrant__team {
+  font: 600 .75rem/1 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--canopy);
+}
+
+.entrant__meta {
+  font: 600 .7rem/1 var(--mono);
+  color: var(--canopy);
+}
+
+.entrant.pane--advancing {
+  border-left-color: var(--leaf);
+  background: color-mix(in srgb, var(--sprout) 30%, transparent);
+}
+
+/* Eliminated entrants are de-emphasised with --slate. Sized and weighted as
+   WCAG "large text" (>=18.66px bold) on the pane's --surface background,
+   where --slate reaches a 3.06:1 contrast ratio -- meets the large-text AA
+   floor. --slate on --paper (2.71:1) does not, so this state never appears
+   outside a --surface pane. */
+.entrant.pane--out .entrant__title {
+  color: var(--slate);
+  font-size: 1.25rem;
+}
+.entrant.pane--out .entrant__team,
+.entrant.pane--out .entrant__meta { color: var(--slate); }
+
+.pane--bye {
+  padding: 0;
+  border-style: dashed;
+  cursor: default;
+}
+
+.matchup__note {
+  font-size: .8rem;
+  color: var(--canopy);
+  padding: 0 .85em .6em;
+}
+
+.pane--champion {
+  background: var(--glass);
+  border: 2px solid var(--ink);
+  padding: 1em 1.1em;
+  text-align: center;
+  cursor: default;
+}
+
+.pane--champion .entrant__title {
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.pane--champion .entrant__team { color: var(--ink); }
+
+.details {
+  background: var(--surface);
+  border: 1px solid var(--ink);
+  border-top: none;
+  border-radius: 0 0 var(--pane-radius) var(--pane-radius);
+  padding: 1em 1.1em;
+}
+
+.votes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .85em;
+}
+
+.vote__persona {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--ink);
+}
+
+.vote__pick { font-weight: 600; }
+
+.vote__swap {
+  display: block;
+  font-weight: 400;
+  font-size: .8rem;
+  color: var(--canopy);
+  margin-top: .1em;
+}
+
+.vote__reasoning {
+  margin: .3em 0 0;
+  color: var(--canopy);
+  font-size: .9rem;
+}
+
+/* ---- responsive ---- */
+
+@media (max-width: 40rem) {
+  .round { min-width: 14rem; }
+  .entrant__title { font-size: 1rem; }
+  /* stays >=1.2rem (19.2px) bold: the AA large-text floor for --slate is 18.66px bold */
+  .entrant.pane--out .entrant__title { font-size: 1.2rem; }
+}
