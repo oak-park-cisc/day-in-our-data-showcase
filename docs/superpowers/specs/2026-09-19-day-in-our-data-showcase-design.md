@@ -225,9 +225,13 @@ Seeding ties break in this order: (1) higher Civic Impact score, (2) higher Data
 
 Each matchup is run twice per persona, with A and B swapped. A vote counts only if it survives the swap; otherwise it is recorded as an abstention. LLM position bias in pairwise comparison is well-documented and would otherwise silently determine outcomes. The matchup resolves by majority of surviving votes.
 
+**Ties advance the higher seed.** Abstentions can leave an even number of surviving votes, so a 2–2 split is reachable; that case, and the all-abstain case, resolve the same way. One rule, no chance involved.
+
 ### 5.4 Cost
 
-At ~14 teams: 5 × 14 = 70 scoring calls, plus 5 × 13 × 2 = 130 matchup calls. **~200 calls**, roughly 1–2M input tokens. Single-digit dollars.
+Model: **`claude-opus-5`** (resolves Open Item 1), overridable via `JUDGE_MODEL`.
+
+At ~14 teams: 5 × 14 = 70 scoring calls, plus 5 × 13 × 2 = 130 matchup calls. **~200 calls**, roughly 1M input tokens. At Opus 5 rates ($5/$25 per MTok) with adaptive thinking counted as output, expect **$10–15**. Pass 1's 70 calls have no interdependencies and run through the Batch API at 50%. `claude-sonnet-5` would cost roughly 40% of that and remains a one-line change.
 
 This is a deliberate exception to the standing "no per-token API charges in CI" rule: here the API spend *is* the product, it is bounded, and it occurs only on manual dispatch. Routine CI uses the mock (§9) and spends nothing. `event-program.md` already lists "LLM credits" as a budgeted CISC decision.
 
@@ -256,7 +260,7 @@ Self-voting is not prevented. Teams voting for themselves is expected, roughly s
 
 ### 6.3 Tally
 
-`voting/tally.py` validates each ballot against the secret list, discards invalid codes, keeps only the first ballot per code, and counts approvals per project.
+`voting/tally.py` validates each ballot against the secret list, discards invalid codes, keeps only the first ballot per code, and counts approvals per project. A ballot whose three picks are not **distinct** is invalid; without that rule one voter could triple a single project's count. The vote page enforces the same rule client-side so a voter is told immediately rather than having the ballot silently dropped.
 
 Because picks are unranked, there is no principled way to break a tie in approval count from the ballot data — so the tally does not invent one. Tied projects share a rank and are displayed as tied. If a tie falls on a gift-card boundary, it is flagged in `vote.json` and **CISC decides**, which is the correct place for that judgement. The AI bracket is never used to break it; letting it do so would quietly make the panel authoritative, which D1 rules out.
 
@@ -290,6 +294,8 @@ That last number is the finding worth presenting at a CISC meeting. It is a real
 | Malformed or schema-invalid judge JSON | One retry. Then recorded as abstention; matchup resolves on remaining votes. |
 | Empty `evidence[]` | Treated as schema-invalid. Same path. |
 | Vote flips under position swap | Abstention. Never counted. |
+| Matchup ties after abstentions (e.g. 2-2) | Higher seed advances, same as all-abstain. |
+| Ballot with duplicate picks | Whole ballot discarded; counted in the invalid total. |
 | All 5 personas abstain on a matchup | Higher seed advances. Logged and surfaced in the UI. |
 | `repo_url` unreachable | Judge scores on description and artifacts; `reduced_evidence: true`, shown in the UI. Never silent. |
 | Team count not a power of two | Top seeds receive byes. |
@@ -406,7 +412,7 @@ Both are deferred because neither is required for the event to work.
 
 ## 14. Open items
 
-1. **Model choice for the panel** — resolve during planning.
+1. ~~Model choice for the panel~~ — **resolved: `claude-opus-5`** (§5.4).
 2. **Submission close time** — end of event, or a grace window to the following day?
 3. **Voting window length** — how long after the showcase publishes does voting stay open?
 4. **Expected attendance** — determines how many ballot codes to print.
