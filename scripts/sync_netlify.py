@@ -158,8 +158,28 @@ def build_submissions(raw_submissions: list[dict]) -> list[dict]:
 def _hash_code(code: str) -> str:
     """One-way hash a ballot code before it ever reaches a file that ships.
 
-    data/ballots.json is committed to a public repo and copied verbatim into
-    the published Netlify site (netlify.toml's build command). The design
+    SCOPE FIRST, because this docstring used to reason only about code
+    recovery and that is not the whole risk. Two different properties are at
+    stake:
+
+    1. CODE RECOVERY -- can someone turn a published value back into a usable
+       ballot code? That is what the hash addresses, and what the rest of this
+       docstring argues about.
+    2. BALLOT SECRECY -- can someone who ALREADY holds a plaintext code learn
+       how that person voted? Hashing does nothing for this: the holder just
+       hashes their copy of the code and looks the row up. The volunteer who
+       handed out the slips, or anyone who photographs the slip sheet, is
+       exactly that person. The only fix is not publishing the file, which is
+       why netlify.toml's build command deletes ballots.json from the copy it
+       pushes to the site (see that file's comment, and
+       tests/test_netlify_config.py). data/ballots.json is still committed to
+       the public repo, so anyone holding a plaintext code can still do this
+       from the repo -- ballot secrecy here rests on the codes staying on the
+       slips, not on the file being hard to reach. Removing it from the
+       published site removes the one surface that required no repo access at
+       all.
+
+    data/ballots.json is committed to a public repo. The design
     (§6.1 of the spec) is explicit that ballot codes never enter the repo --
     only the BALLOT_CODES Actions secret and the printed check-in slips
     carry them, precisely because a code sitting in public history could be
@@ -202,6 +222,10 @@ def _hash_code(code: str) -> str:
     already-submitted code from sitting in the repo as recognizable
     plaintext, not to withstand an offline attack against a still-live,
     never-submitted code.
+
+    (The netlify.toml deletion is about property 2 above; nothing in the
+    paragraphs that follow changes because of it, since they are entirely
+    about property 1.)
 
     This construction would NOT be safe for codes that are still unspent
     (e.g. if data/ballots.json ever held pending/unvalidated submissions,
