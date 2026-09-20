@@ -12,7 +12,16 @@
   color: var(--canopy);
 }
 
-#comparison .ai-label { margin: .5em 0 1.5em; }
+#comparison .ai-label { margin: .5em 0 .25em; }
+
+/* What the panel actually read. Sits with the AI label, because it is part
+   of the same disclosure (I8). */
+.ai-method {
+  color: var(--canopy);
+  font-size: .85rem;
+  max-width: 42rem;
+  margin: 0 0 1.5em;
+}
 
 .agreement {
   font-family: var(--display);

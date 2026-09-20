@@ -16,10 +16,33 @@ def _or_missing(value: str | None) -> str:
     return value if value else "(not provided)"
 
 
+#: What every judge is told in place of a README, because nothing in this
+#: codebase fetches one.
+#:
+#: The old placeholder read "(repository unavailable or not provided)". That
+#: was false and it was prejudicial: `evidence_block`'s `repo_readme`
+#: parameter is threaded through pass 1 and pass 2 but nothing ever passes it,
+#: so a team with a working, documented repository had its link printed and
+#: then a line saying that repository was unavailable. The Craft and
+#: Continuation personas in particular score partly on exactly that.
+#:
+#: The decision was not to build a fetcher (spec D2 keeps participant code out
+#: of this system, and §8's `reduced_evidence` path was never implemented --
+#: the flag appears in the spec's §4.2 schema and nowhere in judging/). So the
+#: fix is to state the methodology accurately: the panel read the submitted
+#: text and the artifact list, and nothing else. results.html says the same
+#: thing to readers.
+NO_REPO_FETCH_NOTE = (
+    "(Repository contents were not fetched. The panel scored the submitted text "
+    "and artifacts only; a linked repository was not read, and its absence here "
+    "says nothing about whether it exists or works.)"
+)
+
+
 def evidence_block(sub: Submission, repo_readme: str | None = None) -> str:
     """Everything a judge sees. Team name deliberately excluded - pass 1 is blind."""
     artifacts = "\n".join(f"  - {a.filename} ({a.bytes} bytes)" for a in sub.artifacts) or "  (none)"
-    readme = repo_readme.strip() if repo_readme else "(repository unavailable or not provided)"
+    readme = repo_readme.strip() if repo_readme else NO_REPO_FETCH_NOTE
     return "\n".join([
         f"Submission {sub.anon_id}",
         f"Title: {_or_missing(sub.project_title)}",
