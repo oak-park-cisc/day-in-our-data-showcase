@@ -104,7 +104,10 @@ ids are held stable across syncs by `data/id_map.json`, so deleting one no
 longer renumbers the others — but do not rely on that if the map is ever lost or
 bypassed. Ballots record their picks by public id.
 
-**The gift-card count is not fixed by the spec.** It is
-`voting.ranking.DEFAULT_AWARD_COUNT`, currently `3`. It decides where a tie
-counts as landing on the award boundary and gets flagged for CISC to decide.
-Confirm the real number with CISC and change the one constant if it differs.
+**There are no gift cards.** The prizes changed (spec §1.2, amended
+2026-09-21): every participant gets a participation keychain, not rank-based,
+and one project wins the vote. The award cut is
+`voting.ranking.DEFAULT_AWARD_COUNT`, now `1`, kept as an overridable constant
+rather than a hardcoded literal. It decides where a tie counts as landing on
+the award boundary; at `1` that is a tie for first place, which the page
+publishes as a shared win rather than escalating it to anyone.
