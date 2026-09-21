@@ -1,12 +1,13 @@
-"""Tie-aware ranking of approval counts, for display and for CISC.
+"""Tie-aware ranking of approval counts, for display and for the winner call.
 
-Spec 6.3 is explicit, and this module exists because the obvious one-liner
-(``sorted(counts, key=lambda s: (-counts[s], s))``) quietly violates it:
+Spec 6.3 (amended 2026-09-21) is explicit, and this module exists because the
+obvious one-liner (``sorted(counts, key=lambda s: (-counts[s], s))``) quietly
+violates it:
 
     "Because picks are unranked, there is no principled way to break a tie in
     approval count from the ballot data - so the tally does not invent one.
-    Tied projects share a rank and are displayed as tied. If a tie falls on a
-    gift-card boundary, it is flagged in `vote.json` and **CISC decides**."
+    Tied projects share a rank and are displayed as tied. A tie for first
+    place is a shared win: both projects win, and the page says so."
 
 Sorting by ``(-count, id)`` ranks two equal-vote projects by submission id -
 that is, by which team happened to file first - and then the page renders the
@@ -23,21 +24,25 @@ takes the best position the group spans, and the positions the group consumed
 are skipped. Equal average rank <=> tied is the single source of truth for
 "are these two tied", so display and statistics can never disagree.
 
-AWARD COUNT. The spec says "the top teams receive gift cards" (1.1) and never
-pins a number; 6.3 speaks only of "a gift-card boundary". So the boundary is a
-parameter, defaulting to DEFAULT_AWARD_COUNT below. If CISC funds a different
-number of gift cards, change that one constant (or pass award_count through
-build_comparison) - nothing else in the codebase assumes three.
+AWARD COUNT. There are no gift cards and no ranked prize tiers: one project
+wins, full stop, and (per the owner) "the rankings are really just for fun"
+below that line. The boundary machinery from the original multi-winner design
+still does real work, though - with one winner, "does this tied group
+straddle the award cut" collapses to exactly "is this a tie for first place",
+which is the one case that still needs a rule: both projects share the win
+rather than the vote inventing a tiebreak. So the cut stays a parameter,
+defaulting to DEFAULT_AWARD_COUNT below, rather than a hardcoded 1 - nothing
+else in the codebase should assume the number, in case that ever changes
+again.
 """
 from __future__ import annotations
 
 from voting.stats import average_ranks
 
-#: How many projects receive gift cards. NOT fixed by the spec (see module
-#: docstring); three matches the event program's "top teams" framing and the
-#: three picks each ballot carries. Change here if CISC funds a different
-#: number.
-DEFAULT_AWARD_COUNT = 3
+#: How many projects win. One - see the module docstring. Kept as an
+#: overridable constant, not a hardcoded literal, so downstream callers
+#: (build_comparison, tests) can still pass a different cut explicitly.
+DEFAULT_AWARD_COUNT = 1
 
 
 def _groups(counts: dict[str, int]) -> list[list[str]]:
@@ -86,9 +91,10 @@ def ranking_summary(
     "#" column or it will re-invent the ordinals this module exists to
     prevent.
 
-    ``award_boundary_tie`` is true when a tied group straddles the gift-card
-    cut - some of its members inside the award set, some outside - which is
-    exactly the case 6.3 hands to CISC.
+    ``award_boundary_tie`` is true when a tied group straddles the winning
+    cut - some of its members inside the award set, some outside. At
+    ``award_count = 1`` that is exactly a tie for first place: both members
+    win, and there is nothing to escalate.
     """
     groups = _groups(counts)
     ranks = competition_ranks(counts)
@@ -99,7 +105,7 @@ def ranking_summary(
         first, last = position, position + len(group) - 1
         # Straddles the cut iff the group starts at or above the boundary and
         # ends below it. A group entirely inside the award set, or entirely
-        # outside it, needs no CISC decision.
+        # outside it, needs no decision.
         if len(group) > 1 and first <= award_count < last + 1 and last > award_count:
             boundary_ids = list(group)
         position += len(group)

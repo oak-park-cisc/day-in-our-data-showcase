@@ -85,12 +85,13 @@ function renderAgreement(comparison, byPublic) {
   const caveat = notices
     .map((note) => `<p class="agreement__caveat">${escapeHtml(note)}</p>`)
     .join("");
-  // §6.3: the tally never breaks a tie that decides a gift card. It says so
-  // on the page and hands the decision to CISC.
+  // §6.3 (amended 2026-09-21): one winner, no gift cards. A tie for first
+  // place is a shared win, not an escalation — both tied projects win, and
+  // the page says so plainly.
   const boundary = comparison.award_boundary_tie
-    ? `<p class="agreement__boundary"><strong>A tie falls on the gift-card boundary.</strong>
-        ${titleList(byPublic, comparison.award_boundary_tie_ids)} finished level on votes.
-        The participant vote does not break that tie — CISC decides.</p>`
+    ? `<p class="agreement__boundary"><strong>It's a tie for first place — and that means a shared win.</strong>
+        ${titleList(byPublic, comparison.award_boundary_tie_ids)} finished level on votes,
+        so both win.</p>`
     : "";
   // §8: a submission the panel did not fully score is excluded from the
   // bracket, the ranking and every statistic — and is named here, because

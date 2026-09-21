@@ -1,10 +1,13 @@
 // tests/js/results.ties.test.js
 //
-// C1: spec §6.3 says tied projects "share a rank and are displayed as tied",
-// and that a tie on a gift-card boundary is flagged for CISC. results.js used
-// to render the row index + 1 as a hard ordinal, so two projects on identical
-// vote counts were published as 3rd and 4th — an ordering that came from
-// submission id, i.e. from who filed first.
+// C1: spec §6.3 says tied projects "share a rank and are displayed as tied".
+// results.js used to render the row index + 1 as a hard ordinal, so two
+// projects on identical vote counts were published as 3rd and 4th — an
+// ordering that came from submission id, i.e. from who filed first.
+//
+// Amended 2026-09-21: there are no gift cards and no multi-place award set —
+// one project wins. A tie for first place is now a SHARED WIN, published
+// plainly on the page, rather than an escalation flagged for CISC to decide.
 //
 // Run with: node --test tests/js/*.test.js
 
@@ -96,17 +99,18 @@ const EMPTY_BRACKET = {
   rounds: [],
 };
 
-// Gamma and Delta tie for third on identical counts, with three gift cards:
-// the tie lands exactly on the award boundary.
+// Gamma and Delta tie for third on identical counts. This is a plain
+// shared-rank display case, independent of where the award cut falls, so
+// award_boundary_tie is false here.
 function tiedComparison(overrides) {
   return Object.assign(
     {
       crowd_ranking: ["sub_001", "sub_002", "sub_003", "sub_004"],
       crowd_ranks: { sub_001: 1, sub_002: 2, sub_003: 3, sub_004: 3 },
       crowd_ties: [["sub_003", "sub_004"]],
-      award_count: 3,
-      award_boundary_tie: true,
-      award_boundary_tie_ids: ["sub_003", "sub_004"],
+      award_count: 1,
+      award_boundary_tie: false,
+      award_boundary_tie_ids: [],
       crowd_counts: { sub_001: 9, sub_002: 7, sub_003: 5, sub_004: 5 },
       panel_ranking: [],
       panel_means: {},
@@ -118,6 +122,24 @@ function tiedComparison(overrides) {
       caveat: "",
     },
     overrides || {}
+  );
+}
+
+// Alpha and Beta tie for first on identical counts, with one winner
+// (award_count: 1): that tie IS the boundary, and it means a shared win.
+function firstPlaceTieComparison(overrides) {
+  return tiedComparison(
+    Object.assign(
+      {
+        crowd_ranking: ["sub_001", "sub_002", "sub_003", "sub_004"],
+        crowd_ranks: { sub_001: 1, sub_002: 1, sub_003: 3, sub_004: 4 },
+        crowd_ties: [["sub_001", "sub_002"]],
+        award_boundary_tie: true,
+        award_boundary_tie_ids: ["sub_001", "sub_002"],
+        crowd_counts: { sub_001: 9, sub_002: 9, sub_003: 5, sub_004: 2 },
+      },
+      overrides || {}
+    )
   );
 }
 
@@ -167,16 +189,28 @@ test("tied rows are marked as tied, not silently equal-numbered", async () => {
   assert.ok(!/tied/i.test(rankCellOf(rows[0])), "an untied row must not claim a tie");
 });
 
-test("a tie on the gift-card boundary is surfaced for CISC", async () => {
+test("a tie for first place is surfaced as a shared win", async () => {
   const elements = await render({
     "/data/submissions.json": SUBMISSIONS,
     "/data/results/bracket.json": EMPTY_BRACKET,
-    "/data/results/comparison.json": tiedComparison(),
+    "/data/results/comparison.json": firstPlaceTieComparison(),
   });
 
   const html = elements["agreement"].innerHTML;
-  assert.match(html, /CISC/, "the boundary tie must name who decides it");
-  assert.ok(html.includes("Gamma") && html.includes("Delta"), "name the tied projects");
+  assert.match(html, /win/i, "a tie for first must say the tied projects win");
+  assert.ok(html.includes("Alpha") && html.includes("Beta"), "name the tied projects");
+});
+
+test("the old CISC-decides wording is gone", async () => {
+  const elements = await render({
+    "/data/submissions.json": SUBMISSIONS,
+    "/data/results/bracket.json": EMPTY_BRACKET,
+    "/data/results/comparison.json": firstPlaceTieComparison(),
+  });
+
+  const html = elements["agreement"].innerHTML;
+  assert.ok(!/CISC/.test(html), "a tied first place no longer escalates to CISC");
+  assert.ok(!/gift.?card/i.test(html), "there are no gift cards to reference");
 });
 
 test("no boundary notice when nothing is tied across the award line", async () => {
@@ -191,20 +225,20 @@ test("no boundary notice when nothing is tied across the award line", async () =
       crowd_counts: { sub_001: 9, sub_002: 7, sub_003: 5, sub_004: 2 },
     }),
   });
-  assert.ok(!/CISC/.test(elements["agreement"].innerHTML));
+  assert.ok(!elements["agreement"].innerHTML.includes("agreement__boundary"));
 });
 
-test("a hostile project title in a boundary-tie notice is escaped", async () => {
+test("a hostile project title in a shared-win notice is escaped", async () => {
   const hostile = [
-    { id: "sub_001", anon_id: "P-01", project_title: "Alpha", team_name: "A" },
+    { id: "sub_001", anon_id: "P-01", project_title: "<script>alert(1)</script>", team_name: "A" },
     { id: "sub_002", anon_id: "P-02", project_title: "Beta", team_name: "B" },
-    { id: "sub_003", anon_id: "P-03", project_title: "<script>alert(1)</script>", team_name: "C" },
+    { id: "sub_003", anon_id: "P-03", project_title: "Gamma", team_name: "C" },
     { id: "sub_004", anon_id: "P-04", project_title: "Delta", team_name: "D" },
   ];
   const elements = await render({
     "/data/submissions.json": hostile,
     "/data/results/bracket.json": EMPTY_BRACKET,
-    "/data/results/comparison.json": tiedComparison(),
+    "/data/results/comparison.json": firstPlaceTieComparison(),
   });
   const html = elements["agreement"].innerHTML;
   assert.ok(!html.includes("<script>"), "raw <script> must never reach innerHTML");

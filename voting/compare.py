@@ -54,8 +54,8 @@ def build_comparison(
         id_of: anon_id -> submission id. The one translation point between
             the panel's blind namespace and the public namespace the site
             renders.
-        award_count: how many projects receive gift cards. Not fixed by the
-            spec - see voting/ranking.py's module docstring.
+        award_count: how many projects win. Not fixed at a literal here - see
+            voting/ranking.py's module docstring.
 
     Everything in the returned dict is keyed by submission id.
     """

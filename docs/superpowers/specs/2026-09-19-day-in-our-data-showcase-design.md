@@ -35,6 +35,19 @@ Two consequences worth stating plainly:
 
 CISC should still be *told* that an AI panel will be published alongside the vote, and the showcase must label those scores as AI-generated at the point of display (§10.6). That is disclosure, not approval.
 
+### 1.2 Amendment (2026-09-21) — prizes changed
+
+> This amends §1.1 and §6.3. The text above is left intact as the record of what participants were told at registration; this section records what changed, and why, without rewriting that history.
+
+The event's prizes changed after this design was approved. The original plan quoted in §1.1 promised two things tied to vote placement — gift cards for "the top teams," and a presentation invitation for the same "top teams." Neither survives unchanged:
+
+- **Gift cards are gone.** Every participant now receives a participation keychain. The keychain is not rank-based: everyone gets one regardless of how the vote goes, so it carries no dependency on the tally at all.
+- **The presentation invitation widened, not narrowed.** Every participating team — not only "the top teams" — is invited to share their build on the CISC website or at a CISC meeting. Where the original plan gated that invitation on vote placement, it no longer does.
+- **One project wins.** In place of a multi-place award set, the participant vote now determines a single winner. In the owner's words, "the rankings are really just for fun" below that line — there is no second or third place with anything attached to it.
+- **A tie for first is a shared win, not an escalation.** If two projects tie for first, both win and the page says so plainly. Nothing waits on a CISC meeting before results can publish. This replaces §6.3's rule, where a tie on the award boundary was flagged in `vote.json` for CISC to decide.
+
+Implementation consequence: `voting.ranking.DEFAULT_AWARD_COUNT` is now `1` (was `3`). The tie-boundary machinery described in §6.3 is unchanged in mechanism — it still flags a tied group that straddles the award cut — but at `award_count = 1` that flag now means exactly "these projects tied for first," and the correct response is to publish both as winners, not to convene anyone.
+
 ---
 
 ## 2. Decisions
@@ -263,6 +276,8 @@ Self-voting is not prevented. Teams voting for themselves is expected, roughly s
 `voting/tally.py` validates each ballot against the secret list, discards invalid codes, keeps only the first ballot per code, and counts approvals per project. A ballot whose three picks are not **distinct** is invalid; without that rule one voter could triple a single project's count. The vote page enforces the same rule client-side so a voter is told immediately rather than having the ballot silently dropped.
 
 Because picks are unranked, there is no principled way to break a tie in approval count from the ballot data — so the tally does not invent one. Tied projects share a rank and are displayed as tied. If a tie falls on a gift-card boundary, it is flagged in `vote.json` and **CISC decides**, which is the correct place for that judgement. The AI bracket is never used to break it; letting it do so would quietly make the panel authoritative, which D1 rules out.
+
+> **Amended 2026-09-21 (see §1.2).** There are no gift cards and no multi-place award set — one project wins, and `award_count` defaults to 1. A tie for first place still uses this exact mechanism, but the outcome is now a **shared win**: both tied projects win, published on the page, with no CISC decision required.
 
 Codes are discarded after validation. `vote.json` contains counts only — no code, no voter identity.
 

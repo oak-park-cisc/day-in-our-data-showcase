@@ -75,8 +75,10 @@ jobs:
           out_dir = Path("data/results")
           out_dir.mkdir(parents=True, exist_ok=True)
 
-          # Ties share a rank; a tie on the gift-card boundary is flagged here
-          # so CISC can decide it (§6.3). The tally never invents a tiebreak.
+          # Ties share a rank; a tie for first place is flagged here as a
+          # shared win -- both projects win, nothing waits on anyone deciding
+          # (§6.3, amended 2026-09-21: one winner, no gift cards, no
+          # escalation). The tally never invents a tiebreak.
           ranks = ranking_summary(result.counts)
           (out_dir / "vote.json").write_text(json.dumps({
               "counts": result.counts,
