@@ -1,32 +1,20 @@
-# Netlify build config.
+# Netlify build config (spec docs/superpowers/specs/2026-09-24-free-tier-deployment-design.md).
 #
-# `data/` is committed to the repo (submissions.json, ballots.json, and
-# results/ once judge.yml and tally.yml have run) and copied into the
-# publish directory at build time, because the site fetches everything from
-# absolute /data/... paths (see site/scripts/*.js). `rm -rf site/data` first
-# is deliberate: a bare `cp -r data site/data` nests site/data/data on every
-# re-run once site/data already exists from a prior build, silently
-# breaking every fetch on the site. `mkdir -p data` guards the very first
-# deploy against a missing source directory (data/ is seeded in the repo,
-# but this keeps the build resilient either way).
+# Pages read data/ LIVE from raw.githubusercontent.com (site/scripts/data.js),
+# because data commits carry [skip netlify] and never deploy -- the free plan
+# allows ~20 deploys a month and pauses the site at the cap. The copy below is
+# the FALLBACK snapshot data.js reads if GitHub is unreachable; it is as fresh
+# as the last deploy.
 #
-# `rm -f site/data/ballots.json` is the ballot-secrecy step, and the copy is
-# deliberately NOT narrowed to a per-file allowlist -- everything else under
-# data/ is meant to be public, and an allowlist would silently drop the next
-# file someone adds. ballots.json holds {code_hash, picks, cast_at} for every
-# ballot cast. Nothing on the site fetches it: only tally.yml reads it, and it
-# reads it from the repo checkout, not over HTTP. Published, it would let
-# anyone holding a plaintext code -- the volunteer who handed out the slips,
-# anyone who photographs the slip sheet -- hash that code in one line and read
-# exactly how that person voted. That is a ballot-secrecy failure, not a code
-# recovery one, so no amount of hash strength addresses it; the file simply
-# must not ship. Deleting from the COPY keeps data/ballots.json intact in the
-# repo, which is where the tally needs it. Covered by
-# tests/test_netlify_config.py, which executes this command rather than
-# pattern-matching it.
+# `rm -rf site/data` first: a bare `cp -r data site/data` nests site/data/data
+# once site/data exists. `mkdir -p data` keeps a first deploy from failing on
+# a missing source directory.
+#
+# No ballot data is ever under data/ (tally.yml holds ballots in memory), so
+# nothing needs stripping. tests/test_netlify_config.py pins that at the source.
 [build]
   publish = "site"
-  command = "mkdir -p data && rm -rf site/data && cp -r data site/data && rm -f site/data/ballots.json"
+  command = "mkdir -p data && rm -rf site/data && cp -r data site/data"
 
 [[headers]]
   for = "/*"
