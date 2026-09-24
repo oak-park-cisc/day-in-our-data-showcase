@@ -23,29 +23,29 @@ Implementation complete, pending the Netlify site connection.
 
 ## Deployment
 
-The site publishes on Netlify from `site/`; see `netlify.toml` for the build
-command. Three GitHub Actions workflows do the rest, all `workflow_dispatch`
+The site publishes on Netlify's free plan from `site/`; see `netlify.toml`
+for the build command and `docs/deployment-runbook.md` for setup. Three GitHub Actions workflows do the rest, all `workflow_dispatch`
 (manually triggered) except the submissions sync, which also runs on a
 schedule:
 
 - **`sync-submissions.yml`** — polls the Netlify Forms API via
   `scripts/sync_netlify.py` and commits `data/submissions.json` and
-  `data/ballots.json`. Runs every 15 minutes during event hours (Saturdays,
+  `data/id_map.json`. Runs every 15 minutes during event hours (Saturdays,
   16:00-21:59 UTC) and on demand. Needs the `NETLIFY_TOKEN` secret.
 - **`judge.yml`** — runs the AI judging panel and commits `data/results/`.
   Defaults to a `mock` dry run (zero API spend); set `mock: false` on
   dispatch to spend real `claude-sonnet-5` tokens. Needs `ANTHROPIC_API_KEY`.
-- **`tally.yml`** — validates and counts the participant vote, and commits
-  `data/results/vote.json` and `comparison.json`. Needs the `BALLOT_CODES`
-  secret (printed once, offline, by `python -m voting.generate_codes` — see
+- **`tally.yml`** — reads ballots from Netlify Forms, holds them in memory,
+  validates and counts them, and commits only `data/results/vote.json` and
+  `comparison.json`. Ballots are never committed. Needs `NETLIFY_TOKEN` and the
+  `BALLOT_CODES` secret (printed once, offline, by `python -m voting.generate_codes` — see
   that file's docstring; the code list itself never enters the repo).
 
-`data/` is committed (seeded with an empty `data/submissions.json` before
-the event) and copied into the Netlify publish directory at build time,
-because the site fetches everything from absolute `/data/...` paths.
-`site/data/` is the build-time copy and stays gitignored. `data/ballots.json`
-is deliberately stripped from that copy so cast ballots are never served at a
-public URL.
+Every bot commit carries `[skip netlify]`, so data changes never spend one of
+the free plan's ~20 monthly deploys. Pages read `data/` live from
+`raw.githubusercontent.com` (`site/scripts/data.js`) and fall back to the
+`/data/` snapshot Netlify copies in at each deploy. `site/data/` is that
+build-time copy and stays gitignored.
 
 ### Deleting a submission after voting opens
 
