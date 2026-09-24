@@ -6,3 +6,5 @@ __pycache__/
 .venv/
 *.egg-info/
 site/data/
+# Ballots are never committed; tally.yml holds them in memory (spec 2026-09-24 §4.4).
+data/ballots.json

@@ -143,6 +143,8 @@ Netlify has moved to a credits-based pricing model (production deploys 15 credit
 
 Netlify Forms was chosen over Airtable, Google Forms, and GitHub Issue Forms on one criterion: **it requires no account to submit.** At an event whose premise is that non-coders belong, an account barrier is disqualifying.
 
+> **Amendment (2026-09-24) — free-tier deployment.** The repo is public. Pages read `data/` live from GitHub with a deploy-time snapshot fallback; bot commits carry `[skip netlify]`; ballots are read by the tally from Netlify Forms in memory and never committed. The text above is left as originally approved. See `2026-09-24-free-tier-deployment-design.md` and decision-log #35–#36.
+
 ---
 
 ## 4. Data contracts

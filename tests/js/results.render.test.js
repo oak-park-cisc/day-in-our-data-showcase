@@ -20,6 +20,7 @@ const assert = require("node:assert/strict");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const ESCAPE_JS = fs.readFileSync(path.join(ROOT, "site/scripts/escape.js"), "utf-8");
+const DATA_JS = fs.readFileSync(path.join(ROOT, "site/scripts/data.js"), "utf-8");
 const RESULTS_JS = fs.readFileSync(path.join(ROOT, "site/scripts/results.js"), "utf-8");
 
 function makeElement(id) {
@@ -74,6 +75,10 @@ function createSandbox(fetchImpl) {
   };
   vm.createContext(sandbox);
   vm.runInContext(ESCAPE_JS, sandbox, { filename: "escape.js" });
+  // data.js before results.js, as in results.html. The fixtures stay keyed
+  // by /data/... on purpose: the fake fetch throws on the live GitHub URL,
+  // so every load exercises fetchData's snapshot fallback path.
+  vm.runInContext(DATA_JS, sandbox, { filename: "data.js" });
   vm.runInContext(RESULTS_JS, sandbox, { filename: "results.js" });
   return { sandbox, elements, getReady: () => readyHandler };
 }

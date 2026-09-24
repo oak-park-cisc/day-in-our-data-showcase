@@ -1,9 +1,14 @@
-"""Pull submitted projects and cast ballots from Netlify Forms into data/.
+"""Pull submitted projects from Netlify Forms into data/, and read ballots for the tally.
 
 Run by .github/workflows/sync-submissions.yml (schedule + workflow_dispatch).
 Requires NETLIFY_TOKEN (a Personal Access Token with access to the site) in
 the environment. Writes data/submissions.json (the public §4.1 Submission
-shape) and data/ballots.json (see the privacy note on _hash_code below).
+shape) and data/id_map.json.
+
+Ballots are NEVER written to disk. tally.yml calls fetch_ballots() and holds
+them in memory only (spec 2026-09-24-free-tier-deployment-design.md §4.4):
+the repo is public, and a committed ballot file lets anyone holding a slip
+code read how that person voted.
 
 Netlify assigns form ids only after the site is created and the form is
 first detected (Task 16 Step 4, not done yet as of this script), so this
@@ -270,84 +275,13 @@ def build_submissions(
 
 
 def _hash_code(code: str) -> str:
-    """One-way hash a ballot code before it ever reaches a file that ships.
+    """One-way hash a ballot code so the tally compares hashes, not codes.
 
-    SCOPE FIRST, because this docstring used to reason only about code
-    recovery and that is not the whole risk. Two different properties are at
-    stake:
-
-    1. CODE RECOVERY -- can someone turn a published value back into a usable
-       ballot code? That is what the hash addresses, and what the rest of this
-       docstring argues about.
-    2. BALLOT SECRECY -- can someone who ALREADY holds a plaintext code learn
-       how that person voted? Hashing does nothing for this: the holder just
-       hashes their copy of the code and looks the row up. The volunteer who
-       handed out the slips, or anyone who photographs the slip sheet, is
-       exactly that person. The only fix is not publishing the file, which is
-       why netlify.toml's build command deletes ballots.json from the copy it
-       pushes to the site (see that file's comment, and
-       tests/test_netlify_config.py). data/ballots.json is still committed to
-       the public repo, so anyone holding a plaintext code can still do this
-       from the repo -- ballot secrecy here rests on the codes staying on the
-       slips, not on the file being hard to reach. Removing it from the
-       published site removes the one surface that required no repo access at
-       all.
-
-    data/ballots.json is committed to a public repo. The design
-    (§6.1 of the spec) is explicit that ballot codes never enter the repo --
-    only the BALLOT_CODES Actions secret and the printed check-in slips
-    carry them, precisely because a code sitting in public history could be
-    used to cast a fraudulent ballot before its rightful holder votes.
-
-    voting/tally.py already only ever compares `Ballot.code` for equality
-    (is it in the valid set? has this code been used already?) and never
-    copies it into a TallyResult (see tests/test_tally.py::
-    test_codes_are_absent_from_the_result). Hashing the code here preserves
-    that same property one step earlier, at rest: SHA-256 is a pure function
-    of the code, so equality comparisons still work unchanged as long as the
-    tally job hashes each BALLOT_CODES entry with this same function before
-    comparing -- no change to voting/tally.py was needed or made.
-
-    This is NOT a strong defence on its own. The code alphabet is 32
-    characters, 10 characters long (see voting/generate_codes.py), i.e. a
-    2**50-ish space -- and unsalted SHA-256 over 2**50 candidates is a
-    roughly 14-hour job on a single commodity GPU (~2.2e10 hashes/sec), or
-    about 14 minutes expected time to the first hit against the ~60-odd
-    hashes actually published in data/ballots.json at once. Sixty-plus bits
-    is where a plain-hash argument starts holding; fifty is not enough on
-    its own.
-
-    What actually makes this acceptable is not the hash -- it's what's
-    IN data/ballots.json: a code only appears there once someone has
-    already POSTed a ballot with it, i.e. it already has a cast_at
-    timestamp on record. tally.yml may run well after sync-submissions.yml
-    publishes that code's hash, but tally() sorts all ballots by cast_at
-    and keeps only the first VALID ballot per code (voting/tally.py; see
-    tests/test_tally.py::test_reused_code_keeps_only_the_first_ballot). So
-    even if an attacker cracks the hash minutes after it's published and
-    immediately submits a competing ballot with the recovered code, that
-    ballot's cast_at is later and loses at tally time regardless of when
-    tally.yml happens to run -- the ordering, not the timing of tally.yml,
-    is what protects it. (The one gap this doesn't close: if the genuine
-    voter's own first submission was itself invalid -- e.g. duplicate
-    picks -- and they haven't yet corrected it, a faster attacker's valid
-    ballot on the same code could become the one that counts. Narrow, but
-    real; not addressed by this hash.) The hash's job is only to keep an
-    already-submitted code from sitting in the repo as recognizable
-    plaintext, not to withstand an offline attack against a still-live,
-    never-submitted code.
-
-    (The netlify.toml deletion is about property 2 above; nothing in the
-    paragraphs that follow changes because of it, since they are entirely
-    about property 1.)
-
-    This construction would NOT be safe for codes that are still unspent
-    (e.g. if data/ballots.json ever held pending/unvalidated submissions,
-    or if BALLOT_CODES itself were ever hashed and published this same way)
-    -- an unspent code's hash is exactly as attackable as the 14-hour/
-    14-minute figures above say. A keyed HMAC (using a secret the sync job
-    doesn't currently receive) would be needed for that case; the repo
-    owner is deciding separately whether to add a fourth secret for it.
+    tally.yml hashes every BALLOT_CODES entry with this same normalisation and
+    compares for equality; voting/tally.py never copies a code into its
+    result. Ballots are held in memory by tally.yml and never written to the
+    repo or the site (spec 2026-09-24 §4.4), which is what protects ballot
+    secrecy. The hash is not a secrecy mechanism and makes no claim to be one.
     """
     normalized = code.strip().upper()
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
@@ -367,6 +301,18 @@ def build_ballots(raw_ballots: list[dict]) -> list[dict]:
     return [map_ballot(r) for r in raw_ballots]
 
 
+def fetch_ballots(token: str, site_id: str | None = None, get_json: GetJSON = _http_get_json) -> list[dict]:
+    """Every cast ballot, hashed, for tally.yml to hold in memory. Never written.
+
+    Only the /forms listing opts into include_body_in_errors (it carries no
+    voter data). The ballot /submissions fetch takes _http_get_json's safe
+    default, because its error body can echo a voter's raw code.
+    """
+    forms = get_json(f"{NETLIFY_API}/forms", token, include_body_in_errors=True)
+    ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, site_id)
+    return build_ballots(fetch_all_submissions(get_json, ballot_form_id, token))
+
+
 def _write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -376,29 +322,24 @@ def sync(token: str, data_dir: Path, site_id: str | None = None, get_json: GetJS
     """Fetch everything first; only write files once every fetch has succeeded.
 
     Only the GET /forms listing opts into `include_body_in_errors` -- it
-    returns form metadata, never submitted field data. The two
-    /submissions fetches below deliberately do NOT opt in (they take
-    _http_get_json's safe default): one of them is the ballot form, whose
-    submitted data includes a voter's raw code (see _http_get_json's
-    docstring for why that specifically must never reach an error message).
+    returns form metadata, never submitted field data. The single
+    /submissions fetch below, for the submission form, takes
+    _http_get_json's safe default and does not opt in. Ballots are not
+    fetched here at all: see fetch_ballots().
     """
     forms = get_json(f"{NETLIFY_API}/forms", token, include_body_in_errors=True)
     submission_form_id = resolve_form_id(forms, SUBMISSION_FORM_NAME, site_id)
-    ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, site_id)
 
     raw_submissions = fetch_all_submissions(get_json, submission_form_id, token)
-    raw_ballots = fetch_all_submissions(get_json, ballot_form_id, token)
 
     # The committed map is what makes sub_NNN survive a deleted submission.
     # It is read before anything is written and written back merged, never
     # pruned.
     numbers = assign_public_numbers(raw_submissions, load_id_map(data_dir / ID_MAP_FILENAME))
     submissions = build_submissions(raw_submissions, numbers)
-    ballots = build_ballots(raw_ballots)
 
     _write_json(data_dir / ID_MAP_FILENAME, numbers)
     _write_json(data_dir / "submissions.json", submissions)
-    _write_json(data_dir / "ballots.json", ballots)
 
 
 def main() -> int:
@@ -418,10 +359,7 @@ def main() -> int:
         print(f"Netlify sync failed: {exc}", file=sys.stderr)
         return 1
 
-    print(
-        f"Wrote {args.data_dir / 'submissions.json'}, "
-        f"{args.data_dir / 'ballots.json'} and {args.data_dir / ID_MAP_FILENAME}"
-    )
+    print(f"Wrote {args.data_dir / 'submissions.json'} and {args.data_dir / ID_MAP_FILENAME}")
     return 0
 
 

@@ -1,4 +1,5 @@
 // site/scripts/vote.js
+// Depends on site/scripts/data.js (fetchData) — include it first.
 const PICKS = ["pick_1", "pick_2", "pick_3"];
 
 function buildOptions(select, submissions) {
@@ -23,8 +24,10 @@ async function setupBallot() {
 
   let submissions = [];
   try {
-    const response = await fetch("/data/submissions.json", { cache: "no-store" });
-    submissions = await response.json();
+    submissions = await fetchData("submissions.json");
+    // An empty list (e.g. an early deploy-time snapshot) would build three
+    // dropdowns with nothing to pick; say so instead.
+    if (!Array.isArray(submissions) || submissions.length === 0) throw new Error("no projects");
   } catch {
     error.textContent = "The project list is not available yet. Try again once the showcase is published.";
     error.hidden = false;

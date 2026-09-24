@@ -1,10 +1,10 @@
 // site/scripts/results.js
-// Depends on site/scripts/escape.js (escapeHtml, safeUrl) — include it first.
+// Depends on site/scripts/escape.js (escapeHtml, safeUrl) and data.js (fetchData) — include both first.
 //
 // Two ID namespaces meet on this page: comparison.json keys everything by
 // PUBLIC id (sub_001) because that's how residents voted; bracket.json and
 // scores.json key everything by ANONYMOUS id (P-01) because the panel judged
-// blind. /data/submissions.json is the only place both ids sit on the same
+// blind. submissions.json is the only place both ids sit on the same
 // record, so buildTitleMaps() reads it once and produces two lookup maps —
 // one per namespace — that every renderer below uses to show a human title
 // instead of a bare id.
@@ -24,12 +24,6 @@
 const INDICATIVE_CAVEAT =
   "Fewer than 10 valid ballots were cast. The crowd ranking is indicative only " +
   "and the correlation should not be read as a result.";
-
-async function loadJSON(path) {
-  const response = await fetch(path, { cache: "no-store" });
-  if (!response.ok) throw new Error(path);
-  return response.json();
-}
 
 function buildTitleMaps(submissions) {
   const byPublic = {};
@@ -297,9 +291,9 @@ async function init() {
   let comparison;
   try {
     [submissions, bracket, comparison] = await Promise.all([
-      loadJSON("/data/submissions.json"),
-      loadJSON("/data/results/bracket.json"),
-      loadJSON("/data/results/comparison.json"),
+      fetchData("submissions.json"),
+      fetchData("results/bracket.json"),
+      fetchData("results/comparison.json"),
     ]);
   } catch {
     const message = '<p class="bracket__empty">Results are not available yet.</p>';
