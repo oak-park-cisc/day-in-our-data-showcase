@@ -1,12 +1,14 @@
 name: Tally participant vote
 
-# workflow_dispatch only. Reads the BALLOT_CODES secret (comma-joined,
-# printed by `python -m voting.generate_codes` -- see voting/generate_codes.py)
-# to validate cast ballots; the raw code list never enters the repo (§6.1 of
-# the design spec). data/ballots.json holds only a SHA-256 hash of each
-# submitted code (see scripts/sync_netlify.py's _hash_code docstring for
-# why), so this job hashes each BALLOT_CODES entry the same way before
-# comparing -- voting/tally.py's equality checks work unchanged on hashes.
+# workflow_dispatch only. Ballots are read from Netlify Forms at tally time
+# (scripts/sync_netlify.py's fetch_ballots) and held in memory by this job
+# only -- nothing ballot-level is ever written or committed; only the
+# aggregates in data/results/ are. The BALLOT_CODES secret (comma-joined,
+# printed by `python -m voting.generate_codes`) validates them: each entry is
+# hashed the same way fetch_ballots hashes submitted codes, so
+# voting/tally.py's equality checks work unchanged. The repo is public; a
+# committed ballot file would let anyone holding a slip code read that
+# person's picks (spec 2026-09-24-free-tier-deployment-design.md §4.6).
 on:
   workflow_dispatch:
 
@@ -24,6 +26,10 @@ jobs:
       - name: Tally ballots and build the crowd-vs-panel comparison
         env:
           BALLOT_CODES: ${{ secrets.BALLOT_CODES }}
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          # Makes scripts/sync_netlify.py importable as `sync_netlify`.
+          PYTHONPATH: scripts
         run: |
           python - <<'PY'
           import hashlib
@@ -36,17 +42,16 @@ jobs:
           from voting.compare import build_comparison
           from voting.ranking import ranking_summary
           from voting.tally import Ballot, tally
+          from sync_netlify import NetlifySyncError, fetch_ballots
 
           def hash_code(code: str) -> str:
               return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
 
-          # Both files are written by sync-submissions.yml. Fail with one clear
-          # line naming the fix, rather than a bare FileNotFoundError traceback,
-          # if this job is ever dispatched before that workflow has run once.
-          missing = [p for p in ("data/submissions.json", "data/ballots.json") if not Path(p).exists()]
-          if missing:
+          # submissions.json is written by sync-submissions.yml. Fail with one
+          # clear line naming the fix rather than a FileNotFoundError traceback.
+          if not Path("data/submissions.json").exists():
               print(
-                  f"tally.yml: missing {', '.join(missing)}. "
+                  "tally.yml: missing data/submissions.json. "
                   "Run the 'Sync Netlify submissions' workflow (sync-submissions.yml) "
                   "at least once before dispatching tally.yml.",
                   file=sys.stderr,
@@ -57,7 +62,24 @@ jobs:
           known_ids = {s["id"] for s in submissions}
           id_of = {s["anon_id"]: s["id"] for s in submissions}
 
-          raw_ballots = json.loads(Path("data/ballots.json").read_text())
+          # Ballots come straight from Netlify Forms and live only in this
+          # process. They are never written: the repo is public, and a ballot
+          # file lets anyone holding a slip code read that person's picks.
+          token = os.environ.get("NETLIFY_TOKEN")
+          if not token:
+              print(
+                  "tally.yml: NETLIFY_TOKEN is not set. The tally reads ballots from "
+                  "Netlify Forms; add the NETLIFY_TOKEN repository secret.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          try:
+              raw_ballots = fetch_ballots(token, os.environ.get("NETLIFY_SITE_ID") or None)
+          except NetlifySyncError as exc:
+              # NetlifySyncError messages never carry a ballot response body.
+              print(f"tally.yml: could not read ballots from Netlify: {exc}", file=sys.stderr)
+              sys.exit(1)
+
           ballots = [
               Ballot(
                   code=b["code_hash"],

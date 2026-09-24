@@ -1,10 +1,13 @@
 """Covering tests for the inline tally logic embedded in
 .github/workflows/tally.yml.
 
-Fix (per coordinator review of task-16-report.md): missing data/ballots.json
-or data/submissions.json used to surface as a bare FileNotFoundError
-traceback in the Actions log; it now prints one clear line naming the
-ordering dependency (run sync-submissions.yml first) and exits 1.
+Ballots are read at tally time from Netlify Forms via
+scripts/sync_netlify.py's fetch_ballots() and held in memory only; nothing
+ballot-level is ever written (spec 2026-09-24-free-tier-deployment-design.md
+§4.4). These tests put a stub `sync_netlify` module first on PYTHONPATH, so
+no HTTP call is made and the shipped workflow carries no test hook. Every
+failure path (missing submissions.json, missing NETLIFY_TOKEN, a Netlify
+error) prints one clear line and exits 1 rather than a traceback.
 
 These tests extract the exact Python heredoc body from the workflow file
 itself -- no YAML parser involved (PyYAML isn't a project dependency; this
@@ -47,19 +50,46 @@ def _hash_code(code: str) -> str:
 DEFAULT_CODES = "CODE001,CODE002,CODE003"
 
 
-def _run_script(cwd: Path, codes: str = DEFAULT_CODES) -> subprocess.CompletedProcess:
+STUB_SYNC_NETLIFY = '''
+import json, os
+
+class NetlifySyncError(RuntimeError):
+    pass
+
+def fetch_ballots(token, site_id=None):
+    if token != "test-token":
+        raise AssertionError(f"stub got token {token!r}")
+    failure = os.environ.get("STUB_FAIL")
+    if failure:
+        raise NetlifySyncError(failure)
+    path = os.environ["STUB_BALLOTS_FILE"]
+    return json.load(open(path)) if os.path.exists(path) else []
+'''
+
+
+def _run_script(cwd: Path, codes: str = DEFAULT_CODES, *, token: str | None = "test-token",
+                real_module: bool = False, fail: str | None = None) -> subprocess.CompletedProcess:
     script = _extract_tally_script()
     script_path = cwd / "_extracted_tally.py"
     script_path.write_text(script, encoding="utf-8")
+    stub_dir = cwd / "_stub"
+    stub_dir.mkdir(exist_ok=True)
+    (stub_dir / "sync_netlify.py").write_text(STUB_SYNC_NETLIFY, encoding="utf-8")
+    first = REPO_ROOT / "scripts" if real_module else stub_dir
     env = dict(os.environ)
-    env["PYTHONPATH"] = str(REPO_ROOT)
+    env["PYTHONPATH"] = os.pathsep.join([str(first), str(REPO_ROOT)])
     env["BALLOT_CODES"] = codes
+    env["STUB_BALLOTS_FILE"] = str(cwd / "stub_ballots.json")
+    env.pop("NETLIFY_SITE_ID", None)
+    env.pop("STUB_FAIL", None)
+    if fail:
+        env["STUB_FAIL"] = fail
+    if token is None:
+        env.pop("NETLIFY_TOKEN", None)
+    else:
+        env["NETLIFY_TOKEN"] = token
     return subprocess.run(
-        [sys.executable, str(script_path)],
-        cwd=cwd,
-        env=env,
-        capture_output=True,
-        text=True,
+        [sys.executable, str(script_path)], cwd=cwd, env=env, capture_output=True, text=True,
     )
 
 
@@ -68,38 +98,60 @@ def test_extracted_script_is_syntactically_valid():
     compile(script, "<tally.yml>", "exec")  # raises SyntaxError if the heredoc body is broken
 
 
-def test_exits_nonzero_with_a_clear_message_when_both_files_missing(tmp_path):
+def test_exits_nonzero_with_a_clear_message_when_submissions_missing(tmp_path):
     result = _run_script(tmp_path)
     assert result.returncode == 1
     assert "data/submissions.json" in result.stderr
-    assert "data/ballots.json" in result.stderr
     assert "sync-submissions.yml" in result.stderr
-    assert "Traceback" not in result.stderr  # the whole point of the fix
+    assert "Traceback" not in result.stderr
 
 
-def test_exits_nonzero_with_a_clear_message_when_only_ballots_missing(tmp_path):
+def test_missing_token_exits_with_a_clear_message_using_the_real_module(tmp_path):
+    # Review Focus 4. Uses the REAL scripts/sync_netlify.py, which also proves
+    # the heredoc's import resolves with PYTHONPATH=scripts as tally.yml sets it.
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     (data_dir / "submissions.json").write_text("[]", encoding="utf-8")
-
-    result = _run_script(tmp_path)
+    result = _run_script(tmp_path, token=None, real_module=True)
     assert result.returncode == 1
-    assert "data/ballots.json" in result.stderr
-    assert "data/submissions.json" not in result.stderr  # names only what's actually missing
-    assert "sync-submissions.yml" in result.stderr
+    assert "NETLIFY_TOKEN" in result.stderr
     assert "Traceback" not in result.stderr
+    assert not (data_dir / "results").exists()
 
 
-def test_exits_nonzero_with_a_clear_message_when_only_submissions_missing(tmp_path):
+def test_netlify_failure_exits_with_one_line_and_writes_nothing(tmp_path):
+    # Review Focus 3: e.g. the ballot form was never detected on Netlify.
     data_dir = tmp_path / "data"
     data_dir.mkdir()
-    (data_dir / "ballots.json").write_text("[]", encoding="utf-8")
-
-    result = _run_script(tmp_path)
+    (data_dir / "submissions.json").write_text("[]", encoding="utf-8")
+    result = _run_script(tmp_path, fail="No Netlify form named 'ballot' found.")
     assert result.returncode == 1
-    assert "data/submissions.json" in result.stderr
-    assert "data/ballots.json" not in result.stderr
+    assert "No Netlify form named 'ballot' found." in result.stderr
     assert "Traceback" not in result.stderr
+    assert not (data_dir / "results").exists()
+
+
+def test_no_ballots_cast_publishes_zero_counts_with_the_caveat(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "submissions.json").write_text(
+        json.dumps([{"id": "sub_001", "anon_id": "P-01"}]), encoding="utf-8"
+    )
+    result = _run_script(tmp_path)
+    assert result.returncode == 0, result.stderr
+    vote = json.loads((data_dir / "results" / "vote.json").read_text())
+    assert vote["valid"] == 0
+    assert vote["indicative"] is True
+
+
+def test_tally_writes_no_ballot_level_data(tmp_path):
+    _write_fixture_data(tmp_path / "data")
+    assert _run_script(tmp_path).returncode == 0
+    for path in (tmp_path / "data").rglob("*.json"):
+        text = path.read_text(encoding="utf-8")
+        assert "code_hash" not in text, path
+        assert '"cast_at"' not in text, path
+    assert not (tmp_path / "data" / "ballots.json").exists()
 
 
 def _write_fixture_data(data_dir: Path) -> None:
@@ -116,7 +168,7 @@ def _write_fixture_data(data_dir: Path) -> None:
             "cast_at": "2026-10-03T16:05:00Z",
         },
     ]
-    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+    (data_dir.parent / "stub_ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
 
 
 def test_succeeds_and_writes_vote_json_when_both_files_present(tmp_path):
@@ -198,7 +250,7 @@ def _write_tied_fixture_data(data_dir: Path) -> None:
          "picks": ["sub_001", "sub_003", "sub_004"],
          "cast_at": "2026-10-03T16:07:00Z"},
     ]
-    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+    (data_dir.parent / "stub_ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
 
 
 def test_vote_json_shares_a_rank_for_tied_projects_but_a_tie_below_first_is_not_flagged(tmp_path):
@@ -239,7 +291,7 @@ def _write_first_place_tie_fixture_data(data_dir: Path) -> None:
          "picks": ["sub_001", "sub_002", "sub_003"],
          "cast_at": "2026-10-03T16:07:00Z"},
     ]
-    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+    (data_dir.parent / "stub_ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
 
 
 def test_vote_json_flags_a_tie_for_first_as_the_award_boundary(tmp_path):
@@ -278,7 +330,7 @@ def _write_below_floor_fixture(data_dir: Path, ballots_cast: int) -> None:
         }
         for i in range(1, ballots_cast + 1)
     ]
-    (data_dir / "ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
+    (data_dir.parent / "stub_ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
 
 
 def _codes(n: int) -> str:
