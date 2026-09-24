@@ -394,3 +394,14 @@ def test_the_crowd_only_branch_has_the_same_shape_as_a_full_comparison(tmp_path)
     full = json.loads((results_dir / "comparison.json").read_text())
 
     assert sorted(crowd_only) == sorted(full)
+
+
+def test_empty_ballot_codes_exits_with_one_line_and_writes_nothing(tmp_path):
+    # Final review: an unset BALLOT_CODES secret used to publish a tally with
+    # every ballot invalid. It must fail like a missing NETLIFY_TOKEN does.
+    _write_fixture_data(tmp_path / "data")
+    result = _run_script(tmp_path, codes="")
+    assert result.returncode == 1
+    assert "BALLOT_CODES" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert not (tmp_path / "data" / "results").exists()

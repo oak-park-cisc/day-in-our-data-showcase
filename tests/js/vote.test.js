@@ -56,3 +56,15 @@ test("unreachable data shows the not-available message and builds no selects", a
   assert.match(error.textContent, /not available yet/);
   assert.deepEqual(selectsBuilt, []);
 });
+
+test("an empty project list shows the not-available message and builds no selects", async () => {
+  // Final review Important 2: on event day a 429 from GitHub falls back to a
+  // snapshot that may still be the seeded []. Three empty dropdowns with no
+  // message would leave the voter stuck.
+  const empty = async () => ({ ok: true, status: 200, json: async () => [] });
+  const { error, selectsBuilt, getReady } = createSandbox(empty);
+  await getReady()();
+  assert.equal(error.hidden, false);
+  assert.match(error.textContent, /not available yet/);
+  assert.deepEqual(selectsBuilt, []);
+});

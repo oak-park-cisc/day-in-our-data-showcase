@@ -65,9 +65,20 @@ GitHub repo → Settings → Secrets and variables → Actions.
 `mock` at its default `true`. Zero API spend. Confirm `results.html` shows the
 bracket within ~5 minutes, again with no new deploy.
 
-**Tally.** Visit `vote.html`, cast one ballot with a code from your slip sheet,
-then Actions → `tally.yml` → Run workflow. It needs `data/submissions.json` and
-the `NETLIFY_TOKEN` secret, and it fails with one clear line if either is missing.
+**Tally.** Visit `vote.html` and cast one ballot with a **made-up code that is
+not in `BALLOT_CODES`** (for example `TESTTEST01`). Never use a real slip: the
+tally keeps only the first ballot per code, so the attendee later handed that
+slip would have their vote thrown away. Then Actions → `tally.yml` → Run
+workflow. The test ballot is counted as invalid, which still exercises the whole
+path. The tally needs `data/submissions.json` and the `NETLIFY_TOKEN` and
+`BALLOT_CODES` secrets, and fails with one clear line if any is missing.
+
+**Before the event: clean up.** The checks above leave test data behind that
+would otherwise show publicly or count on the day.
+1. Netlify → Forms → delete the test submission and the test ballot.
+2. Delete the dry-run results from the repo: `git rm -r data/results/`, commit,
+   and push to `main`. Leave `[skip netlify]` out of this message, so the deploy
+   also clears the dry-run results from the fallback snapshot.
 
 ## 5. Custom domain (optional)
 
@@ -88,6 +99,11 @@ No deploy is needed for this.
 `sync-submissions.yml` runs every 15 minutes on Saturdays 16:00–21:59 UTC
 (11:00 a.m.–4:59 p.m. Central) and on demand. New projects show on the site
 within ~5 minutes of each sync.
+
+When submissions close, before voting opens: run `sync-submissions.yml` once
+more, then Netlify → Deploys → **Trigger deploy** once. The deploy copies the
+full project list into the fallback snapshot, so the ballot page still works
+if GitHub rate-limits the library's shared wifi.
 
 After voting closes:
 1. Run `judge.yml` with **`mock` unticked**. This is the only step that spends

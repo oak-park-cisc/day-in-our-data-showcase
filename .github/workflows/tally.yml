@@ -91,6 +91,13 @@ jobs:
 
           codes = os.environ.get("BALLOT_CODES", "")
           valid_code_hashes = {hash_code(c) for c in codes.split(",") if c.strip()}
+          if not valid_code_hashes:
+              print(
+                  "tally.yml: BALLOT_CODES is empty or not set, so every ballot would be "
+                  "invalid. Add the BALLOT_CODES repository secret.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
 
           result = tally(ballots, valid_code_hashes, known_ids)
 

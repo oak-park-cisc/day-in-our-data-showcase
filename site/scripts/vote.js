@@ -25,6 +25,9 @@ async function setupBallot() {
   let submissions = [];
   try {
     submissions = await fetchData("submissions.json");
+    // An empty list (e.g. an early deploy-time snapshot) would build three
+    // dropdowns with nothing to pick; say so instead.
+    if (!Array.isArray(submissions) || submissions.length === 0) throw new Error("no projects");
   } catch {
     error.textContent = "The project list is not available yet. Try again once the showcase is published.";
     error.hidden = false;
