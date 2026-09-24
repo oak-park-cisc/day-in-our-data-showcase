@@ -1,14 +1,12 @@
 // site/scripts/gallery.js
-// Depends on site/scripts/escape.js (escapeHtml, safeUrl) — include it first.
+// Depends on site/scripts/escape.js (escapeHtml, safeUrl) and data.js (fetchData) — include both first.
 async function renderGallery() {
   const mount = document.getElementById("gallery");
   if (!mount) return;
 
   let submissions = [];
   try {
-    const response = await fetch("/data/submissions.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(String(response.status));
-    submissions = await response.json();
+    submissions = await fetchData("submissions.json");
   } catch {
     mount.innerHTML =
       '<p class="gallery__empty">The showcase opens once the first team enters a project.</p>';
