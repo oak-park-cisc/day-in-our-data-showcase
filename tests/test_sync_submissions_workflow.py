@@ -28,7 +28,7 @@ def _sync_step_lines() -> list[str]:
     lines = WORKFLOW_PATH.read_text(encoding="utf-8").splitlines()
     start = next(
         i for i, line in enumerate(lines)
-        if line.strip() == "- name: Sync submissions and ballots from Netlify Forms"
+        if line.strip() == "- name: Sync submissions from Netlify Forms"
     )
     end = next(
         i for i in range(start + 1, len(lines))

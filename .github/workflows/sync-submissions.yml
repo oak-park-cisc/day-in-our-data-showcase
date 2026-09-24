@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Sync submissions and ballots from Netlify Forms
+      - name: Sync submissions from Netlify Forms
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           # Only needed if the token can see same-named forms on more than
@@ -36,6 +36,7 @@ jobs:
           # stable when another submission is deleted. If it is not committed,
           # the next sync renumbers everything and every cast ballot re-points
           # (scripts/sync_netlify.py's assign_public_numbers).
-          git add data/submissions.json data/ballots.json data/id_map.json
-          git diff --staged --quiet || git commit -m "chore: sync submissions and ballots from Netlify"
+          # [skip netlify]: pages read data live from GitHub; data commits must not spend the free plan's ~20 monthly deploys.
+          git add data/submissions.json data/id_map.json
+          git diff --staged --quiet || git commit -m "chore: sync submissions from Netlify [skip netlify]"
           git push
