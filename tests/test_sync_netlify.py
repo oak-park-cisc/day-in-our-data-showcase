@@ -112,6 +112,12 @@ def default_urls():
     return {
         f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
         submissions_url("form-sub-123"): SUBMISSIONS_PAYLOAD,
+    }
+
+
+def ballot_urls():
+    return {
+        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
         submissions_url("form-ballot-456"): BALLOTS_PAYLOAD,
     }
 
@@ -214,22 +220,65 @@ def test_hash_code_is_deterministic_and_distinct_per_code():
     assert sync_netlify._hash_code("CODE001") != sync_netlify._hash_code("CODE002")
 
 
-def test_sync_writes_both_files(tmp_path):
+def test_sync_writes_submissions_and_id_map_and_never_ballots(tmp_path):
     sync_netlify.sync(
         "test-token", tmp_path, site_id="site-abc", get_json=fake_get_json(default_urls())
     )
-    submissions = json.loads((tmp_path / "submissions.json").read_text())
-    ballots = json.loads((tmp_path / "ballots.json").read_text())
-    assert len(submissions) == 2
-    assert len(ballots) == 1
-    raw_text = (tmp_path / "ballots.json").read_text()
-    assert "abcdefghj2" not in raw_text.lower()  # the raw ballot code never reaches disk
-    assert '"code":' not in raw_text  # only "code_hash" is ever a key, never plain "code"
+    assert len(json.loads((tmp_path / "submissions.json").read_text())) == 2
+    assert (tmp_path / sync_netlify.ID_MAP_FILENAME).exists()
+    assert not (tmp_path / "ballots.json").exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["id_map.json", "submissions.json"]
+
+
+def test_sync_works_before_the_ballot_form_exists(tmp_path):
+    # The ballot form is detected on the first deploy of vote.html. Syncing
+    # submissions must not depend on it.
+    urls = default_urls()
+    urls[f"{sync_netlify.NETLIFY_API}/forms"] = [FORMS_PAYLOAD[0]]
+    sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=fake_get_json(urls))
+    assert (tmp_path / "submissions.json").exists()
+
+
+def test_fetch_ballots_returns_hashed_ballots_in_tally_shape():
+    ballots = sync_netlify.fetch_ballots(
+        "test-token", site_id="site-abc", get_json=fake_get_json(ballot_urls())
+    )
+    assert ballots == [{
+        "code_hash": hashlib.sha256(b"ABCDEFGHJ2").hexdigest(),
+        "picks": ["sub_001", "sub_002", "sub_003"],
+        "cast_at": "2026-10-03T16:05:00.000Z",
+    }]
+
+
+def test_fetch_ballots_follows_pagination():
+    one = BALLOTS_PAYLOAD[0]
+    urls = {
+        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        submissions_url("form-ballot-456", 1): [one] * sync_netlify.PAGE_SIZE,
+        submissions_url("form-ballot-456", 2): [one],
+    }
+    ballots = sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=fake_get_json(urls))
+    assert len(ballots) == sync_netlify.PAGE_SIZE + 1
+
+
+def test_fetch_ballots_raises_when_the_ballot_form_is_missing():
+    urls = {f"{sync_netlify.NETLIFY_API}/forms": [FORMS_PAYLOAD[0]]}
+    with pytest.raises(sync_netlify.NetlifySyncError, match="ballot"):
+        sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=fake_get_json(urls))
+
+
+def test_fetch_ballots_with_no_ballots_cast_returns_empty_list():
+    urls = {
+        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        submissions_url("form-ballot-456"): [],
+    }
+    assert sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=fake_get_json(urls)) == []
 
 
 def test_sync_raises_and_writes_nothing_on_form_lookup_failure(tmp_path):
     urls = default_urls()
-    urls[f"{sync_netlify.NETLIFY_API}/forms"] = [{"id": "x", "name": "submission", "site_id": "site-abc"}]
+    # Only the ballot form exists, so the submission-form lookup fails.
+    urls[f"{sync_netlify.NETLIFY_API}/forms"] = [FORMS_PAYLOAD[1]]
     with pytest.raises(sync_netlify.NetlifySyncError):
         sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=fake_get_json(urls))
     assert not (tmp_path / "submissions.json").exists()
@@ -330,10 +379,10 @@ def test_http_get_json_error_names_status_and_url_even_when_body_is_withheld(mon
     assert "raw upstream html error page" not in message
 
 
-def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fails(monkeypatch, tmp_path):
-    """The test that matters for Finding 2: exercises sync()'s REAL wiring
+def test_fetch_ballots_never_leaks_a_raw_ballot_code_when_the_fetch_fails(monkeypatch):
+    """The test that matters for Finding 2: exercises fetch_ballots()'s REAL wiring
     (the actual _http_get_json, not a test fake), through the real HTTP code
-    path with only urllib.request.urlopen mocked -- so this proves sync()
+    path with only urllib.request.urlopen mocked -- so this proves fetch_ballots()
     itself never opts the ballot-submissions fetch into body-in-errors, not
     just that _http_get_json's default is safe in isolation. Built to fail
     against the pre-fix code: before the fix, _http_get_json always included
@@ -343,7 +392,6 @@ def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fa
     """
     raw_code = "ZQ7MFPLNK4XX"
     forms_body = json.dumps(FORMS_PAYLOAD).encode("utf-8")
-    submissions_body = json.dumps(SUBMISSIONS_PAYLOAD).encode("utf-8")
     ballot_error_body = json.dumps({
         "message": f"could not process ballot with code={raw_code}",
     }).encode("utf-8")
@@ -352,8 +400,6 @@ def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fa
         url = request.full_url
         if url == f"{sync_netlify.NETLIFY_API}/forms":
             return _FakeHTTPResponse(forms_body)
-        if url == submissions_url("form-sub-123"):
-            return _FakeHTTPResponse(submissions_body)
         if url == submissions_url("form-ballot-456"):
             raise _http_error(url, 500, ballot_error_body)
         raise AssertionError(f"unexpected URL requested: {url}")
@@ -361,14 +407,9 @@ def test_sync_never_leaks_a_raw_ballot_code_when_the_ballot_submissions_fetch_fa
     monkeypatch.setattr(sync_netlify.urllib.request, "urlopen", fake_urlopen)
 
     with pytest.raises(sync_netlify.NetlifySyncError) as excinfo:
-        sync_netlify.sync(
-            "test-token", tmp_path, site_id="site-abc", get_json=sync_netlify._http_get_json
-        )
+        sync_netlify.fetch_ballots("test-token", site_id="site-abc")  # real _http_get_json
 
-    message = str(excinfo.value)
-    assert raw_code not in message
-    assert not (tmp_path / "submissions.json").exists()
-    assert not (tmp_path / "ballots.json").exists()
+    assert raw_code not in str(excinfo.value)
 
 
 def test_sync_forms_listing_error_may_include_its_body(monkeypatch, tmp_path):

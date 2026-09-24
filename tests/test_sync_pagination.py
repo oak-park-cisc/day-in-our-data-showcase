@@ -82,11 +82,10 @@ def test_every_page_of_submissions_is_fetched(tmp_path):
     assert [p for kind, p in api.requests if kind == "submissions"] == [1, 2, 3]
 
 
-def test_every_page_of_ballots_is_fetched(tmp_path):
+def test_every_page_of_ballots_is_fetched():
     api = _PagingApi([_submission(1)], [_ballot(n) for n in range(1, 151)])
-    sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+    ballots = sync_netlify.fetch_ballots("test-token", site_id=None, get_json=api)
 
-    ballots = json.loads((tmp_path / "ballots.json").read_text(encoding="utf-8"))
     assert len(ballots) == 150
     assert len({b["code_hash"] for b in ballots}) == 150
 
@@ -109,7 +108,7 @@ def test_a_short_first_page_stops_after_one_request(tmp_path):
 def test_an_empty_form_stops_after_one_request(tmp_path):
     api = _PagingApi([], [])
     sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
-    assert api.requests == [("submissions", 1), ("ballots", 1)]
+    assert api.requests == [("submissions", 1)]
     assert json.loads((tmp_path / "submissions.json").read_text(encoding="utf-8")) == []
 
 
@@ -124,18 +123,12 @@ def test_a_failed_later_page_aborts_the_whole_sync_and_writes_nothing(tmp_path):
     assert not (tmp_path / "id_map.json").exists()
 
 
-def test_a_failed_ballot_page_leaves_submissions_untouched(tmp_path):
-    # Fetch-everything-before-writing-anything: a ballot failure must not
-    # leave a half-updated submissions.json behind.
-    (tmp_path / "submissions.json").write_text('[{"id": "sub_001"}]', encoding="utf-8")
-    api = _PagingApi([_submission(n) for n in range(1, 5)], [_ballot(n) for n in range(1, 251)])
-    api.fail_on = ("ballots", 3)
+def test_a_failed_ballot_page_raises_from_fetch_ballots():
+    # A partial ballot list would silently drop votes from the tally.
+    api = _PagingApi([_submission(1)], [_ballot(n) for n in range(1, 151)])
+    api.fail_on = ("ballots", 2)
     with pytest.raises(sync_netlify.NetlifySyncError):
-        sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
-
-    assert json.loads((tmp_path / "submissions.json").read_text(encoding="utf-8")) == [
-        {"id": "sub_001"}
-    ]
+        sync_netlify.fetch_ballots("test-token", site_id=None, get_json=api)
 
 
 def test_a_non_list_page_is_an_error_not_a_silent_truncation(tmp_path):
