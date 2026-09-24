@@ -1,6 +1,6 @@
 // site/scripts/data.js
 // Load before every page script. Spec: docs/superpowers/specs/
-// 2026-09-24-free-tier-deployment-design.md ง4.1.
+// 2026-09-24-free-tier-deployment-design.md ยง4.1.
 //
 // The site's data lives in the public repo and changes without a deploy:
 // sync, judge and tally commit with [skip netlify] so Netlify's free-plan
