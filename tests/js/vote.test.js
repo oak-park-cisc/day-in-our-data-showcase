@@ -1,5 +1,7 @@
 // tests/js/vote.test.js
 //
+// Run with: node --test tests/js/*.test.js
+//
 // Review Focus 2: vote.js used to call response.json() without checking
 // response.ok. With data unreachable the voter must see the "not available
 // yet" message, and the ballot selects must not be built.
