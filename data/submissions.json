@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "sub_001",
+    "anon_id": "P-01",
+    "team_name": "TEST \ufffd delete before event",
+    "project_title": "Pipeline check (automated test entry)",
+    "description": "Automated test submission sent 2026-09-26 to verify Netlify Forms capture. Delete before the event.",
+    "solves_for": "Nobody \ufffd this is a test.",
+    "starter_project": "01-is-my-assessment-fair",
+    "repo_url": null,
+    "demo_url": null,
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-09-26T19:14:58.330Z"
+  }
+]
