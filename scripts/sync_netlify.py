@@ -12,12 +12,13 @@ code read how that person voted.
 
 Netlify assigns form ids only after the site is created and the form is
 first detected (Task 16 Step 4, not done yet as of this script), so this
-script never hardcodes a form id. Instead it lists every form the token can
-see (GET /forms) and matches by the `name` attribute each form carries in
-the HTML (`<form name="submission" ...>`, `<form name="ballot" ...>` -- see
-site/index.html and site/vote.html). If NETLIFY_SITE_ID is set, matches are
-also filtered to that site, which only matters if the token has access to
-more than one site.
+script never hardcodes a form id. Instead it lists the site's forms
+(GET /sites/{NETLIFY_SITE_ID}/forms) and matches by the `name` attribute each
+form carries in the HTML (`<form name="submission" ...>`, `<form name="ballot"
+...>` -- see site/index.html and site/vote.html). NETLIFY_SITE_ID is
+required: Netlify has no account-wide GET /forms (it answers 404, found on
+the first live run 2026-09-26). It may be the site's API id or its domain
+(e.g. oakparkciscdiod.netlify.app).
 
 Both /submissions endpoints are PAGED (see fetch_all_submissions): the first
 response is not the whole set, and treating it as such would make the tally
@@ -35,6 +36,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any, Callable
@@ -301,15 +303,29 @@ def build_ballots(raw_ballots: list[dict]) -> list[dict]:
     return [map_ballot(r) for r in raw_ballots]
 
 
+def _site_forms(get_json: GetJSON, token: str, site_id: str | None) -> list[dict]:
+    """The site's forms. Only this listing opts into include_body_in_errors:
+    it returns form metadata, never submitted field data."""
+    if not site_id:
+        raise NetlifySyncError(
+            "NETLIFY_SITE_ID is not set. Netlify lists forms per site; set it to the "
+            "site's API id or its domain (e.g. oakparkciscdiod.netlify.app)."
+        )
+    url = f"{NETLIFY_API}/sites/{urllib.parse.quote(site_id, safe='')}/forms"
+    return get_json(url, token, include_body_in_errors=True)
+
+
 def fetch_ballots(token: str, site_id: str | None = None, get_json: GetJSON = _http_get_json) -> list[dict]:
     """Every cast ballot, hashed, for tally.yml to hold in memory. Never written.
 
-    Only the /forms listing opts into include_body_in_errors (it carries no
-    voter data). The ballot /submissions fetch takes _http_get_json's safe
+    Only the site's forms listing opts into include_body_in_errors (it
+    carries no voter data). The ballot /submissions fetch takes _http_get_json's safe
     default, because its error body can echo a voter's raw code.
     """
-    forms = get_json(f"{NETLIFY_API}/forms", token, include_body_in_errors=True)
-    ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, site_id)
+    forms = _site_forms(get_json, token, site_id)
+    # Already scoped to the site; match by name only (a domain given as
+    # site_id never equals the forms' internal site_id field).
+    ballot_form_id = resolve_form_id(forms, BALLOT_FORM_NAME, None)
     return build_ballots(fetch_all_submissions(get_json, ballot_form_id, token))
 
 
@@ -321,14 +337,14 @@ def _write_json(path: Path, payload: Any) -> None:
 def sync(token: str, data_dir: Path, site_id: str | None = None, get_json: GetJSON = _http_get_json) -> None:
     """Fetch everything first; only write files once every fetch has succeeded.
 
-    Only the GET /forms listing opts into `include_body_in_errors` -- it
+    Only the site's forms listing opts into `include_body_in_errors` -- it
     returns form metadata, never submitted field data. The single
     /submissions fetch below, for the submission form, takes
     _http_get_json's safe default and does not opt in. Ballots are not
     fetched here at all: see fetch_ballots().
     """
-    forms = get_json(f"{NETLIFY_API}/forms", token, include_body_in_errors=True)
-    submission_form_id = resolve_form_id(forms, SUBMISSION_FORM_NAME, site_id)
+    forms = _site_forms(get_json, token, site_id)
+    submission_form_id = resolve_form_id(forms, SUBMISSION_FORM_NAME, None)
 
     raw_submissions = fetch_all_submissions(get_json, submission_form_id, token)
 

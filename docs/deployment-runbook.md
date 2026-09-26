@@ -51,7 +51,7 @@ GitHub repo → Settings → Secrets and variables → Actions.
 | `NETLIFY_TOKEN` | yes | `sync-submissions.yml` **and `tally.yml`** (the tally reads ballots from Netlify). Create it at Netlify → User settings → Applications → New access token |
 | `BALLOT_CODES` | yes | `tally.yml` |
 | `ANTHROPIC_API_KEY` | only for the real judging run | `judge.yml` with `mock` unticked |
-| `NETLIFY_SITE_ID` | only if needed | Set it only if a run fails with "Multiple Netlify forms named ... found" |
+| `NETLIFY_SITE_ID` | yes | `sync-submissions.yml` and `tally.yml`. Netlify lists forms per site. The site's domain works, e.g. `oakparkciscdiod.netlify.app` |
 
 ## 4. Verify the pipeline before the event
 
@@ -71,7 +71,8 @@ tally keeps only the first ballot per code, so the attendee later handed that
 slip would have their vote thrown away. Then Actions → `tally.yml` → Run
 workflow. The test ballot is counted as invalid, which still exercises the whole
 path. The tally needs `data/submissions.json` and the `NETLIFY_TOKEN` and
-`BALLOT_CODES` secrets, and fails with one clear line if any is missing.
+`NETLIFY_SITE_ID` and `BALLOT_CODES` secrets, and fails with one clear line if any
+is missing.
 
 **Before the event: clean up.** The checks above leave test data behind that
 would otherwise show publicly or count on the day.
