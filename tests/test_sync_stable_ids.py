@@ -70,7 +70,7 @@ def _fake_get_json(submissions: list[dict], ballots: list[dict] | None = None):
 
 def _sync(data_dir: Path, submissions: list[dict]) -> list[dict]:
     sync_netlify.sync(
-        "test-token", data_dir, site_id=None, get_json=_fake_get_json(submissions)
+        "test-token", data_dir, site_id="site-abc", get_json=_fake_get_json(submissions)
     )
     return json.loads((data_dir / "submissions.json").read_text(encoding="utf-8"))
 

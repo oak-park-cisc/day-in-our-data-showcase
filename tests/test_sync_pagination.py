@@ -75,7 +75,7 @@ class _PagingApi:
 
 def test_every_page_of_submissions_is_fetched(tmp_path):
     api = _PagingApi([_submission(n) for n in range(1, 251)], [])
-    sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+    sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
 
     records = json.loads((tmp_path / "submissions.json").read_text(encoding="utf-8"))
     assert len(records) == 250
@@ -84,7 +84,7 @@ def test_every_page_of_submissions_is_fetched(tmp_path):
 
 def test_every_page_of_ballots_is_fetched():
     api = _PagingApi([_submission(1)], [_ballot(n) for n in range(1, 151)])
-    ballots = sync_netlify.fetch_ballots("test-token", site_id=None, get_json=api)
+    ballots = sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=api)
 
     assert len(ballots) == 150
     assert len({b["code_hash"] for b in ballots}) == 150
@@ -94,20 +94,20 @@ def test_an_exactly_full_page_still_asks_for_the_next_one(tmp_path):
     # 100 records is indistinguishable from "a full page with more behind it"
     # without asking, so the loop must ask and only stop on the short page.
     api = _PagingApi([_submission(n) for n in range(1, 101)], [])
-    sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+    sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
     assert [p for kind, p in api.requests if kind == "submissions"] == [1, 2]
     assert len(json.loads((tmp_path / "submissions.json").read_text(encoding="utf-8"))) == 100
 
 
 def test_a_short_first_page_stops_after_one_request(tmp_path):
     api = _PagingApi([_submission(n) for n in range(1, 15)], [])
-    sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+    sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
     assert [p for kind, p in api.requests if kind == "submissions"] == [1]
 
 
 def test_an_empty_form_stops_after_one_request(tmp_path):
     api = _PagingApi([], [])
-    sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+    sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
     assert api.requests == [("submissions", 1)]
     assert json.loads((tmp_path / "submissions.json").read_text(encoding="utf-8")) == []
 
@@ -116,7 +116,7 @@ def test_a_failed_later_page_aborts_the_whole_sync_and_writes_nothing(tmp_path):
     api = _PagingApi([_submission(n) for n in range(1, 251)], [])
     api.fail_on = ("submissions", 2)
     with pytest.raises(sync_netlify.NetlifySyncError):
-        sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+        sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
 
     assert not (tmp_path / "submissions.json").exists()
     assert not (tmp_path / "ballots.json").exists()
@@ -128,7 +128,7 @@ def test_a_failed_ballot_page_raises_from_fetch_ballots():
     api = _PagingApi([_submission(1)], [_ballot(n) for n in range(1, 151)])
     api.fail_on = ("ballots", 2)
     with pytest.raises(sync_netlify.NetlifySyncError):
-        sync_netlify.fetch_ballots("test-token", site_id=None, get_json=api)
+        sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=api)
 
 
 def test_a_non_list_page_is_an_error_not_a_silent_truncation(tmp_path):
@@ -139,7 +139,7 @@ def test_a_non_list_page_is_an_error_not_a_silent_truncation(tmp_path):
             return {"message": "rate limited"}
 
     with pytest.raises(sync_netlify.NetlifySyncError):
-        sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=_Weird([], []))
+        sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=_Weird([], []))
 
 
 def test_runaway_pagination_is_bounded(tmp_path):
@@ -155,5 +155,5 @@ def test_runaway_pagination_is_bounded(tmp_path):
 
     api = _NeverEnds()
     with pytest.raises(sync_netlify.NetlifySyncError):
-        sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=api)
+        sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=api)
     assert api.calls <= sync_netlify.MAX_PAGES + 1

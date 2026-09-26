@@ -22,6 +22,10 @@ sync_netlify = importlib.util.module_from_spec(spec)
 sys.modules["sync_netlify"] = sync_netlify
 spec.loader.exec_module(sync_netlify)  # type: ignore[union-attr]
 
+# Netlify has no account-wide GET /forms (it answers 404); forms are listed
+# per site. The site id may be Netlify's API id or the site's domain.
+FORMS_URL = f"{sync_netlify.NETLIFY_API}/sites/site-abc/forms"
+
 
 FORMS_PAYLOAD = [
     {"id": "form-sub-123", "name": "submission", "site_id": "site-abc"},
@@ -110,14 +114,14 @@ def submissions_url(form_id: str, page: int = 1) -> str:
 
 def default_urls():
     return {
-        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        FORMS_URL: FORMS_PAYLOAD,
         submissions_url("form-sub-123"): SUBMISSIONS_PAYLOAD,
     }
 
 
 def ballot_urls():
     return {
-        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        FORMS_URL: FORMS_PAYLOAD,
         submissions_url("form-ballot-456"): BALLOTS_PAYLOAD,
     }
 
@@ -234,7 +238,7 @@ def test_sync_works_before_the_ballot_form_exists(tmp_path):
     # The ballot form is detected on the first deploy of vote.html. Syncing
     # submissions must not depend on it.
     urls = default_urls()
-    urls[f"{sync_netlify.NETLIFY_API}/forms"] = [FORMS_PAYLOAD[0]]
+    urls[FORMS_URL] = [FORMS_PAYLOAD[0]]
     sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=fake_get_json(urls))
     assert (tmp_path / "submissions.json").exists()
 
@@ -253,7 +257,7 @@ def test_fetch_ballots_returns_hashed_ballots_in_tally_shape():
 def test_fetch_ballots_follows_pagination():
     one = BALLOTS_PAYLOAD[0]
     urls = {
-        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        FORMS_URL: FORMS_PAYLOAD,
         submissions_url("form-ballot-456", 1): [one] * sync_netlify.PAGE_SIZE,
         submissions_url("form-ballot-456", 2): [one],
     }
@@ -262,14 +266,14 @@ def test_fetch_ballots_follows_pagination():
 
 
 def test_fetch_ballots_raises_when_the_ballot_form_is_missing():
-    urls = {f"{sync_netlify.NETLIFY_API}/forms": [FORMS_PAYLOAD[0]]}
+    urls = {FORMS_URL: [FORMS_PAYLOAD[0]]}
     with pytest.raises(sync_netlify.NetlifySyncError, match="ballot"):
         sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=fake_get_json(urls))
 
 
 def test_fetch_ballots_with_no_ballots_cast_returns_empty_list():
     urls = {
-        f"{sync_netlify.NETLIFY_API}/forms": FORMS_PAYLOAD,
+        FORMS_URL: FORMS_PAYLOAD,
         submissions_url("form-ballot-456"): [],
     }
     assert sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=fake_get_json(urls)) == []
@@ -278,7 +282,7 @@ def test_fetch_ballots_with_no_ballots_cast_returns_empty_list():
 def test_sync_raises_and_writes_nothing_on_form_lookup_failure(tmp_path):
     urls = default_urls()
     # Only the ballot form exists, so the submission-form lookup fails.
-    urls[f"{sync_netlify.NETLIFY_API}/forms"] = [FORMS_PAYLOAD[1]]
+    urls[FORMS_URL] = [FORMS_PAYLOAD[1]]
     with pytest.raises(sync_netlify.NetlifySyncError):
         sync_netlify.sync("test-token", tmp_path, site_id="site-abc", get_json=fake_get_json(urls))
     assert not (tmp_path / "submissions.json").exists()
@@ -287,7 +291,7 @@ def test_sync_raises_and_writes_nothing_on_form_lookup_failure(tmp_path):
 
 def test_sync_raises_and_writes_nothing_on_submissions_fetch_failure(tmp_path):
     def get_json(url: str, token: str, **kwargs):
-        if url == f"{sync_netlify.NETLIFY_API}/forms":
+        if url == FORMS_URL:
             return FORMS_PAYLOAD
         raise sync_netlify.NetlifySyncError("Netlify API returned 500 for " + url)
 
@@ -349,7 +353,7 @@ def test_http_get_json_includes_response_body_when_explicitly_opted_in(monkeypat
     """The opt-in path still works, for the one call site (GET /forms) that
     has no voter data to protect and wants the detail for debugging."""
     body = b'{"error": "site not found or token lacks access"}'
-    forms_url = f"{sync_netlify.NETLIFY_API}/forms"
+    forms_url = FORMS_URL
 
     def fake_urlopen(request, timeout=30):
         raise _http_error(request.full_url, 404, body)
@@ -398,7 +402,7 @@ def test_fetch_ballots_never_leaks_a_raw_ballot_code_when_the_fetch_fails(monkey
 
     def fake_urlopen(request, timeout=30):
         url = request.full_url
-        if url == f"{sync_netlify.NETLIFY_API}/forms":
+        if url == FORMS_URL:
             return _FakeHTTPResponse(forms_body)
         if url == submissions_url("form-ballot-456"):
             raise _http_error(url, 500, ballot_error_body)
@@ -429,3 +433,26 @@ def test_sync_forms_listing_error_may_include_its_body(monkeypatch, tmp_path):
         )
 
     assert "invalid or expired token" in str(excinfo.value)
+
+
+def test_sync_without_a_site_id_fails_naming_the_secret(tmp_path):
+    with pytest.raises(sync_netlify.NetlifySyncError, match="NETLIFY_SITE_ID"):
+        sync_netlify.sync("test-token", tmp_path, site_id=None, get_json=fake_get_json({}))
+    assert not (tmp_path / "submissions.json").exists()
+
+
+def test_fetch_ballots_without_a_site_id_fails_naming_the_secret():
+    with pytest.raises(sync_netlify.NetlifySyncError, match="NETLIFY_SITE_ID"):
+        sync_netlify.fetch_ballots("test-token", site_id=None, get_json=fake_get_json({}))
+
+
+def test_the_site_domain_works_as_the_site_id(tmp_path):
+    # The listing is already scoped to the site, so forms whose site_id is
+    # Netlify's internal id must still match when the domain was supplied.
+    domain = "oakparkciscdiod.netlify.app"
+    urls = {
+        f"{sync_netlify.NETLIFY_API}/sites/{domain}/forms": FORMS_PAYLOAD,
+        submissions_url("form-sub-123"): SUBMISSIONS_PAYLOAD,
+    }
+    sync_netlify.sync("test-token", tmp_path, site_id=domain, get_json=fake_get_json(urls))
+    assert len(json.loads((tmp_path / "submissions.json").read_text())) == 2
