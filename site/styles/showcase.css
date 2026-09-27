@@ -9,6 +9,8 @@
   text-align: center;
 }
 
+.hero__title { margin: 0; }
+
 .hero__mark {
   display: block;
   width: 100%;

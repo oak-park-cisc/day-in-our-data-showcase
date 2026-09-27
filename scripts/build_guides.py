@@ -120,7 +120,7 @@ def code_block(code: str, caption: str = "") -> str:
     return (
         '<figure class="code">'
         f"{cap}"
-        f'<pre><code>{html.escape(code.strip())}</code></pre>'
+        f'<pre tabindex="0"><code>{html.escape(code.strip())}</code></pre>'
         '<button type="button" class="copy" hidden>Copy</button>'
         "</figure>"
     )
@@ -153,7 +153,7 @@ def steps(b: dict) -> str:
         body = paras(it.get("body", ""))
         code = code_block(it["code"], it.get("code_caption", "")) if it.get("code") else ""
         note = f'<p class="step__note">{inline(it["note"])}</p>' if it.get("note") else ""
-        items.append(f"<li><h4>{inline(it['title'])}</h4>{body}{code}{note}</li>")
+        items.append(f"<li><h3>{inline(it['title'])}</h3>{body}{code}{note}</li>")
     return f'<ol class="steps">{"".join(items)}</ol>'
 
 
@@ -168,7 +168,7 @@ def cards(b: dict) -> str:
             link = f'<p class="card__link"><a href="{html.escape(it["link"])}"{rel}>{label}</a></p>'
         code = code_block(it["code"]) if it.get("code") else ""
         out.append(
-            f'<article class="card">{tag}<h4>{inline(it["title"])}</h4>'
+            f'<article class="card">{tag}<h3>{inline(it["title"])}</h3>'
             f'{paras(it.get("body", ""))}{code}{link}</article>'
         )
     return f'<div class="cards">{"".join(out)}</div>'
@@ -186,7 +186,7 @@ def table(b: dict) -> str:
         body.append(f"<tr>{cells}</tr>")
     cap = f"<caption>{inline(b['caption'])}</caption>" if b.get("caption") else ""
     return (
-        f'<div class="scroll-x" tabindex="0" role="region" aria-label="{html.escape(b.get("caption") or headers[0])}">'
+        f'<div class="scroll-x" tabindex="0" role="region" aria-label="{html.escape(b.get("caption") or b.get("_section", headers[0]))}">'
         f'<table class="guide-table">{cap}<thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
     )
 
@@ -198,7 +198,8 @@ def commands(b: dict) -> str:
     )
     cap = f"<caption>{inline(b['caption'])}</caption>" if b.get("caption") else ""
     return (
-        f'<div class="scroll-x"><table class="guide-table commands">{cap}'
+        f'<div class="scroll-x" tabindex="0" role="region" aria-label="{html.escape(b.get("caption") or b.get("_section", "Commands"))}">'
+        f'<table class="guide-table commands">{cap}'
         f'<thead><tr><th scope="col">Type this</th><th scope="col">What it does</th></tr></thead>'
         f"<tbody>{rows}</tbody></table></div>"
     )
@@ -220,7 +221,7 @@ def flow(b: dict) -> str:
         stages.append(
             f'<li class="flow__stage">'
             f'<p class="flow__num" aria-hidden="true">{i}</p>'
-            f'<h4>{inline(s["name"])}</h4>'
+            f'<h3>{inline(s["name"])}</h3>'
             f'<p class="flow__who">{inline(s["who"])}</p>'
             f'<p>{inline(s["does"])}</p>'
             f'<p class="flow__out"><span>Output:</span> {inline(s["output"])}</p>'
@@ -228,18 +229,16 @@ def flow(b: dict) -> str:
         )
     loop = f'<p class="flow__loop">{inline(b["loop_label"])}</p>' if b.get("loop_label") else ""
     label = html.escape(b.get("label", "Process diagram"))
-    return f'<figure class="flow" aria-label="{label}"><ol>{"".join(stages)}</ol>{loop}</figure>'
+    return f'<figure class="flow" aria-label="{label}"><ol style="--n:{len(stages)}">{"".join(stages)}</ol>{loop}</figure>'
 
 
 def timeline(b: dict) -> str:
     slots = _req(b, "slots")
-    total = sum(int(s["minutes"]) for s in slots)
     bars = []
     for s in slots:
-        pct = 100 * int(s["minutes"]) / total
         phase = re.sub(r"[^a-z]", "", s.get("phase", "other").lower()) or "other"
         bars.append(
-            f'<li class="timeline__slot timeline__slot--{phase}" style="--w:{pct:.2f}%">'
+            f'<li class="timeline__slot timeline__slot--{phase}" style="--g:{int(s["minutes"])}">'
             f'<span class="timeline__time">{inline(s["time"])}</span>'
             f'<span class="timeline__label">{inline(s["label"])}</span></li>'
         )
@@ -330,7 +329,9 @@ def render_page(slug: str, page: dict, site: dict, pages: list[tuple[str, dict]]
             if kind not in BLOCKS:
                 raise ContentError(f"guides/pages/{slug}.toml: unknown block type {kind!r} in section {s['id']!r}")
             try:
-                blocks.append(BLOCKS[kind](b))
+                # Fallback accessible name for scrollable regions, so two
+                # uncaptioned tables on one page never share a label.
+                blocks.append(BLOCKS[kind]({"_section": s["heading"], **b}))
             except ContentError as exc:
                 raise ContentError(f"guides/pages/{slug}.toml, section {s['id']!r}: {exc}") from exc
         intro = paras(s["intro"]) if s.get("intro") else ""

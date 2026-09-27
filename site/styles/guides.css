@@ -11,6 +11,9 @@
 }
 .skip-link:focus { left: 0; }
 
+/* Guides get a wider column than the showcase: diagrams need the room. */
+.guide .wrap { max-width: 76rem; }
+
 /* Nav: the guide sub-nav scrolls sideways on phones. */
 .guide-nav { background: var(--ink); }
 .guide-nav ul {
@@ -55,7 +58,7 @@
 
 .guide-section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
 .guide-section h2 { font-size: var(--step-2); }
-.guide-section h4 { font: 700 var(--step-1)/1.25 var(--display); margin: 0 0 .35em; }
+.guide-section h3 { font: 700 var(--step-1)/1.25 var(--display); margin: 0 0 .35em; }
 .guide-body p, .guide-body li { max-width: 46rem; }
 .guide-body code {
   font: .9em var(--mono);
@@ -76,6 +79,12 @@
   overflow-x: auto;
   border-radius: var(--pane-radius);
   font: .875rem/1.55 var(--mono);
+  padding-bottom: 2.4rem; /* room for the Copy button, so it never covers code */
+}
+/* On phones, wrap long commands so a beginner sees all of it; the Copy
+   button still copies the exact text. */
+@media (max-width: 40rem) {
+  .code pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
 .code pre code { background: none; padding: 0; color: inherit; font: inherit; overflow-wrap: normal; }
 .copy {
@@ -110,7 +119,7 @@
 .steps > li {
   counter-increment: step;
   position: relative;
-  padding: 0 0 1.25rem 3rem;
+  padding: 0 0 1.25rem 2.25rem;
   border-left: 2px solid var(--rule);
   margin-left: 1rem;
 }
@@ -157,7 +166,7 @@
 .guide-table tbody th { font-weight: 600; }
 .guide-table.commands tbody th { white-space: nowrap; }
 .guide-table.commands tbody th code { overflow-wrap: normal; }
-.scroll-x:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
+.scroll-x:focus-visible, .code pre:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
 
 /* ---- checklist ---- */
 .checklist { list-style: none; padding: 0; }
@@ -180,8 +189,14 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.75rem;
+}
+/* One row of --n stages once there is room; otherwise one column with down
+   arrows. Never an in-between wrap, which would leave an arrow pointing at
+   nothing. */
+@media (min-width: 48rem) {
+  .flow ol { grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 1.5rem; }
 }
 .flow__stage {
   position: relative;
@@ -193,17 +208,17 @@
   font-size: .92rem;
 }
 .flow__stage p { margin: .3rem 0; }
-.flow__stage h4 { font-size: var(--step-1); }
+.flow__stage h3 { font-size: var(--step-1); }
 .flow__stage:not(:last-child)::after {
   content: "→";
   position: absolute;
-  right: -1.45rem;
+  right: -1.3rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--civic);
   font: 800 1.4rem/1 var(--display);
 }
-@media (max-width: 40rem) {
+@media (max-width: 47.99rem) {
   .flow__stage:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -1.6rem; transform: translateX(-50%); }
 }
 .flow__num {
@@ -230,8 +245,9 @@
 .timeline figcaption { font: 600 .85rem/1.4 var(--mono); color: var(--canopy); margin-bottom: .5rem; }
 .timeline ol { list-style: none; padding: 0; margin: 0; display: flex; border: 1px solid var(--rule); border-radius: var(--pane-radius); overflow: hidden; }
 .timeline__slot {
-  flex: 0 0 var(--w);
-  min-width: 0;
+  /* Grow in proportion to minutes, but never narrower than a label. */
+  flex: var(--g) 1 0;
+  min-width: 5rem;
   padding: .6rem .4rem;
   border-right: 2px solid var(--surface);
   display: flex;
@@ -242,14 +258,14 @@
 }
 .timeline__slot:last-child { border-right: 0; }
 .timeline__time { font: 700 .75rem/1 var(--mono); }
-.timeline__label { font-weight: 600; overflow-wrap: anywhere; }
+.timeline__label { font-weight: 600; hyphens: auto; }
 .timeline__slot--plan { background: #d7e4fb; }
 .timeline__slot--build { background: #cfe6d9; }
 .timeline__slot--qa { background: #ffeeb8; }
 .timeline__slot--other { background: #e6e9ef; }
 @media (max-width: 40rem) {
   .timeline ol { flex-direction: column; }
-  .timeline__slot { flex: none; flex-direction: row; gap: .75rem; border-right: 0; border-bottom: 2px solid var(--surface); font-size: .9rem; padding: .5rem .75rem; }
+  .timeline__slot { flex: none; min-width: 0; flex-direction: row; gap: .75rem; border-right: 0; border-bottom: 2px solid var(--surface); font-size: .9rem; padding: .5rem .75rem; }
   .timeline__time { min-width: 3.2rem; }
 }
 

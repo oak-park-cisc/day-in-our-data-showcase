@@ -59,19 +59,19 @@ intro = "The event runs 11 to 3. A realistic plan is one full loop before lunch 
 
     [[sections.blocks.slots]]
     time = "11:00"
-    label = "Pick a table"
+    label = "Welcome"
     minutes = 15
     phase = "other"
 
     [[sections.blocks.slots]]
     time = "11:15"
-    label = "Brainstorm + plan"
+    label = "Plan"
     minutes = 30
     phase = "plan"
 
     [[sections.blocks.slots]]
     time = "11:45"
-    label = "Build loop 1"
+    label = "Build 1"
     minutes = 45
     phase = "build"
 
@@ -89,13 +89,13 @@ intro = "The event runs 11 to 3. A realistic plan is one full loop before lunch 
 
     [[sections.blocks.slots]]
     time = "1:00"
-    label = "Build loop 2"
+    label = "Build 2"
     minutes = 60
     phase = "build"
 
     [[sections.blocks.slots]]
     time = "2:00"
-    label = "QA + README"
+    label = "QA + write-up"
     minutes = 30
     phase = "qa"
 
