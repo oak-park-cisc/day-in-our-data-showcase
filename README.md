@@ -21,6 +21,41 @@ Implementation complete, pending the Netlify site connection.
 
 - [Design spec](docs/superpowers/specs/2026-09-19-day-in-our-data-showcase-design.md)
 
+## Get Started guides
+
+Six attendee guides (`/start.html`, `/where-to-code.html`, `/cheatsheet.html`,
+`/toolbox.html`, `/workflow.html`, `/testing.html`) cover first-time AI coding
+setup, the Claude Code cheat sheet, connectors, plugins and skills, the
+brainstorm-to-QA workflow, and automated testing.
+
+They are **generated, not hand-written**:
+
+- `guides/site.toml`: event details used on every page (`{event.<key>}`
+  placeholders), plus nav order. Change the date, workspace link or credit
+  instructions here once.
+- `guides/pages/<slug>.toml`: one file per page, made of typed blocks
+  (steps, cards, table, commands, flow, timeline...). The block types are
+  documented at the top of `scripts/build_guides.py`.
+- `python scripts/build_guides.py` rewrites `site/<slug>.html`; commit the
+  result. `tests/test_guides.py` fails CI if the HTML is stale, if inline
+  markup can inject HTML, or if anything shaped like an API key appears.
+
+To add a page: create `guides/pages/<slug>.toml`, add the slug to
+`[nav] pages`, rebuild, and add the path to `PAGES` in `tests/e2e/conftest.py`.
+**Never put a key or token in these files; the repo is public.**
+
+### Browser, accessibility and load tests
+
+```bash
+pip install -e ".[e2e]"
+playwright install chromium            # or: export PW_CHROMIUM_PATH=/path/to/chrome
+python -m pytest tests/e2e -v          # every page: no JS errors, fits 375px, axe clean, links resolve
+```
+
+`tests/load/locustfile.py` simulates a room of attendees; its docstring has
+the command. Run it against a local build only; each request against the
+free-plan Netlify site spends bandwidth.
+
 ## Deployment
 
 The site publishes on Netlify's free plan from `site/`; see `netlify.toml`

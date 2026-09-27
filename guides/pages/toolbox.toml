@@ -1,0 +1,169 @@
+title = "The toolbox: connectors, plugins, skills"
+nav_label = "Toolbox"
+lede = "Claude Code gets much more useful when you plug things into it. Here is what each kind of add-on does, and the ones worth installing today."
+description = "Connectors (MCP servers), plugins, and skills for Claude Code, with install commands, chosen for a civic data hackathon."
+
+[[sections]]
+id = "kinds"
+heading = "Three kinds of add-on"
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Connectors, plugins, and skills compared"
+  headers = ["Add-on", "What it is", "Example", "How you add it"]
+  rows = [
+    ["**Connector** (MCP server)", "A bridge to an outside service, so Claude can read from it or act in it.", "Let Claude open issues on GitHub, or drive a real browser to test your page.", "`claude mcp add …` in your terminal, or **Settings → Connectors** on claude.ai."],
+    ["**Skill**", "A folder of instructions and scripts Claude loads only when a task needs it.", "Build an Excel file with working formulas; make a PDF report.", "Usually bundled in a plugin. Your own go in `.claude/skills/`."],
+    ["**Plugin**", "A bundle of skills, commands, agents, hooks, and connectors you install in one go.", "Compound Engineering: a whole plan → build → review workflow.", "`/plugin` inside a session, or `claude plugin install …`."],
+  ]
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "warn"
+  title = "Only install what you trust"
+  body = "Plugins and connectors can run code on your machine and see what Claude sees. Stick to the official marketplace and well-known publishers today. Read the details panel `/plugin` shows before you install."
+
+[[sections]]
+id = "plugins"
+heading = "Plugins worth installing"
+
+  [[sections.blocks]]
+  type = "cards"
+
+    [[sections.blocks.items]]
+    tag = "Workflow · Every"
+    title = "Compound Engineering"
+    body = "Turns *vibe coding* into a repeatable loop: brainstorm, plan, build, review, then write down what you learned so the next loop is faster. The [workflow page](/workflow.html) is built around it."
+    code = """
+/plugin marketplace add EveryInc/compound-engineering-plugin
+/plugin install compound-engineering
+"""
+    link = "https://github.com/EveryInc/compound-engineering-plugin"
+    link_label = "Compound Engineering on GitHub"
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "commit-commands"
+    body = "One-word commands to commit, push, and open a pull request, so saving your work is never the hard part."
+    code = "/plugin install commit-commands@claude-plugins-official"
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "frontend-design"
+    body = "Helps Claude make web pages and dashboards that look designed, not default. Good for any project with a public page."
+    code = "/plugin install frontend-design@claude-plugins-official"
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "feature-dev"
+    body = "A guided feature workflow: explore the code, ask clarifying questions, design, build, review."
+    code = "/plugin install feature-dev@claude-plugins-official"
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "code-review and pr-review-toolkit"
+    body = "Specialist reviewers that read your changes for bugs, missing tests, and unclear code before a teammate does."
+    code = """
+/plugin install code-review@claude-plugins-official
+/plugin install pr-review-toolkit@claude-plugins-official
+"""
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "security-guidance"
+    body = "Warns about risky patterns (leaked secrets, unsafe input handling) as Claude edits. Cheap insurance for anything public."
+    code = "/plugin install security-guidance@claude-plugins-official"
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "pyright-lsp / typescript-lsp"
+    body = "Gives Claude real code intelligence (go-to-definition, type errors) for Python or JavaScript/TypeScript, so it catches mistakes before running anything."
+    code = """
+/plugin install pyright-lsp@claude-plugins-official
+/plugin install typescript-lsp@claude-plugins-official
+"""
+
+    [[sections.blocks.items]]
+    tag = "Official · Anthropic"
+    title = "skill-creator"
+    body = "Helps you write your own skill: for example, *how our team cleans Village CSVs*, so every teammate's Claude does it the same way."
+    code = "/plugin install skill-creator@claude-plugins-official"
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "Browse everything"
+  body = "Run `/plugin` and open the **Discover** tab to search every plugin in the marketplaces you have added. After installing, type `/` to see the new commands, named `/plugin-name:command`."
+
+[[sections]]
+id = "skills"
+heading = "Skills for data work"
+
+  [[sections.blocks]]
+  type = "cards"
+
+    [[sections.blocks.items]]
+    tag = "Anthropic skills"
+    title = "Document skills: xlsx, pdf, docx, pptx"
+    body = "Let Claude read and produce real spreadsheets, PDFs, Word files, and slide decks. Perfect for turning a cleaned dataset into a one-page handout for a commission."
+    code = """
+/plugin marketplace add anthropics/skills
+/plugin install document-skills@anthropic-agent-skills
+"""
+
+    [[sections.blocks.items]]
+    tag = "Anthropic skills"
+    title = "Example skills"
+    body = "Design, testing, and communication skills, including one for testing web apps in a real browser. Read them to learn how skills are written."
+    code = "/plugin install example-skills@anthropic-agent-skills"
+
+    [[sections.blocks.items]]
+    tag = "Write your own"
+    title = "A team skill in five minutes"
+    body = "Create `.claude/skills/clean-village-csv/SKILL.md` with a short description and the steps your team agreed on. Claude loads it whenever a task matches the description."
+    code = """
+---
+name: clean-village-csv
+description: Clean a Village of Oak Park CSV before analysis
+---
+1. Trim whitespace in every column; standardise dates to YYYY-MM-DD.
+2. Report rows dropped and why.
+3. Save to data/clean/ and cite the source file in the README.
+"""
+
+[[sections]]
+id = "connectors"
+heading = "Connectors (MCP servers)"
+intro = "Add connectors from your terminal with `claude mcp add`, then check them with `/mcp` inside a session. If you use claude.ai or the desktop app, connect services under **Settings → Connectors** instead."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Connectors that help at a civic hackathon"
+  headers = ["Connector", "Why today", "How to add"]
+  rows = [
+    ["GitHub", "Create your repo, open issues for your team's to-do list, and review pull requests without leaving Claude.", "`claude mcp add --transport http github https://api.githubcopilot.com/mcp/` (sign in when prompted), or the GitHub connector on claude.ai."],
+    ["Playwright", "Claude opens your page in a real browser, clicks around, and takes screenshots: automated QA.", "`claude mcp add playwright npx @playwright/mcp@latest` (needs Node.js)."],
+    ["Google Drive", "Pull in a shared team doc or spreadsheet as context.", "claude.ai **Settings → Connectors**."],
+    ["Notion or Slack", "Read your team's notes or channel; post a status update at demo time.", "claude.ai **Settings → Connectors**."],
+    ["Figma", "Turn a sketch or mockup into a working page, or send a page back to Figma.", "claude.ai **Settings → Connectors**, or Figma's own MCP server."],
+    ["Supabase", "A free hosted database if your prototype needs to save data.", "claude.ai **Settings → Connectors**."],
+    ["Mermaid Chart", "Draw flowcharts and architecture diagrams from a description.", "claude.ai **Settings → Connectors**."],
+  ]
+
+[[sections]]
+id = "python"
+heading = "Python libraries Claude will reach for"
+intro = "You do not need to learn these. Knowing the names helps you ask for them."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Useful libraries for Oak Park data"
+  headers = ["Library", "Good for", "Try asking"]
+  rows = [
+    ["pandas", "Loading and cleaning CSVs; totals, averages, grouping.", "*Load the business licenses and count openings per year by corridor.*"],
+    ["geopandas", "Maps: joining points to boundaries, distances.", "*Which schools have a crash within 300 feet of a safe route?*"],
+    ["folium", "Interactive web maps you can open in a browser.", "*Make a folium map of trees coloured by genus.*"],
+    ["plotly / matplotlib", "Charts: interactive or static.", "*Chart the tax levy over 20 years in today's dollars.*"],
+    ["streamlit", "A shareable data app in one Python file.", "*Turn this into a streamlit app with a dropdown for the school.*"],
+    ["pytest", "Automated checks that your code and numbers are right.", "*Write tests for the cleaning function.* See [testing](/testing.html)."],
+  ]

@@ -1,0 +1,169 @@
+title = "Automated testing, for beginners"
+nav_label = "Testing"
+lede = "AI writes code quickly and sounds confident when it is wrong. Automated tests are how you find out which is which, and Claude can write them for you."
+description = "An introduction to automated test suites for AI-assisted prototypes: unit, data, end-to-end, accessibility, and load tests, with pytest, Playwright, and GitHub Actions."
+
+[[sections]]
+id = "why"
+heading = "Why bother in a four-hour hackathon?"
+
+  [[sections.blocks]]
+  type = "prose"
+  paragraphs = [
+    "A test is a small program that checks your program. You write it once and it re-checks your work every time anything changes, in seconds.",
+    "With an AI agent, tests do double duty: Claude can **run them itself** after every edit and fix what it broke before you ever see it. Asking for tests is the single best way to make an agent's work trustworthy.",
+    "For civic data they matter even more. A chart that is off by a factor of ten looks exactly as convincing as a correct one.",
+  ]
+
+[[sections]]
+id = "pyramid"
+heading = "The kinds of test"
+intro = "Many small fast tests at the bottom, a few slow thorough ones at the top."
+
+  [[sections.blocks]]
+  type = "pyramid"
+
+    [[sections.blocks.levels]]
+    name = "End-to-end"
+    body = "A robot browser uses your page like a person would. Slow, few."
+
+    [[sections.blocks.levels]]
+    name = "Integration"
+    body = "Several parts together: load → clean → summarise gives the right table."
+
+    [[sections.blocks.levels]]
+    name = "Data checks"
+    body = "The data looks the way you assume: columns exist, no impossible values."
+
+    [[sections.blocks.levels]]
+    name = "Unit"
+    body = "One function, one input, one expected answer. Fast, many."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Test suites and the tools for each"
+  headers = ["Kind", "Checks", "Python tool", "JavaScript / web tool"]
+  rows = [
+    ["Unit", "A single function returns the right answer", "`pytest`", "`node --test`, Vitest, Jest"],
+    ["Data", "Columns, types, ranges, row counts, no duplicates", "`pytest` + pandas, pandera", "—"],
+    ["Integration", "Pieces work together end to end, without a browser", "`pytest`", "`node --test`"],
+    ["End-to-end", "A real browser can load, click, and see results", "Playwright for Python", "Playwright"],
+    ["Accessibility", "Keyboard use, contrast, labels for screen readers", "Playwright + axe", "axe-core, Lighthouse"],
+    ["Load", "The site stays fast when many people visit at once", "Locust", "k6, autocannon"],
+    ["Continuous integration", "All of the above run on every push, automatically", "GitHub Actions", "GitHub Actions"],
+  ]
+
+[[sections]]
+id = "data-test"
+heading = "Your first test: check the data"
+intro = "Put this in `tests/test_trees.py`, run `python -m pytest`, and watch it pass or tell you exactly what is wrong. Or ask Claude: *write data tests like these for our dataset.*"
+
+  [[sections.blocks]]
+  type = "code"
+  caption = "tests/test_trees.py"
+  code = """
+import pandas as pd
+import pytest
+
+@pytest.fixture(scope="module")
+def trees():
+    return pd.read_csv("data/trees-oak-park.csv")
+
+def test_file_is_not_empty(trees):
+    assert len(trees) > 1000
+
+def test_expected_columns_exist(trees):
+    # Ask Claude which columns your analysis relies on, then list them here.
+    for column in trees.columns[:3]:
+        assert trees[column].notna().any(), f"{column} is entirely blank"
+
+def test_no_exact_duplicate_rows(trees):
+    assert not trees.duplicated().any()
+"""
+
+[[sections]]
+id = "tdd"
+heading = "Let Claude test its own work"
+intro = "The pattern is called *test-driven development*: describe what right looks like, let the test fail, then let Claude make it pass."
+
+  [[sections.blocks]]
+  type = "steps"
+
+    [[sections.blocks.items]]
+    title = "Describe the behaviour"
+    body = "*Write a pytest test for a function `share_by_genus(df)` that returns each genus's share of all trees, summing to 100%. Don't write the function yet.*"
+
+    [[sections.blocks.items]]
+    title = "Watch it fail"
+    body = "*Run the test and show me it fails.* A failing test proves the test actually checks something."
+
+    [[sections.blocks.items]]
+    title = "Make it pass"
+    body = "*Now write the function until the test passes. Don't change the test.*"
+
+    [[sections.blocks.items]]
+    title = "Keep it running"
+    body = "Add a line to `CLAUDE.md`: *Run `python -m pytest` before every commit.* Claude will check its own work from then on."
+
+[[sections]]
+id = "e2e"
+heading = "End-to-end: a robot clicks your page"
+intro = "Install with `pip install pytest-playwright` then `playwright install chromium`. Or add the Playwright connector from the [toolbox](/toolbox.html#connectors) and just ask Claude to click around."
+
+  [[sections.blocks]]
+  type = "code"
+  caption = "tests/test_page.py"
+  code = """
+from playwright.sync_api import Page, expect
+
+def test_map_page_loads(page: Page):
+    page.goto("http://localhost:8000/")
+    expect(page.get_by_role("heading", level=1)).to_be_visible()
+    expect(page.locator(".leaflet-container")).to_be_visible()
+
+def test_works_on_a_phone(page: Page):
+    page.set_viewport_size({"width": 375, "height": 740})
+    page.goto("http://localhost:8000/")
+    # Nothing should be wider than the screen.
+    assert page.evaluate("document.documentElement.scrollWidth") <= 375
+"""
+
+[[sections]]
+id = "ci"
+heading = "Run every test on every push"
+intro = "Save this as `.github/workflows/ci.yml` in your repository. GitHub runs your tests each time you push, and shows a green tick or a red cross on every commit."
+
+  [[sections.blocks]]
+  type = "code"
+  caption = ".github/workflows/ci.yml"
+  code = """
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas pytest
+      - run: python -m pytest -v
+"""
+
+[[sections]]
+id = "this-site"
+heading = "A real example: this site"
+intro = "The showcase you are reading is tested the same way. Browse [its tests](https://github.com/oak-park-cisc/day-in-our-data-showcase/tree/main/tests) for working examples."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "How the Day in Our Data showcase is tested"
+  headers = ["Suite", "What it guards"]
+  rows = [
+    ["`tests/test_*.py` (pytest)", "Vote counting, ranking, ID stability, workflow safety, and that these guide pages match their TOML source."],
+    ["`tests/js/*.test.js` (node:test)", "The results page escapes untrusted text and renders ties and edge cases correctly."],
+    ["`tests/e2e/` (Playwright + axe)", "Every page loads without errors, works at phone width, passes automated accessibility checks, and has no broken internal links."],
+    ["`tests/load/` (Locust)", "The static pages stay fast with a room full of people loading them at once."],
+    ["GitHub Actions", "Runs the suites on every push and pull request."],
+  ]

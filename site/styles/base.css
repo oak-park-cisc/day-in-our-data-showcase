@@ -24,7 +24,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .wrap { max-width: 68rem; margin: 0 auto; padding: 0 var(--gap); }
 
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--rule); }
-.site-nav ul { display: flex; gap: var(--gap); list-style: none; margin: 0; padding: var(--gap) 0; }
+.site-nav ul { display: flex; flex-wrap: wrap; gap: .5rem var(--gap); list-style: none; margin: 0; padding: var(--gap) 0; }
 .site-nav a { font-family: var(--display); font-weight: 700; text-decoration: none; }
 .site-nav a[aria-current="page"] { border-bottom: 3px solid var(--glass); }
 
