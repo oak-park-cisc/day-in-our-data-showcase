@@ -296,9 +296,10 @@ def load(root: Path = GUIDES) -> tuple[dict, list[tuple[str, dict]]]:
 
 
 def nav(current: str, pages: list[tuple[str, dict]]) -> str:
-    items = [f'<li><a href="{href}">{label}</a></li>' for href, label in CORE_NAV]
+    # "Get started" leads the nav: attendees set up before they submit or vote.
     home_current = ' aria-current="page"' if current == GUIDE_HOME else ""
-    items.append(f'<li><a href="/{GUIDE_HOME}.html"{home_current}>Get started</a></li>')
+    items = [f'<li><a href="/{GUIDE_HOME}.html"{home_current}>Get started</a></li>']
+    items += [f'<li><a href="{href}">{label}</a></li>' for href, label in CORE_NAV]
     sub = []
     for slug, page in pages:
         cur = ' aria-current="page"' if slug == current else ""
