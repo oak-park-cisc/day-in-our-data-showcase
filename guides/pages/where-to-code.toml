@@ -1,0 +1,73 @@
+title = "Where to code"
+nav_label = "Where to code"
+lede = "The same AI agent runs in many places. Pick the one that matches how comfortable you are with computers today. You can switch later."
+description = "Compare the places to run an AI coding agent at Day in Our Data: browser workspace, claude.ai, desktop app, terminal, VS Code, JetBrains, and opencode."
+
+[[sections]]
+id = "compare"
+heading = "At a glance"
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Where you can run an AI coding agent"
+  headers = ["Where", "Install", "Best for", "Watch out for"]
+  rows = [
+    ["[{event.workspace_name}]({event.workspace_url})", "None: a browser tab", "First-timers. Everything is preloaded and disposable.", "Enter your key before starting a session. Save your work to GitHub before you leave."],
+    ["[claude.ai/code](https://claude.ai/code)", "None: a browser tab", "Working on a GitHub repository without installing anything.", "Needs a paid Claude plan or Console account, plus a GitHub connection."],
+    ["[Claude desktop app](https://claude.com/download)", "One download", "People who want windows and buttons, not a terminal.", "Mac, Windows, or Linux. Sign in with the same Claude account."],
+    ["Terminal (`claude`)", "One command", "Full control on your own files. Every feature lands here first.", "You type commands. The [cheat sheet](/cheatsheet.html) helps."],
+    ["VS Code, Cursor", "Extension from the marketplace", "Seeing Claude's edits as side-by-side diffs in an editor you know.", "Install Claude Code first, then the **Claude Code** extension."],
+    ["JetBrains (PyCharm, IntelliJ…)", "Plugin from the marketplace", "People already living in a JetBrains IDE.", "It runs Claude Code in the IDE's terminal."],
+    ["`opencode` in the workspace", "None in {event.workspace_name}", "Trying an open-source agent with the event GLM model.", "Different commands from Claude Code. Type `/help` inside it."],
+  ]
+
+[[sections]]
+id = "no-code"
+heading = "Not writing code today?"
+intro = "Most starter projects have plenty of work that needs no keyboard at all. An AI assistant helps with these too."
+
+  [[sections.blocks]]
+  type = "cards"
+
+    [[sections.blocks.items]]
+    title = "Ask questions of the data"
+    body = "Upload a CSV from the [data catalog]({event.data_catalog}) to a Claude chat and ask: *What are the ten most common tree species, and do any break the 10-20-30 rule?*"
+
+    [[sections.blocks.items]]
+    title = "Write the civic story"
+    body = "Every project needs a clear question, a plain-language explanation, and a list of who would use it. Draft them with Claude, then edit them in your own voice."
+
+    [[sections.blocks.items]]
+    title = "Test what the coders built"
+    body = "Be the first real user. Click everything. Try it on your phone. Write down what confused you. That is the most useful QA a team gets all day."
+
+[[sections]]
+id = "terminal-101"
+heading = "Terminal in 60 seconds"
+intro = "If you picked the terminal, these are the only commands you need before Claude takes over. Type the command and press Enter."
+
+  [[sections.blocks]]
+  type = "commands"
+  caption = "Mac and Linux, with the Windows PowerShell equivalent in brackets"
+  items = [
+    { cmd = "pwd", desc = "Show which folder you are in." },
+    { cmd = "ls", desc = "List the files here. (`dir` in CMD; `ls` also works in PowerShell.)" },
+    { cmd = "cd folder-name", desc = "Move into a folder. `cd ..` goes back up one." },
+    { cmd = "claude", desc = "Start Claude Code in the current folder. It can see this folder and everything inside it." },
+    { cmd = "Ctrl+C", desc = "Stop whatever is running. Press it twice to leave Claude Code." },
+  ]
+
+[[sections]]
+id = "choose"
+heading = "Still not sure? Answer two questions"
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Quick decision guide"
+  headers = ["If you…", "Use"]
+  rows = [
+    ["have never opened a terminal", "[{event.workspace_name}]({event.workspace_url})"],
+    ["have a Claude subscription and a GitHub account", "[claude.ai/code](https://claude.ai/code) or the desktop app"],
+    ["already code in VS Code or a JetBrains IDE", "The terminal install plus your editor's extension"],
+    ["want to keep building after today", "The terminal install, on your own laptop"],
+  ]

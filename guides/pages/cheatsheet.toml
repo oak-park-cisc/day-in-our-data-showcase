@@ -1,0 +1,127 @@
+title = "Claude Code cheat sheet"
+nav_label = "Cheat sheet"
+lede = "The commands, keys, and prompt patterns you will use all day, on one page. Print it or keep it open in a tab."
+description = "A printable Claude Code cheat sheet: starting sessions, slash commands, keyboard shortcuts, CLAUDE.md, and prompts that work."
+
+[[sections]]
+id = "launch"
+heading = "Starting and resuming"
+
+  [[sections.blocks]]
+  type = "commands"
+  items = [
+    { cmd = "claude", desc = "Start a session in the current folder." },
+    { cmd = "claude \"explain this repo\"", desc = "Start a session with a first prompt already typed." },
+    { cmd = "claude -c", desc = "Continue your most recent conversation in this folder." },
+    { cmd = "claude -r", desc = "Pick an earlier conversation to resume." },
+    { cmd = "claude -p \"summarize data/README.md\"", desc = "Ask one question, print the answer, exit. Handy in scripts." },
+    { cmd = "claude --version", desc = "Show the installed version." },
+    { cmd = "claude doctor", desc = "Diagnose install and settings problems." },
+    { cmd = "claude update", desc = "Update now instead of waiting for the automatic update." },
+  ]
+
+[[sections]]
+id = "slash"
+heading = "Slash commands inside a session"
+intro = "Type `/` at the prompt to see every command, including ones added by plugins."
+
+  [[sections.blocks]]
+  type = "commands"
+  items = [
+    { cmd = "/help", desc = "List commands and get help." },
+    { cmd = "/init", desc = "Read the project and write a `CLAUDE.md` of notes Claude rereads every session." },
+    { cmd = "/clear", desc = "Start a fresh conversation. Use it when you switch tasks." },
+    { cmd = "/compact", desc = "Summarize the conversation so far to free up room for more work." },
+    { cmd = "/context", desc = "See how full the conversation's memory is." },
+    { cmd = "/model", desc = "Switch model, for example to Opus for hard problems." },
+    { cmd = "/memory", desc = "Open and edit the `CLAUDE.md` memory files." },
+    { cmd = "/permissions", desc = "Choose which tools and commands Claude may use without asking." },
+    { cmd = "/mcp", desc = "See and manage connected MCP servers (connectors)." },
+    { cmd = "/plugin", desc = "Browse, install, and manage plugins." },
+    { cmd = "/agents", desc = "Create and manage specialist subagents." },
+    { cmd = "/resume", desc = "Switch to an earlier conversation." },
+    { cmd = "/rewind", desc = "Roll the conversation and your files back to an earlier point." },
+    { cmd = "/login", desc = "Sign in, or switch accounts." },
+  ]
+
+[[sections]]
+id = "keys"
+heading = "Keyboard shortcuts"
+
+  [[sections.blocks]]
+  type = "commands"
+  items = [
+    { cmd = "Enter", desc = "Send your message. While Claude is working, it queues the message for next." },
+    { cmd = "Shift+Enter", desc = "New line without sending (most terminals). Or end a line with `\\` then Enter." },
+    { cmd = "Esc", desc = "Stop Claude mid-task. Your conversation is kept." },
+    { cmd = "Esc Esc", desc = "Clear what you typed, or rewind to an earlier message." },
+    { cmd = "Shift+Tab", desc = "Cycle permission modes: normal, auto-accept edits, and **plan** (research only, no changes)." },
+    { cmd = "@", desc = "Mention a file or folder: `@data/trees-oak-park.csv what columns are here?`" },
+    { cmd = "!", desc = "At the start of a line: run a shell command yourself and show Claude the output. `! ls data`" },
+    { cmd = "Up / Down", desc = "Scroll through what you typed before." },
+    { cmd = "Ctrl+R", desc = "Search your earlier prompts." },
+    { cmd = "Ctrl+O", desc = "Show the full transcript, including tool output." },
+    { cmd = "Ctrl+T", desc = "Show or hide Claude's task checklist." },
+    { cmd = "Ctrl+C", desc = "Interrupt or clear input. Twice to exit." },
+    { cmd = "Ctrl+D", desc = "Exit Claude Code." },
+  ]
+
+[[sections]]
+id = "modes"
+heading = "Permission modes, explained"
+intro = "Claude asks before it edits files or runs commands. **Shift+Tab** changes how often it asks."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Permission modes"
+  headers = ["Mode", "What Claude does", "Use it when"]
+  rows = [
+    ["Normal", "Asks before each edit and command.", "You are learning, or the change matters."],
+    ["Accept edits", "Edits files without asking; still asks before commands.", "You trust the plan and want speed."],
+    ["Plan", "Reads and researches only, then presents a plan. Changes nothing.", "The start of every new feature. Read the plan, then say go."],
+  ]
+
+[[sections]]
+id = "claude-md"
+heading = "CLAUDE.md: the project's memory"
+intro = "A plain text file at the top of your project. Claude reads it at the start of every session. `/init` writes a first draft; edit it as you learn what matters."
+
+  [[sections.blocks]]
+  type = "code"
+  caption = "A starter CLAUDE.md for a Day in Our Data team"
+  code = """
+# Project: Urban forest diversity map (starter project 11)
+
+## What we are building
+A one-page map of Oak Park's public trees, coloured by genus,
+flagging blocks that break the 10-20-30 diversity rule.
+
+## Data
+- data/trees-oak-park.csv (public, Village of Oak Park)
+- Always cite the source file and date under the chart.
+
+## How we work
+- Python 3.11. pandas for cleaning, folium for the map.
+- Plan first; keep each change small.
+- Run `python -m pytest` before every commit.
+- Never commit keys, tokens, or .env files.
+"""
+
+[[sections]]
+id = "prompts"
+heading = "Prompts that work"
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Prompt patterns"
+  headers = ["Pattern", "Example"]
+  rows = [
+    ["Give context and a goal", "*I'm on starter project 4. Goal: a map of school routes with crash points. Audience: parents.*"],
+    ["Ask for a plan first", "*Before writing code, propose a plan with 3–5 steps and what you'd skip if short on time.*"],
+    ["Make it small", "*Just step 1. Stop when there's something I can open and look at.*"],
+    ["Point at files", "*Use @data/crashes-bike-ped-oak-park.csv. What are the columns and which are messy?*"],
+    ["Ask it to check itself", "*Write a test that proves the totals match the raw CSV, then run it.*"],
+    ["Ask why", "*Explain that change like I'm new to Python.*"],
+    ["Recover", "*That broke the map. Undo your last change and try a simpler approach.*"],
+    ["Wrap up", "*Write a README: the civic question, data sources, how to run it, and what's unfinished.*"],
+  ]

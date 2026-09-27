@@ -1,0 +1,42 @@
+# Get Started guides: site-wide settings.
+#
+# Every guide page is rendered from guides/pages/*.toml by
+#   python -m scripts.build_guides
+# Edit the TOML, rerun the build, commit the regenerated site/*.html.
+# tests/test_guides.py fails CI if the committed HTML drifts from the TOML.
+#
+# Anywhere in guides/pages/*.toml, {event.<key>} is replaced with a value
+# from [event] below, so one edit here updates every page. To reuse these
+# guides for another event, change [event] and the page files; the renderer
+# needs no changes.
+#
+# NEVER put an API key, token, or password in this file. The repo is public.
+# Keys are handed out in person at check-in.
+
+[event]
+name = "Day in Our Data"
+date = "Saturday, October 3, 2026, 11 a.m. to 3 p.m."
+place = "Dole Branch Library, 255 Augusta St., Oak Park"
+event_repo = "https://github.com/oak-park-cisc/Oak_Park_Day_in_our_Data"
+event_repo_clone = "git clone https://github.com/oak-park-cisc/Oak_Park_Day_in_our_Data"
+starter_projects = "https://github.com/oak-park-cisc/Oak_Park_Day_in_our_Data/tree/main/starter-projects"
+data_catalog = "https://github.com/oak-park-cisc/Oak_Park_Day_in_our_Data/blob/main/data/open-data-catalog.md"
+showcase_url = "https://oakparkciscdiod.netlify.app/"
+
+# The browser workspace built for the event. Zero install.
+workspace_name = "Civic Spark"
+workspace_url = "https://test-site-civic-spark.fly.dev/"
+
+# How attendees get the Anthropic credits gifted for the event. Replace this
+# sentence once the distribution method is decided (a link, a code on the
+# keychain card, a sign-up at the check-in table...).
+anthropic_credits = "Anthropic donated Claude credits for today. Pick up your credit link at the check-in table. It is not posted online, so keep it to yourself."
+
+# Where the shared GLM key for the workspace comes from. The key itself
+# is never written here.
+glm_key = "Your table host hands you the GLM key at check-in."
+
+# The guide pages, in nav order. Each slug matches guides/pages/<slug>.toml
+# and is written to site/<slug>.html.
+[nav]
+pages = ["start", "where-to-code", "cheatsheet", "toolbox", "workflow", "testing"]

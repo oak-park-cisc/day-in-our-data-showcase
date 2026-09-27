@@ -1,0 +1,187 @@
+title = "From idea to demo: the workflow"
+nav_label = "Workflow"
+lede = "AI makes writing code fast. What still takes judgment is deciding what to build, checking that it is right, and keeping track of what you learned. This is a loop you can run several times in one afternoon."
+description = "A brainstorm, plan, architecture, build, and QA workflow for AI-assisted prototyping, mapped to Compound Engineering and the Day in Our Data schedule."
+
+[[sections]]
+id = "loop"
+heading = "The loop"
+intro = "Five stages. Humans own the decisions; Claude does most of the typing. The last stage feeds the first: each loop starts smarter than the one before. The commands in each box come from the [Compound Engineering plugin](/toolbox.html#plugins)."
+
+  [[sections.blocks]]
+  type = "flow"
+  label = "Brainstorm, plan, architecture, build, and QA, looping back through compound"
+  loop_label = "↺ **Compound:** write down what worked and what broke (`/ce-compound`), then start the next loop."
+
+    [[sections.blocks.stages]]
+    name = "Brainstorm"
+    who = "Whole team · Claude asks questions"
+    does = "Agree on the civic question, who it is for, and what a good result at 2:30 looks like."
+    output = "A one-paragraph problem statement."
+    command = "/ce-brainstorm"
+
+    [[sections.blocks.stages]]
+    name = "Plan"
+    who = "Claude drafts · team edits"
+    does = "Break the goal into small steps. Decide what to skip if time runs short."
+    output = "A numbered plan with a must-have demo."
+    command = "/ce-plan"
+
+    [[sections.blocks.stages]]
+    name = "Architecture"
+    who = "Claude proposes · team decides"
+    does = "Pick the data files, the tools (a map? a chart? a page?), and where it will live."
+    output = "A sketch: data → cleaning → output."
+    command = "plan mode (Shift+Tab)"
+
+    [[sections.blocks.stages]]
+    name = "Build"
+    who = "Claude types · one person drives"
+    does = "Work one step at a time. Open the result after every step. Commit when something works."
+    output = "Working code, committed."
+    command = "/ce-work"
+
+    [[sections.blocks.stages]]
+    name = "QA"
+    who = "Everyone · plus automated tests"
+    does = "Check the numbers against the raw data, try it on a phone, run the tests, get a review."
+    output = "Tests passing and a list of known gaps."
+    command = "/ce-code-review"
+
+[[sections]]
+id = "day"
+heading = "The loop on the day"
+intro = "The event runs 11 to 3. A realistic plan is one full loop before lunch and a second, smaller loop after."
+
+  [[sections.blocks]]
+  type = "timeline"
+  caption = "Saturday, October 3: where each stage fits"
+
+    [[sections.blocks.slots]]
+    time = "11:00"
+    label = "Pick a table"
+    minutes = 15
+    phase = "other"
+
+    [[sections.blocks.slots]]
+    time = "11:15"
+    label = "Brainstorm + plan"
+    minutes = 30
+    phase = "plan"
+
+    [[sections.blocks.slots]]
+    time = "11:45"
+    label = "Build loop 1"
+    minutes = 45
+    phase = "build"
+
+    [[sections.blocks.slots]]
+    time = "12:30"
+    label = "QA 1"
+    minutes = 15
+    phase = "qa"
+
+    [[sections.blocks.slots]]
+    time = "12:45"
+    label = "Food"
+    minutes = 15
+    phase = "other"
+
+    [[sections.blocks.slots]]
+    time = "1:00"
+    label = "Build loop 2"
+    minutes = 60
+    phase = "build"
+
+    [[sections.blocks.slots]]
+    time = "2:00"
+    label = "QA + README"
+    minutes = 30
+    phase = "qa"
+
+    [[sections.blocks.slots]]
+    time = "2:30"
+    label = "Demos"
+    minutes = 30
+    phase = "other"
+
+[[sections]]
+id = "architecture"
+heading = "A typical prototype architecture"
+intro = "Most Day in Our Data projects share one shape. Name each box when you ask Claude to plan, and it will build in that order."
+
+  [[sections.blocks]]
+  type = "flow"
+  label = "Data flows from raw public files through cleaning and analysis to a published output"
+
+    [[sections.blocks.stages]]
+    name = "Raw data"
+    who = "Already in the event repo"
+    does = "CSV and GeoJSON files in `data/`, each with a fetch script that records its source."
+    output = "Untouched source files."
+
+    [[sections.blocks.stages]]
+    name = "Clean"
+    who = "pandas / geopandas"
+    does = "Fix types, trim junk, join tables. Keep this in its own script so it can be tested."
+    output = "`data/clean/*.csv`"
+
+    [[sections.blocks.stages]]
+    name = "Analyze"
+    who = "pandas, plain Python"
+    does = "Answer the civic question with numbers: counts, rates, change over time."
+    output = "A small summary table."
+
+    [[sections.blocks.stages]]
+    name = "Present"
+    who = "folium, plotly, streamlit, HTML"
+    does = "A map, a chart, or a one-page app a resident can understand in 30 seconds."
+    output = "Something you can open and demo."
+
+    [[sections.blocks.stages]]
+    name = "Publish"
+    who = "GitHub + the showcase"
+    does = "Push to GitHub, write the README, enter it in the showcase."
+    output = "A link in the [showcase](/#submit)."
+
+[[sections]]
+id = "roles"
+heading = "Who does what"
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "Human and AI responsibilities at each stage"
+  headers = ["Stage", "The team decides", "Claude does", "Prompt to try"]
+  rows = [
+    ["Brainstorm", "Which question matters to residents", "Asks clarifying questions, suggests angles", "*Interview us about starter project 6 until you can write a one-paragraph goal.*"],
+    ["Plan", "What is in and out of scope", "Drafts steps, flags risks and unknowns", "*Plan this in 5 steps. Mark the must-have demo and what to cut first.*"],
+    ["Architecture", "Map or chart? Page or notebook?", "Proposes files, libraries, and data flow", "*Propose the simplest architecture. No databases unless we need one.*"],
+    ["Build", "When a step is good enough", "Writes and runs code, fixes its own errors", "*Do step 1 only, then tell me how to open the result.*"],
+    ["QA", "Whether the numbers are believable", "Writes tests, reviews code, checks accessibility", "*Write tests that compare your totals to the raw CSV, then run them.*"],
+    ["Compound", "What to remember next time", "Writes notes into `CLAUDE.md` or `docs/`", "*Add what we learned today to CLAUDE.md.*"],
+  ]
+
+[[sections]]
+id = "lfg"
+heading = "Compound Engineering in one page"
+
+  [[sections.blocks]]
+  type = "commands"
+  caption = "Main commands from the Compound Engineering plugin"
+  items = [
+    { cmd = "/ce-ideate", desc = "Not sure what to build? Explore options first." },
+    { cmd = "/ce-brainstorm", desc = "Question-and-answer session that ends in a written requirements plan." },
+    { cmd = "/ce-plan", desc = "Turn requirements into a step-by-step implementation plan." },
+    { cmd = "/ce-work", desc = "Carry out the plan, writing and running the code." },
+    { cmd = "/ce-simplify-code", desc = "Tidy fresh code for clarity and reuse." },
+    { cmd = "/ce-code-review", desc = "Several reviewer agents check the work against the plan." },
+    { cmd = "/ce-compound", desc = "Record the lessons in `docs/solutions/` so the next loop starts smarter." },
+    { cmd = "/ce-debug", desc = "Start from a bug report instead of a feature." },
+    { cmd = "/lfg", desc = "Run the whole pipeline hands-off. Fun to watch; review everything it produces." },
+  ]
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "No plugin? Same loop, plain English"
+  body = "Everything above works without installing anything. Use plan mode (**Shift+Tab**) for brainstorm, plan, and architecture; say *go* to build; ask for tests and a review for QA; ask Claude to update `CLAUDE.md` to compound."

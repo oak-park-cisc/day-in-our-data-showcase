@@ -1,0 +1,208 @@
+title = "Get started with AI coding"
+nav_label = "Start"
+lede = "Never used an AI coding tool? Start here. Pick a path, get a working setup in about 15 minutes, and spend the rest of the day on Oak Park's data."
+description = "A zero-experience guide to prototyping with Claude Code at Day in Our Data: pick a path, get credits, install, and run your first prompt."
+
+[[sections]]
+id = "before"
+heading = "Before you arrive"
+intro = "None of this is required. Each item saves you ten minutes at your table."
+
+  [[sections.blocks]]
+  type = "checklist"
+  items = [
+    "Charge your laptop and bring the charger. A tablet works for the browser workspace, but a keyboard helps.",
+    "Make a free [GitHub account](https://github.com/signup). You will want somewhere to save your project and link it from your showcase entry.",
+    "Skim the [15 starter projects]({event.starter_projects}) and pick two you would enjoy.",
+    "Optional: install Claude Code (below) at home, where the Wi-Fi is not shared with 40 other people.",
+  ]
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "event"
+  title = "Free credits for today"
+  body = "{event.anthropic_credits}"
+
+[[sections]]
+id = "paths"
+heading = "Pick your path"
+intro = "All three paths run the same kind of AI coding agent. They differ in how much you install. If you are not sure, take path 1."
+
+  [[sections.blocks]]
+  type = "cards"
+
+    [[sections.blocks.items]]
+    tag = "Path 1 · Zero install · Recommended"
+    title = "The {event.workspace_name} browser workspace"
+    body = "A ready-made coding environment built for this event. It runs in your browser, all the starter projects are already loaded, and you cannot break anything. It has an **Agent** tab for chatting with the AI and a **Terminal** tab for typing commands."
+    link = "#path-workspace"
+    link_label = "Set up path 1"
+
+    [[sections.blocks.items]]
+    tag = "Path 2 · No terminal"
+    title = "Claude on the web or the desktop app"
+    body = "Use Claude Code at [claude.ai/code](https://claude.ai/code) in the browser, or in the Code tab of the [Claude desktop app](https://claude.com/download). Good if you already have a Claude account and want a point-and-click window."
+    link = "#path-app"
+    link_label = "Set up path 2"
+
+    [[sections.blocks.items]]
+    tag = "Path 3 · Full power"
+    title = "Install Claude Code on your laptop"
+    body = "Run Claude Code in your own terminal or code editor, on your own files. It takes the most setup and gives the most control. Your project stays on your machine after today."
+    link = "#path-install"
+    link_label = "Set up path 3"
+
+[[sections]]
+id = "path-workspace"
+heading = "Path 1: the {event.workspace_name} workspace"
+
+  [[sections.blocks]]
+  type = "steps"
+
+    [[sections.blocks.items]]
+    title = "Open the workspace and sign in"
+    body = "Go to [{event.workspace_url}]({event.workspace_url}) and create an account with any email address you can check."
+
+    [[sections.blocks.items]]
+    title = "Enter your key before you start a session"
+    body = "Open the **Agent** tab and paste your key **first**. If you start a session before entering a key, the agent has nothing to run on. {event.glm_key}"
+    note = "For GLM, paste the event key. For Claude, paste your own Claude token and pick **Opus** as the model."
+
+    [[sections.blocks.items]]
+    title = "Say hello to the agent"
+    body = "Type a plain-English request in the Agent tab. Try: *List the starter projects in this workspace and tell me which one a beginner could finish in two hours.*"
+
+    [[sections.blocks.items]]
+    title = "Optional: use the terminal instead"
+    body = "Prefer typing commands? In the **Terminal** tab, run `opencode` for the GLM agent, or `claude` for Claude Code after you have entered your Claude token."
+    code = """
+opencode     # GLM agent in the terminal
+claude       # Claude Code in the terminal
+"""
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "You cannot break it"
+  body = "The workspace is disposable by design. Try things, ask the agent to undo things, start over. If something looks wrong, a table host can reset it."
+
+[[sections]]
+id = "path-app"
+heading = "Path 2: Claude on the web or desktop"
+
+  [[sections.blocks]]
+  type = "steps"
+
+    [[sections.blocks.items]]
+    title = "Sign in with a Claude account that includes Claude Code"
+    body = "Claude Code needs a Pro, Max, Team, Enterprise, or Console account. The free claude.ai plan does not include it. The event credits apply to a Console account: see the check-in table."
+
+    [[sections.blocks.items]]
+    title = "Open Claude Code"
+    body = "On the web, go to [claude.ai/code](https://claude.ai/code) and connect your GitHub account when asked. In the desktop app, open the **Code** tab."
+
+    [[sections.blocks.items]]
+    title = "Point it at the event repository"
+    body = "Choose or fork [{event.event_repo}]({event.event_repo}) so the starter projects and cached data are right there."
+
+    [[sections.blocks.items]]
+    title = "Ask your first question"
+    body = "Try: *Read the starter project cards and the data catalog, then suggest three maps or charts I could finish today.*"
+
+[[sections]]
+id = "path-install"
+heading = "Path 3: install Claude Code on your laptop"
+intro = "Claude Code runs on macOS 13+, Windows 10 (1809) or later, and most Linux distributions, with 4 GB of memory or more. You do not need administrator rights."
+
+  [[sections.blocks]]
+  type = "steps"
+
+    [[sections.blocks.items]]
+    title = "Open a terminal"
+    body = "**Mac:** press Cmd+Space, type *Terminal*, press Enter. **Windows:** press the Windows key, type *PowerShell*, press Enter. **Linux:** you know where it is."
+
+    [[sections.blocks.items]]
+    title = "Run the installer for your system"
+    body = "Copy the one line for your system, paste it into the terminal, press Enter."
+    code = """
+# macOS, Linux, or WSL
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Windows PowerShell
+irm https://claude.ai/install.ps1 | iex
+
+# Or with a package manager
+brew install --cask claude-code        # macOS Homebrew
+winget install Anthropic.ClaudeCode    # Windows
+"""
+    note = "Windows: installing [Git for Windows](https://git-scm.com/downloads/win) is optional but lets Claude Code use Git Bash. If you see `'irm' is not recognized`, you are in CMD, not PowerShell."
+
+    [[sections.blocks.items]]
+    title = "Check it worked"
+    body = "Close the terminal, open a new one, and run the version check. If it says `claude` is not found, open a fresh terminal once more, then ask a table host."
+    code = """
+claude --version     # prints a version number
+claude doctor        # checks your install and settings
+"""
+
+    [[sections.blocks.items]]
+    title = "Get the event data and start Claude"
+    body = "Download the event repository, move into it, and start Claude Code. The first run opens your browser to sign in."
+    code = """
+{event.event_repo_clone}
+cd Oak_Park_Day_in_our_Data
+claude
+"""
+    note = "No `git`? Download the repository as a ZIP from GitHub (green **Code** button, then **Download ZIP**), unzip it, and `cd` into the folder."
+
+    [[sections.blocks.items]]
+    title = "Optional: use it inside your editor"
+    body = "Install the Claude Code extension for VS Code (it also works in Cursor), or the plugin for JetBrains IDEs. See [where to code](/where-to-code.html) for the trade-offs."
+
+[[sections]]
+id = "first-15"
+heading = "Your first 15 minutes"
+intro = "Same steps on every path. Type these into the agent in plain English. You do not need to know any code."
+
+  [[sections.blocks]]
+  type = "steps"
+
+    [[sections.blocks.items]]
+    title = "Let it read the project"
+    body = "Run `/init`. Claude reads the files and writes a `CLAUDE.md`: notes it will reread at the start of every session."
+
+    [[sections.blocks.items]]
+    title = "Ask for a tour"
+    body = "*Explain what is in this repository like I have never coded before. What data is here and what could I make with it?*"
+
+    [[sections.blocks.items]]
+    title = "Plan before you build"
+    body = "Press **Shift+Tab** until the mode shows **plan**. Claude now researches and proposes a plan without changing any files. Say *Plan a simple map for starter project 11 (the urban forest).* Read the plan, push back, then switch out of plan mode and say *Go.*"
+
+    [[sections.blocks.items]]
+    title = "See it running"
+    body = "*Show me how to open what you just built.* Claude will give you a command, a file to open, or a link."
+
+    [[sections.blocks.items]]
+    title = "Save your work"
+    body = "*Commit this with a clear message and help me push it to a new GitHub repository.* You will paste that link into your [showcase entry](/#submit)."
+
+  [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "Stuck? Say so"
+  body = "Paste the error message and ask *What does this mean and how do I fix it?* Press **Esc** to stop Claude mid-task. Press **Esc** twice to rewind to an earlier point."
+
+[[sections]]
+id = "rules"
+heading = "Ground rules for AI tools today"
+
+  [[sections.blocks]]
+  type = "checklist"
+  items = [
+    "**Keys and tokens are passwords.** Never paste one into a file you commit, a public chat, a screenshot, or your showcase entry. If one leaks, tell a table host so it can be revoked.",
+    "**Public data only.** Do not give the AI confidential or personal information.",
+    "**Check what the AI tells you.** Open the chart, read the numbers, ask *How do you know that?* Label prototypes as prototypes.",
+    "**Record your sources.** Ask Claude to write the data sources into your README as it works.",
+    "**Nothing made today is an official Village product or position.**",
+  ]
