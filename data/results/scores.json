@@ -1,0 +1,25 @@
+{
+  "model_generated": true,
+  "scores": {
+    "P-01": {
+      "civic-impact": 3,
+      "data-integrity": 3,
+      "usability-access": 3,
+      "craft": 3,
+      "continuation": 3
+    }
+  },
+  "justifications": {
+    "P-01": {
+      "civic-impact": "Mock.",
+      "data-integrity": "Mock.",
+      "usability-access": "Mock.",
+      "craft": "Mock.",
+      "continuation": "Mock."
+    }
+  },
+  "abstentions": [],
+  "means": {
+    "P-01": 3.0
+  }
+}
