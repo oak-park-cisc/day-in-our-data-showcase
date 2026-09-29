@@ -11,6 +11,7 @@ name: Tally participant vote
 # person's picks (spec 2026-09-24-free-tier-deployment-design.md §4.6).
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   tally:
@@ -18,7 +19,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Latest main, not the triggering commit: when event-day.yml calls this
+      # right after another step pushed, github.sha is already stale.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -150,4 +155,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/results
           git diff --staged --quiet || git commit -m "chore: publish participant vote tally [skip netlify]"
+          # A scheduled sync can land between checkout and push.
+          git pull --rebase --quiet
           git push

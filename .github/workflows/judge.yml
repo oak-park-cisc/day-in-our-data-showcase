@@ -15,6 +15,12 @@ on:
         description: "Dry run with no API calls"
         type: boolean
         default: true
+  # event-day.yml's close-voting step calls this with mock: false.
+  workflow_call:
+    inputs:
+      mock:
+        type: boolean
+        default: true
 
 jobs:
   judge:
@@ -22,7 +28,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Latest main, not the triggering commit: when event-day.yml calls this
+      # right after another step pushed, github.sha is already stale.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -45,4 +55,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/results
           git diff --staged --quiet || git commit -m "chore: publish AI panel results [skip netlify]"
+          # A scheduled sync can land between checkout and push.
+          git pull --rebase --quiet
           git push

@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 dependencies = ["anthropic>=1.0.0", "pydantic>=2.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "pyyaml>=6.0"]
 # Optional browser, accessibility and load suites (tests/e2e, tests/load).
 e2e = ["pytest>=8.0", "pytest-playwright>=0.5", "axe-playwright-python>=0.1.4", "locust>=2.20"]
 

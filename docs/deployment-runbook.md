@@ -106,23 +106,25 @@ No deploy is needed for this.
 (11:00 a.m.–4:59 p.m. Central) and on demand. New projects show on the site
 within ~5 minutes of each sync.
 
-When submissions close, before voting opens: run `sync-submissions.yml` once
-more, then Netlify → Deploys → **Trigger deploy** once. The deploy copies the
-full project list into the fallback snapshot, so the ballot page still works
-if GitHub rate-limits the library's shared wifi.
+**Event team: use the two buttons in
+[`event-day-buttons.md`](event-day-buttons.md).** The `event-day.yml` workflow
+bundles everything below, including the Netlify deploy (via the Netlify API
+and the `NETLIFY_TOKEN` secret), so nobody needs Netlify access on the day.
 
-After voting closes:
-1. Run `judge.yml` with **`mock` unticked**. This is the only step that spends
-   money, roughly $3 at `claude-sonnet-5` for a 20-project event (six judges,
-   plus each team's README). The log prints `README read for N of M
-   submissions`: a count of 0 when teams uploaded zips or linked repos means the
-   upload or GitHub links failed to download, so check before publishing. It
-   runs from the last sync's `data/submissions.json`, so run
-   `sync-submissions.yml` once more first if the last sync was more than an hour
-   ago.
-2. Run `tally.yml`.
-3. Netlify → Deploys → **Trigger deploy** once, so the fallback snapshot matches
-   the published result.
+- **1 - Open voting**, when submissions close and before voting opens: sync,
+  then deploy. The deploy
+  copies the full project list into the fallback snapshot, so the ballot page
+  still works if GitHub rate-limits the library's shared wifi.
+- **2 - Close voting**, when voting ends: sync, the real judging run (about $3
+  at `claude-sonnet-5` for a 20-project event: six judges plus each team's
+  README), the tally, then a deploy. The tally runs even if judging fails,
+  because the vote decides. In the judging job's log, `README read for N of M
+  submissions` near 0 when teams uploaded zips or linked repos means those
+  downloads failed.
+
+The manual equivalent, if the button is ever unavailable: run
+`sync-submissions.yml`, then `judge.yml` with **`mock` unticked**, then
+`tally.yml`, then Netlify → Deploys → **Trigger deploy**.
 
 ## 7. Teardown — order matters
 
