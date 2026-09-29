@@ -62,8 +62,9 @@ GitHub repo → Settings → Secrets and variables → Actions.
 - Within ~5 minutes the test entry appears in the gallery on the live site.
 
 **Judging dry run.** Actions → "Run AI judging panel" → Run workflow, leaving
-`mock` at its default `true`. Zero API spend. Confirm `results.html` shows the
-bracket within ~5 minutes, again with no new deploy.
+`mock` at its default `true`. Zero API spend. Confirm it commits
+`data/results/bracket.json` with no new deploy. `results.html` stays on "not
+available yet" until the tally below has also run: the page needs both.
 
 **Tally.** Visit `vote.html` and cast one ballot with a **made-up code that is
 not in `BALLOT_CODES`** (for example `TESTTEST01`). Never use a real slip: the
@@ -77,9 +78,13 @@ is missing.
 **Before the event: clean up.** The checks above leave test data behind that
 would otherwise show publicly or count on the day.
 1. Netlify → Forms → delete the test submission and the test ballot.
-2. Delete the dry-run results from the repo: `git rm -r data/results/`, commit,
-   and push to `main`. Leave `[skip netlify]` out of this message, so the deploy
-   also clears the dry-run results from the fallback snapshot.
+2. Run `sync-submissions.yml` once, and confirm `data/submissions.json` is back
+   to `[]` (proof the test entry is gone from Netlify).
+3. Delete the dry-run results and the test entry's reserved id from the repo:
+   `git rm -r data/results/ data/id_map.json`, commit, and push to `main`. The id
+   map is safe to reset only now, before any real submission or ballot exists.
+   Leave `[skip netlify]` out of this message, so the deploy also clears the
+   dry-run results from the fallback snapshot.
 
 ## 5. Custom domain (optional)
 
