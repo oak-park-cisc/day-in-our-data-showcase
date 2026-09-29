@@ -8,12 +8,12 @@ Companion site for [Day in Our Data](https://github.com/oak-park-cisc/Oak_Park_D
 
 Three things the event program asks for and one experiment:
 
-1. **Submission intake** — teams file their project: what they built, what it solves for, a repo or demo link, and an artifact.
+1. **Submission intake** — the one place every team enters: what they built, what it solves for, how they got from the raw data to the result, and a zip upload (Track A, the Civic Spark workspace) or a repository link (Track B, their own tools).
 2. **Public showcase** — everything every team produced, in one place.
 3. **Participant vote** — attendees pick their top three with a ballot code issued at check-in. **The vote decides the awards**, exactly as the event program promises.
-4. **An AI judging panel, running in parallel** — five code-neutral civic personas score the same submissions independently and play out a bracket. **It decides nothing.** Its ranking is published beside the crowd's so the two can be compared.
+4. **An AI judging panel, running in parallel** — six code-neutral, AI-neutral civic personas (including Data Provenance: can the numbers be traced back to the raw data?) score each team's written entry and README, then play out a bracket. **It decides nothing** and is never added to the vote. Its ranking is published beside the crowd's so the two can be compared.
 
-The interesting output is not a winner. It is the agreement between the two: how closely a panel of language models tracked what Oak Park residents actually valued, and which of the five personas predicted the crowd best.
+The interesting output is not a winner. It is the agreement between the two: how closely a panel of language models tracked what Oak Park residents actually valued, and which of the six personas predicted the crowd best.
 
 ## Status
 

@@ -123,5 +123,5 @@ heading = "Prompts that work"
     ["Ask it to check itself", "*Write a test that proves the totals match the raw CSV, then run it.*"],
     ["Ask why", "*Explain that change like I'm new to Python.*"],
     ["Recover", "*That broke the map. Undo your last change and try a simpler approach.*"],
-    ["Wrap up", "*Write a README: the civic question, data sources, how to run it, and what's unfinished.*"],
+    ["Wrap up", "*Write README.md with exactly these headings: The question, The data, How we got the numbers, How to use it, Status and next steps. Only describe what is really in these files.* ([why](/start.html#readme))"],
   ]

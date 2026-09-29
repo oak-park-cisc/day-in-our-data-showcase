@@ -113,7 +113,13 @@ if GitHub rate-limits the library's shared wifi.
 
 After voting closes:
 1. Run `judge.yml` with **`mock` unticked**. This is the only step that spends
-   money, roughly $2 at `claude-sonnet-5` for a 20-project event.
+   money, roughly $3 at `claude-sonnet-5` for a 20-project event (six judges,
+   plus each team's README). The log prints `README read for N of M
+   submissions`: a count of 0 when teams uploaded zips or linked repos means the
+   upload or GitHub links failed to download, so check before publishing. It
+   runs from the last sync's `data/submissions.json`, so run
+   `sync-submissions.yml` once more first if the last sync was more than an hour
+   ago.
 2. Run `tally.yml`.
 3. Netlify → Deploys → **Trigger deploy** once, so the fallback snapshot matches
    the published result.
