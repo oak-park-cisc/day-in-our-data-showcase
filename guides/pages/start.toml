@@ -1,7 +1,7 @@
-title = "Get started with AI coding"
+title = "Get started"
 nav_label = "Start"
-lede = "Never used an AI coding tool? Start here. Pick a path, get a working setup in about 15 minutes, and spend the rest of the day on Oak Park's data."
-description = "A zero-experience guide to prototyping with Claude Code at Day in Our Data: pick a path, get credits, install, and run your first prompt."
+lede = "Two ways to take part. Pick a track, get set up in about 15 minutes, and spend the rest of the day on Oak Park's data. AI tools are welcome, and so is a project that uses none."
+description = "Start here for Day in Our Data: pick Track A (the Civic Spark browser workspace, zero setup, no GitHub needed) or Track B (your own tools), write your README, and enter your project."
 
 [[sections]]
 id = "before"
@@ -12,9 +12,8 @@ intro = "None of this is required. Each item saves you ten minutes at your table
   type = "checklist"
   items = [
     "Charge your laptop and bring the charger. A tablet works for the browser workspace, but a keyboard helps.",
-    "Make a free [GitHub account](https://github.com/signup). You will want somewhere to save your project and link it from your showcase entry.",
     "Skim the [15 starter projects]({event.starter_projects}) and pick two you would enjoy.",
-    "Optional: install Claude Code (below) at home, where the Wi-Fi is not shared with 40 other people.",
+    "**Track B only:** make a free [GitHub account](https://github.com/signup) and, if you like, install Claude Code (below) at home, where the Wi-Fi is not shared with 40 other people. Track A needs neither.",
   ]
 
   [[sections.blocks]]
@@ -23,38 +22,37 @@ intro = "None of this is required. Each item saves you ten minutes at your table
   title = "Free credits for today"
   body = "{event.anthropic_credits}"
 
+  [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "No AI required"
+  body = "Traditional projects are fully welcome: a chart made in a spreadsheet, a deterministic Python or R script, a plain web page, a cleaned dataset, a printed map. The judges score every entry on the same terms, and using AI earns no extra points."
+
 [[sections]]
-id = "paths"
-heading = "Pick your path"
-intro = "All three paths run the same kind of AI coding agent. They differ in how much you install. If you are not sure, take path 1."
+id = "tracks"
+heading = "Pick your track"
+intro = "Both tracks end in the same place: an entry on this site. They differ in how much you set up. If you are not sure, take Track A."
 
   [[sections.blocks]]
   type = "cards"
 
     [[sections.blocks.items]]
-    tag = "Path 1 · Zero install · Recommended"
+    tag = "Track A · Zero setup · Recommended"
     title = "The {event.workspace_name} browser workspace"
-    body = "A ready-made coding environment built for this event. It runs in your browser, all the starter projects are already loaded, and you cannot break anything. It has an **Agent** tab for chatting with the AI and a **Terminal** tab for typing commands."
-    link = "#path-workspace"
-    link_label = "Set up path 1"
+    body = "A ready-made coding environment built for this event. It runs in your browser, the starter projects are already loaded, and you cannot break anything. **No GitHub account needed:** download your project as a zip and attach it to your entry."
+    link = "#track-a"
+    link_label = "Set up Track A"
 
     [[sections.blocks.items]]
-    tag = "Path 2 · No terminal"
-    title = "Claude on the web or the desktop app"
-    body = "Use Claude Code at [claude.ai/code](https://claude.ai/code) in the browser, or in the Code tab of the [Claude desktop app](https://claude.com/download). Good if you already have a Claude account and want a point-and-click window."
-    link = "#path-app"
-    link_label = "Set up path 2"
-
-    [[sections.blocks.items]]
-    tag = "Path 3 · Full power"
-    title = "Install Claude Code on your laptop"
-    body = "Run Claude Code in your own terminal or code editor, on your own files. It takes the most setup and gives the most control. Your project stays on your machine after today."
-    link = "#path-install"
-    link_label = "Set up path 3"
+    tag = "Track B · Your own tools"
+    title = "Your laptop, your editor, your workflow"
+    body = "Claude Code in your terminal or editor, Claude Code on the web, Python or Jupyter, or plain Git with no AI at all. Your work lives in a GitHub repository you link from your entry."
+    link = "#track-b"
+    link_label = "Set up Track B"
 
 [[sections]]
-id = "path-workspace"
-heading = "Path 1: the {event.workspace_name} workspace"
+id = "track-a"
+heading = "Track A: the {event.workspace_name} workspace"
 
   [[sections.blocks]]
   type = "steps"
@@ -80,6 +78,15 @@ opencode     # GLM agent in the terminal
 claude       # Claude Code in the terminal
 """
 
+    [[sections.blocks.items]]
+    title = "Save your work as a zip"
+    body = "Before you leave, and before you enter your project, download your project from the workspace as a zip. That zip is your copy: it is what you attach to your entry, and it outlasts the workspace. Can't find the download option? Ask a table host."
+
+    [[sections.blocks.items]]
+    title = "Optional: share a preview link"
+    body = "If you built a web page, the workspace can show you a preview link. Open it in a private browser window first: if it loads without signing in, paste it into your entry as your demo link."
+    note = "A preview link only works while your workspace is running. Voters open links after building ends, so the zip is what counts. A screenshot in the zip helps too."
+
   [[sections.blocks]]
   type = "callout"
   tone = "tip"
@@ -87,31 +94,39 @@ claude       # Claude Code in the terminal
   body = "The workspace is disposable by design. Try things, ask the agent to undo things, start over. If something looks wrong, a table host can reset it."
 
 [[sections]]
-id = "path-app"
-heading = "Path 2: Claude on the web or desktop"
+id = "track-b"
+heading = "Track B: your own tools"
+intro = "Track B assumes a free [GitHub account](https://github.com/signup): your repository is how teammates share work and how you link it from your entry. Pick whichever tool below suits you."
 
   [[sections.blocks]]
-  type = "steps"
+  type = "callout"
+  tone = "warn"
+  title = "Working as a team? Share a repository, not a chat"
+  body = "Pasting code back and forth into a Claude chat breaks down once a project has more than one file or more than one person: the chat cannot see your files, and every teammate ends up with a different copy. Put the project in one GitHub repository and have each person run Claude Code on their own clone (terminal, editor, or [claude.ai/code](https://claude.ai/code)), committing and pulling as you go."
+
+  [[sections.blocks]]
+  type = "cards"
 
     [[sections.blocks.items]]
-    title = "Sign in with a Claude account that includes Claude Code"
-    body = "Claude Code needs a Pro, Max, Team, Enterprise, or Console account. The free claude.ai plan does not include it. The event credits apply to a Console account: see the check-in table."
+    tag = "Most control"
+    title = "Claude Code in your terminal or editor"
+    body = "Runs on your own files. Install steps are below. Works inside VS Code, Cursor, and JetBrains IDEs too: see [where to code](/where-to-code.html)."
+    link = "#install"
+    link_label = "Install Claude Code"
 
     [[sections.blocks.items]]
-    title = "Open Claude Code"
-    body = "On the web, go to [claude.ai/code](https://claude.ai/code) and connect your GitHub account when asked. In the desktop app, open the **Code** tab."
+    tag = "No install"
+    title = "Claude Code on the web or desktop"
+    body = "Use [claude.ai/code](https://claude.ai/code) in the browser, or the Code tab of the [Claude desktop app](https://claude.com/download). Needs a Pro, Max, Team, Enterprise, or Console account; the event credits apply to a Console account. Connect GitHub when asked and pick your team's repository."
 
     [[sections.blocks.items]]
-    title = "Point it at the event repository"
-    body = "Choose or fork [{event.event_repo}]({event.event_repo}) so the starter projects and cached data are right there."
-
-    [[sections.blocks.items]]
-    title = "Ask your first question"
-    body = "Try: *Read the starter project cards and the data catalog, then suggest three maps or charts I could finish today.*"
+    tag = "Your usual stack"
+    title = "Python, Jupyter, R, or no AI at all"
+    body = "Clone or download the [event repository]({event.event_repo}) for the starter projects and cached data, and work however you normally do. Commit to your team repository as you go."
 
 [[sections]]
-id = "path-install"
-heading = "Path 3: install Claude Code on your laptop"
+id = "install"
+heading = "Track B: install Claude Code on your laptop"
 intro = "Claude Code runs on macOS 13+, Windows 10 (1809) or later, and most Linux distributions, with 4 GB of memory or more. You do not need administrator rights."
 
   [[sections.blocks]]
@@ -162,7 +177,7 @@ claude
 [[sections]]
 id = "first-15"
 heading = "Your first 15 minutes"
-intro = "Same steps on every path. Type these into the agent in plain English. You do not need to know any code."
+intro = "Same steps on both tracks, whichever agent you use. Type these in plain English. You do not need to know any code."
 
   [[sections.blocks]]
   type = "steps"
@@ -173,7 +188,7 @@ intro = "Same steps on every path. Type these into the agent in plain English. Y
 
     [[sections.blocks.items]]
     title = "Ask for a tour"
-    body = "*Explain what is in this repository like I have never coded before. What data is here and what could I make with it?*"
+    body = "*Explain what is in this project like I have never coded before. What data is here and what could I make with it?*"
 
     [[sections.blocks.items]]
     title = "Plan before you build"
@@ -184,14 +199,69 @@ intro = "Same steps on every path. Type these into the agent in plain English. Y
     body = "*Show me how to open what you just built.* Claude will give you a command, a file to open, or a link."
 
     [[sections.blocks.items]]
-    title = "Save your work"
-    body = "*Commit this with a clear message and help me push it to a new GitHub repository.* You will paste that link into your [showcase entry](/#submit)."
+    title = "Keep your data steps in files"
+    body = "*Put every step that changes the data in a script or notebook, not just in this chat, and tell me which file does what.* A result nobody can rerun is hard to trust, and the judges check for it."
 
   [[sections.blocks]]
   type = "callout"
   tone = "tip"
   title = "Stuck? Say so"
   body = "Paste the error message and ask *What does this mean and how do I fix it?* Press **Esc** to stop Claude mid-task. Press **Esc** twice to rewind to an earlier point."
+
+[[sections]]
+id = "readme"
+heading = "Write your README"
+intro = "Start this by 2:00. Your README is how the AI judging panel understands your project: it reads your entry and your README, not your code or your app. Use these five headings, one short paragraph each."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "The five README headings and what each one answers"
+  headers = ["Heading", "What to write"]
+  rows = [
+    ["The question", "What resident question does this answer, and who asks it?"],
+    ["The data", "Which datasets you used, where they came from, and what they do not cover."],
+    ["How we got the numbers", "Each step from the raw file to your result: filtered, joined, counted, charted. Say which script or spreadsheet does it, and where AI helped."],
+    ["How to use it", "How to open it or read it, in plain words."],
+    ["Status and next steps", "What works, what does not yet, and what someone should do on Monday."],
+  ]
+
+  [[sections.blocks]]
+  type = "code"
+  caption = "Paste this to your agent"
+  code = """
+Write README.md for this project using exactly these five headings:
+The question, The data, How we got the numbers, How to use it,
+Status and next steps. Only describe what is really in these files.
+List every data file we used and every step that changes the numbers.
+Keep it under one page.
+"""
+
+  [[sections.blocks]]
+  type = "checklist"
+  items = [
+    "**Track A:** the workspace starts you with a placeholder `README.md`. Replace it; the placeholder counts as no README. It then travels inside your zip.",
+    "**Track B:** put `README.md` at the top level of your repository.",
+    "**No code, no agent?** Write the five headings by hand in a document and upload it with your entry.",
+    "Read it before you submit. Delete anything that is not true: the judges can only score what the README says.",
+    "No README at all is fine. The panel then scores your written entry alone.",
+  ]
+
+[[sections]]
+id = "enter"
+heading = "Enter your project"
+intro = "Every team enters on this site, once, using the [entry form](/#submit). Nothing else to fill in anywhere."
+
+  [[sections.blocks]]
+  type = "table"
+  caption = "What each track puts in the entry form"
+  headers = ["Field", "Track A (workspace)", "Track B (your own tools)"]
+  rows = [
+    ["Written answers", "Required", "Required"],
+    ["How you got from the raw data to the result", "Required: a few plain sentences", "Required: a few plain sentences"],
+    ["Repository link", "Leave blank", "Your GitHub repository"],
+    ["Live demo link", "Optional: your preview link, if it opens signed out", "Optional: anywhere public"],
+    ["Upload", "Your project zip (up to 8 MB)", "Optional: a chart, CSV, PDF, or zip"],
+  ]
 
 [[sections]]
 id = "rules"
@@ -203,6 +273,7 @@ heading = "Ground rules for AI tools today"
     "**Keys and tokens are passwords.** Never paste one into a file you commit, a public chat, a screenshot, or your showcase entry. If one leaks, tell a table host so it can be revoked.",
     "**Public data only.** Do not give the AI confidential or personal information.",
     "**Check what the AI tells you.** Open the chart, read the numbers, ask *How do you know that?* Label prototypes as prototypes.",
-    "**Record your sources.** Ask Claude to write the data sources into your README as it works.",
+    "**Never let the AI make up data.** Numbers should come from a data file through a step you can rerun, not typed in by a model.",
+    "**Record your sources.** The README's *The data* heading is where they go.",
     "**Nothing made today is an official Village product or position.**",
   ]

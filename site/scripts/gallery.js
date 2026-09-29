@@ -44,6 +44,7 @@ async function renderGallery() {
           <p class="pane__team">${escapeHtml(s.team_name)}</p>
           <p>${escapeHtml(s.description)}</p>
           <p class="pane__solves"><strong>Solves for:</strong> ${escapeHtml(s.solves_for)}</p>
+          ${s.data_steps ? `<p class="pane__steps"><strong>From data to result:</strong> ${escapeHtml(s.data_steps)}</p>` : ""}
           <p class="pane__links">${links} ${art}</p>
         </article>`;
     })

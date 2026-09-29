@@ -29,11 +29,14 @@
       <h2>What the crowd chose, and what the machines chose</h2>
       <p class="results__standing">
         <strong>The participant vote decides the winner.</strong>
-        The AI panel below ran independently and decides nothing.
+        The AI panel below ran independently and decides nothing: its scores are
+        never added to the vote. They are shown side by side so you can see where
+        people and machines agreed.
       </p>
       <p class="ai-label">Panel scores are AI-generated</p>
-      <p class="ai-method">Repository contents were not fetched: the panel read each team's
-        submitted description and artifact list, and nothing else.</p>
+      <p class="ai-method">Six AI judges read each team's written entry and, where one could
+        be retrieved, the team's README (from the uploaded zip or the linked GitHub
+        repository). They did not run apps, open demos, or read code or data files.</p>
       <div id="agreement"></div>
       <div class="scroll-x"><table id="side-by-side"></table></div>
       <div class="scroll-x"><table id="per-persona"></table></div>
@@ -42,8 +45,9 @@
     <section id="bracket">
       <h2>The panel's bracket</h2>
       <p class="ai-label">AI-generated</p>
-      <p class="ai-method">Same evidence as above: submitted text and artifacts only,
-        with repository contents not fetched.</p>
+      <p class="ai-method">Same evidence as above: the written entry and the team's README.
+        A 3&ndash;3 split between the six judges goes to the side the Data Provenance
+        judge chose.</p>
       <div class="scroll-x"><div id="glass" class="glass"></div></div>
     </section>
   </main>

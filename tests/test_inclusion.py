@@ -107,10 +107,10 @@ def test_nothing_is_disclosed_when_every_submission_was_fully_scored():
 def test_run_panel_applies_the_same_rule(tmp_path: Path):
     subs = load_submissions(FIXTURES / "submissions.json")
     # Drop one persona's response for the first submission: score_all records
-    # an abstention, leaving it with 4 of 5 scores.
+    # an abstention, leaving it one score short.
     canned: list = []
     for index in range(len(subs)):
-        for position in range(5):
+        for position in range(len(PERSONAS)):
             if index == 0 and position == 2:
                 canned.append(None)
             else:
@@ -120,7 +120,7 @@ def test_run_panel_applies_the_same_rule(tmp_path: Path):
 
     scores = json.loads((tmp_path / "scores.json").read_text())["scores"]
     bracket = json.loads((tmp_path / "bracket.json").read_text())
-    assert len(scores["P-01"]) == 4, "fixture should leave P-01 short one persona"
+    assert len(scores["P-01"]) == len(PERSONAS) - 1, "fixture should leave P-01 short one persona"
     assert "P-01" not in bracket["ranking"]
     assert "P-01" not in bracket["seeds"]
     # And the same rule, applied by compare, keeps it out of the statistics

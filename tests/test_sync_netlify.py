@@ -162,6 +162,7 @@ def test_build_submissions_maps_every_contract_field():
         "description": "A map layering bike network and crash records.",
         "solves_for": "Parents deciding whether a kid can bike to school.",
         "starter_project": "04-can-a-kid-bike-to-school-safely",
+        "data_steps": None,
         "repo_url": "https://github.com/example/safe-routes",
         "demo_url": "https://example.com/safe-routes",
         "artifacts": [

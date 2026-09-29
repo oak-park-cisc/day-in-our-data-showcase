@@ -95,7 +95,7 @@ intro = "The event runs 11 to 3. A realistic plan is one full loop before lunch 
 
     [[sections.blocks.slots]]
     time = "2:00"
-    label = "QA + write-up"
+    label = "QA + README"
     minutes = 30
     phase = "qa"
 
@@ -140,9 +140,9 @@ intro = "Most Day in Our Data projects share one shape. Name each box when you a
 
     [[sections.blocks.stages]]
     name = "Publish"
-    who = "GitHub + the showcase"
-    does = "Push to GitHub, write the README, enter it in the showcase."
-    output = "A link in the [showcase](/#submit)."
+    who = "A zip or GitHub, then the showcase"
+    does = "Write the five-heading [README](/start.html#readme), then save your work (a zip from the workspace, or a push to GitHub) and enter it in the showcase."
+    output = "Your entry in the [showcase](/#submit)."
 
 [[sections]]
 id = "roles"

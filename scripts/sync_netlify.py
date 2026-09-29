@@ -196,6 +196,7 @@ def map_submission(raw: dict, index: int) -> dict:
         "description": data.get("description", ""),
         "solves_for": data.get("solves_for", ""),
         "starter_project": data.get("starter_project", ""),
+        "data_steps": _or_none(data.get("data_steps")),
         "repo_url": _or_none(data.get("repo_url")),
         "demo_url": _or_none(data.get("demo_url")),
         "artifacts": [artifact] if artifact else [],

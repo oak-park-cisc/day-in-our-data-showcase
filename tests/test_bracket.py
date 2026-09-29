@@ -102,3 +102,32 @@ def test_build_rounds_single_entry():
     e = entry("P-01", [5, 5, 5, 5, 5])
     rounds = build_rounds([e])
     assert rounds == [[Pairing(a="P-01", b=None)]]
+
+
+def test_a_three_three_split_goes_to_the_provenance_judges_pick():
+    """Six judges can tie 3-3; the Data Provenance judge's confirmed vote breaks it."""
+    votes = [
+        Vote("civic-impact", "P-01", True), Vote("data-integrity", "P-01", True),
+        Vote("usability-access", "P-01", True),
+        Vote("data-provenance", "P-02", True), Vote("craft", "P-02", True),
+        Vote("continuation", "P-02", True),
+    ]
+    assert resolve(votes, "P-01", "P-02", {"P-01": 1, "P-02": 2}) == "P-02"
+
+
+def test_a_tie_the_provenance_judge_abstained_from_goes_to_the_higher_seed():
+    votes = [
+        Vote("civic-impact", "P-01", True), Vote("data-integrity", "P-01", True),
+        Vote("usability-access", "P-02", True), Vote("craft", "P-02", True),
+        Vote("data-provenance", "P-02", False), Vote("continuation", "P-01", False),
+    ]
+    assert resolve(votes, "P-01", "P-02", {"P-01": 1, "P-02": 2}) == "P-01"
+
+
+def test_the_provenance_judge_does_not_override_a_clear_majority():
+    votes = [
+        Vote("civic-impact", "P-01", True), Vote("data-integrity", "P-01", True),
+        Vote("usability-access", "P-01", True), Vote("craft", "P-01", True),
+        Vote("data-provenance", "P-02", True), Vote("continuation", "P-02", True),
+    ]
+    assert resolve(votes, "P-01", "P-02", {"P-01": 2, "P-02": 1}) == "P-01"

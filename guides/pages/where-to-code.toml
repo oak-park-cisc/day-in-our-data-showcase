@@ -8,14 +8,20 @@ id = "compare"
 heading = "At a glance"
 
   [[sections.blocks]]
+  type = "callout"
+  tone = "tip"
+  title = "Chat is for questions, Claude Code is for projects"
+  body = "A Claude chat is great for asking questions of one CSV. For building anything with more than one file, or with teammates, use Claude Code (in {event.workspace_name}, your terminal, or claude.ai/code) instead of pasting code into a chat: Claude Code works on the real files, and a shared repository keeps everyone on the same copy."
+
+  [[sections.blocks]]
   type = "table"
   caption = "Where you can run an AI coding agent"
   headers = ["Where", "Install", "Best for", "Watch out for"]
   rows = [
-    ["[{event.workspace_name}]({event.workspace_url})", "None: a browser tab", "First-timers. Everything is preloaded and disposable.", "Enter your key before starting a session. Save your work to GitHub before you leave."],
-    ["[claude.ai/code](https://claude.ai/code)", "None: a browser tab", "Working on a GitHub repository without installing anything.", "Needs a paid Claude plan or Console account, plus a GitHub connection."],
+    ["[{event.workspace_name}]({event.workspace_url})", "None: a browser tab", "First-timers. Everything is preloaded and disposable.", "Enter your key before starting a session. Download your project zip before you leave. No GitHub needed (Track A)."],
+    ["[claude.ai/code](https://claude.ai/code)", "None: a browser tab", "Working on your team's GitHub repository without installing anything (Track B).", "Needs a paid Claude plan or Console account, plus a GitHub connection."],
     ["[Claude desktop app](https://claude.com/download)", "One download", "People who want windows and buttons, not a terminal.", "Mac, Windows, or Linux. Sign in with the same Claude account."],
-    ["Terminal (`claude`)", "One command", "Full control on your own files. Every feature lands here first.", "You type commands. The [cheat sheet](/cheatsheet.html) helps."],
+    ["Terminal (`claude`)", "One command", "Full control on your own files, and the best way for a team to share one repository (Track B).", "You type commands. The [cheat sheet](/cheatsheet.html) helps."],
     ["VS Code, Cursor", "Extension from the marketplace", "Seeing Claude's edits as side-by-side diffs in an editor you know.", "Install Claude Code first, then the **Claude Code** extension."],
     ["JetBrains (PyCharm, IntelliJ…)", "Plugin from the marketplace", "People already living in a JetBrains IDE.", "It runs Claude Code in the IDE's terminal."],
     ["`opencode` in the workspace", "None in {event.workspace_name}", "Trying an open-source agent with the event GLM model.", "Different commands from Claude Code. Type `/help` inside it."],
@@ -66,7 +72,7 @@ heading = "Still not sure? Answer two questions"
   caption = "Quick decision guide"
   headers = ["If you…", "Use"]
   rows = [
-    ["have never opened a terminal", "[{event.workspace_name}]({event.workspace_url})"],
+    ["have never opened a terminal, or have no GitHub account", "[{event.workspace_name}]({event.workspace_url}) (Track A)"],
     ["have a Claude subscription and a GitHub account", "[claude.ai/code](https://claude.ai/code) or the desktop app"],
     ["already code in VS Code or a JetBrains IDE", "The terminal install plus your editor's extension"],
     ["want to keep building after today", "The terminal install, on your own laptop"],

@@ -17,6 +17,10 @@ Score 1 to 5:
 - **2** — Sources are vague or implied, with no acknowledgment of gaps.
 - **1** — Conclusions are presented with no stated source at all.
 
+Whether a team used AI is not part of your score. A traditional project (a
+deterministic script, a standard chart, a plain web page, a cleaned dataset)
+is judged on exactly the same terms as an AI-assisted one.
+
 You must ground your score in **evidence**: short quotes or specific pointers
 drawn from the material you were given. Never cite anything you were not shown.
 If the material is thin, say so, score accordingly, and cite the absence.

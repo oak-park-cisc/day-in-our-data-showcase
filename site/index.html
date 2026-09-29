@@ -68,19 +68,59 @@
         Saturday, October 3, 2026 &middot; Dole Branch Library
       </p>
       <p class="hero__cta">
-        New to AI coding? <a href="/start.html">Get set up in 15 minutes</a> &middot;
+        The event hub: set up, build, enter, vote. <a href="/start.html">Get started</a> &middot;
         <a href="/cheatsheet.html">Cheat sheet</a>
       </p>
     </div>
   </header>
 
   <main class="wrap">
+    <section id="tracks" class="hub">
+      <h2>Two ways to take part</h2>
+      <div class="hub__cards">
+        <article class="hub__card">
+          <p class="hub__tag">Track A &middot; Zero setup &middot; Recommended</p>
+          <h3>Civic Spark, in your browser</h3>
+          <p>The recommended quickstart sandbox. Starter projects preloaded, nothing to install,
+            <strong>no GitHub account needed</strong>: download your project as a zip and attach it
+            to your entry.</p>
+          <p class="hub__links"><a href="https://test-site-civic-spark.fly.dev/" rel="noopener">Open Civic Spark</a>
+            &middot; <a href="/start.html#track-a">Track A guide</a></p>
+        </article>
+        <article class="hub__card">
+          <p class="hub__tag">Track B &middot; Your own tools</p>
+          <h3>Your laptop, your workflow</h3>
+          <p>Claude Code in your terminal or editor, Python or Jupyter, or plain Git. Your team
+            shares one GitHub repository and links it from your entry.</p>
+          <p class="hub__links"><a href="/start.html#track-b">Track B guide</a></p>
+        </article>
+      </div>
+      <p class="hub__note"><strong>No AI required.</strong> A spreadsheet chart, a deterministic script,
+        a plain web page, or a cleaned dataset is fully welcome and judged on the same terms.</p>
+    </section>
+
     <section id="submit">
       <h2>Enter your project</h2>
       <p class="submit__lede">
-        No code required &mdash; a dataset, a map, or a well-documented question is a real
-        submission. Everyone leaves with an entry, whether or not a line of code was written.
+        Every team enters here, once. No code required &mdash; a dataset, a map, or a
+        well-documented question is a real submission.
       </p>
+
+      <aside class="judged" aria-labelledby="judged-title">
+        <h3 id="judged-title">How your entry is judged</h3>
+        <div class="scroll-x">
+          <table>
+            <thead><tr><th scope="col">Who</th><th scope="col">What they look at</th><th scope="col">What it decides</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Participant vote</th><td>Your entry, plus your demo, files, and repository links</td><td><strong>The winner.</strong> Top-three ballots, cast with your check-in code.</td></tr>
+              <tr><th scope="row">AI judging panel</th><td>Your written answers below, and your <a href="/start.html#readme">README</a>. Not your code, data, or app.</td><td>Nothing. Its scores are never added to the vote; they are published alongside it for comparison.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Write your answers for someone who cannot open your project. Six AI judges score civic
+          impact, data integrity, data provenance, usability, craft, and whether staff could continue
+          it. <a href="/start.html#readme">What to put in your README</a>.</p>
+      </aside>
       <form name="submission" method="POST" data-netlify="true" enctype="multipart/form-data">
         <input type="hidden" name="form-name" value="submission" />
 
@@ -94,6 +134,13 @@
         <label>What does it solve for?
           <textarea name="solves_for" rows="3" required></textarea>
           <small>Who has this problem, and what can they do now that they could not before?</small>
+        </label>
+
+        <label>How did you get from the raw data to your result?
+          <textarea name="data_steps" rows="3" required></textarea>
+          <small>Which dataset, and what you did to it: filtered, joined, counted, charted. Name the
+            script, notebook, or spreadsheet that does it, and say where AI helped. No data work?
+            Say what you looked at.</small>
         </label>
 
         <label>Which starter project?
@@ -118,14 +165,20 @@
           </select>
         </label>
 
-        <label>Repository link <input type="url" name="repo_url" placeholder="https://github.com/..." /></label>
-        <label>Live demo link <input type="url" name="demo_url" /></label>
+        <label>Repository link
+          <input type="url" name="repo_url" placeholder="https://github.com/..." />
+          <small>Track B: your team's public GitHub repository. Track A: leave blank.</small>
+        </label>
+        <label>Live demo link
+          <input type="url" name="demo_url" />
+          <small>Optional. Only a link that opens without signing in: check it in a private window first.</small>
+        </label>
 
-        <label>One artifact
+        <label>One file
           <input type="file" name="artifact" />
           <small>
-            A map, a chart, a cleaned CSV, a slide, a PDF. <strong>8 MB maximum.</strong>
-            No code required &mdash; a dataset or a well-documented question is a real submission.
+            <strong>Track A: your project zip from Civic Spark goes here.</strong> Otherwise a map,
+            a chart, a cleaned CSV, a slide, a PDF, or a zip. <strong>8 MB maximum.</strong>
           </small>
         </label>
 

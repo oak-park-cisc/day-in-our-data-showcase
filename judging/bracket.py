@@ -6,6 +6,7 @@ from datetime import datetime
 
 CIVIC = "civic-impact"
 INTEGRITY = "data-integrity"
+PROVENANCE = "data-provenance"
 
 
 @dataclass(frozen=True)
@@ -84,13 +85,23 @@ def build_rounds(seeded: list[SeedEntry]) -> list[list[Pairing]]:
 
 
 def resolve(votes: list[Vote], a: str, b: str, seed_of: dict[str, int]) -> str:
-    """Majority of votes that survived the position swap. Any tie advances the higher seed."""
+    """Majority of votes that survived the position swap.
+
+    Six judges can split 3-3. A tie goes to whichever side the Data Provenance
+    judge picked, if that judge's vote survived the swap; otherwise (including
+    a tie it abstained from) the higher seed advances.
+    """
     higher = a if seed_of[a] < seed_of[b] else b
-    counted = Counter(v.winner for v in votes if v.swap_confirmed)
+    confirmed = [v for v in votes if v.swap_confirmed]
+    counted = Counter(v.winner for v in confirmed)
     if not counted:
         return higher
     top = counted.most_common()
     if len(top) > 1 and top[0][1] == top[1][1]:
+        tied = {top[0][0], top[1][0]}
+        for v in confirmed:
+            if v.persona == PROVENANCE and v.winner in tied:
+                return v.winner
         return higher
     return top[0][0]
 

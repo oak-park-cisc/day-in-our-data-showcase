@@ -17,6 +17,8 @@ from judging.inclusion import panel_scored
 from judging.models import Submission, load_submissions
 from judging.pass1 import score_all
 from judging.pass2 import judge_matchup
+from judging.prompts import PERSONAS
+from judging.readmes import collect_readmes
 
 MIN_BRACKET = 4
 
@@ -25,11 +27,18 @@ def _write(path: Path, payload: dict | list) -> None:
     path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
 
 
-def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> None:
+def run(
+    submissions: list[Submission],
+    client: JudgeClient,
+    out_dir: Path,
+    readmes: dict[str, str] | None = None,
+) -> None:
+    """`readmes` maps submission id to README text (judging.readmes); none means text only."""
+    readmes = readmes or {}
     out_dir = Path(out_dir)
     (out_dir / "transcripts").mkdir(parents=True, exist_ok=True)
 
-    pass1 = score_all(client, submissions)
+    pass1 = score_all(client, submissions, readmes)
     by_anon = {s.anon_id: s for s in submissions}
 
     _write(out_dir / "scores.json", {
@@ -38,6 +47,9 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
         "justifications": pass1.justifications,
         "abstentions": pass1.abstentions,
         "means": {a: mean_score(p) for a, p in pass1.scores.items() if p},
+        # Which entries the panel read a README for; published so the page can
+        # say so rather than implying every team was read the same way.
+        "readme_read": sorted(s.anon_id for s in submissions if s.id in readmes),
     })
     for anon, personas in pass1.justifications.items():
         _write(out_dir / "transcripts" / f"score-{anon}.json", {
@@ -83,7 +95,7 @@ def run(submissions: list[Submission], client: JudgeClient, out_dir: Path) -> No
                 played.append({"a": pair.a, "b": None, "winner": pair.a, "bye": True})
                 advancing.append(pair.a)
                 continue
-            record = judge_matchup(client, by_anon[pair.a], by_anon[pair.b], seed_of)
+            record = judge_matchup(client, by_anon[pair.a], by_anon[pair.b], seed_of, readmes)
             played.append({
                 "a": record.a, "b": record.b, "winner": record.winner, "bye": False,
                 "votes": [
@@ -131,18 +143,22 @@ def main() -> None:
     parser.add_argument("--submissions", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--mock", action="store_true", help="Dry run; makes no API calls.")
+    parser.add_argument(
+        "--skip-readmes", action="store_true",
+        help="Do not download team READMEs; judge the written entry only.",
+    )
     args = parser.parse_args()
 
     submissions = load_submissions(args.submissions)
     if args.mock:
         from judging.schemas import MatchupOutput, ScoreOutput
-        # Pass 1 makes exactly len(submissions) * 5 client.score() calls before
+        # Pass 1 makes exactly len(submissions) * len(PERSONAS) client.score() calls before
         # pass 2 makes any client.compare() calls. MockJudgeClient serves both
         # from the same queue in order, so the ScoreOutput supply must be sized
         # exactly — otherwise leftover ScoreOutput entries get popped by
         # compare() and crash with AttributeError.
         canned = [ScoreOutput(score=3, justification="Mock.", evidence=["mock"])] * (
-            len(submissions) * 5
+            len(submissions) * len(PERSONAS)
         )
         canned += [MatchupOutput(winner="A", reasoning="Mock.")] * 10000
         client: JudgeClient = MockJudgeClient(canned)
@@ -150,7 +166,10 @@ def main() -> None:
         from judging.client import AnthropicJudgeClient
         client = AnthropicJudgeClient()
 
-    run(submissions, client, args.out)
+    readmes = {} if args.skip_readmes else collect_readmes(submissions)
+    # Counts only: README text is participant data and stays out of the log.
+    print(f"README read for {len(readmes)} of {len(submissions)} submissions")
+    run(submissions, client, args.out, readmes)
     print(f"Wrote results to {args.out}")
 
 
