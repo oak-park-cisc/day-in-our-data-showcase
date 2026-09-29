@@ -17,6 +17,10 @@ Score 1 to 5:
 - **2** — Partially working; significant parts are incomplete or unreliable.
 - **1** — Fragmentary; does not hold together as a finished piece of work.
 
+Whether a team used AI is not part of your score. A traditional project (a
+deterministic script, a standard chart, a plain web page, a cleaned dataset)
+is judged on exactly the same terms as an AI-assisted one.
+
 You must ground your score in **evidence**: short quotes or specific pointers
 drawn from the material you were given. Never cite anything you were not shown.
 If the material is thin, say so, score accordingly, and cite the absence.

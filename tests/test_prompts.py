@@ -6,8 +6,9 @@ from judging.prompts import PERSONAS, evidence_block, load_persona, matchup_user
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def test_five_personas_exist():
-    assert len(PERSONAS) == 5
+def test_six_personas_exist():
+    assert len(PERSONAS) == 6
+    assert "data-provenance" in PERSONAS
 
 
 def test_every_persona_states_code_is_not_required():
@@ -37,3 +38,16 @@ def test_evidence_block_marks_missing_material():
 def test_matchup_user_labels_sides_a_and_b():
     text = matchup_user("ALPHA", "BETA")
     assert "Submission A" in text and "Submission B" in text
+
+
+def test_no_persona_penalises_a_project_for_not_using_ai():
+    for name in PERSONAS:
+        text = " ".join(load_persona(name).lower().split())
+        assert "traditional" in text, f"{name} must say non-AI projects are judged the same"
+        assert ("not part of your score" in text) or ("neither a plus nor a minus" in text), name
+
+
+def test_the_provenance_judge_asks_for_a_traceable_path_from_raw_data():
+    text = " ".join(load_persona("data-provenance").lower().split())
+    assert "raw data" in text and "rerun" in text
+    assert "no traceable origin" in text

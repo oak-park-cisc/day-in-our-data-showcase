@@ -21,6 +21,7 @@ class Submission(BaseModel):
     description: str
     solves_for: str
     starter_project: str
+    data_steps: str | None = None
     repo_url: str | None = None
     demo_url: str | None = None
     artifacts: list[Artifact] = []

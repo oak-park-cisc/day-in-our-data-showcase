@@ -16,6 +16,7 @@ from pathlib import Path
 from judging.bracket import finish_order
 from judging.client import MockJudgeClient
 from judging.models import load_submissions
+from judging.prompts import PERSONAS
 from judging.run_panel import run
 from judging.schemas import MatchupOutput, ScoreOutput
 
@@ -89,7 +90,7 @@ def test_finish_order_without_a_champion_still_ranks_everyone():
 
 
 def _responses(n_subs: int, winner: str) -> list:
-    out = [ScoreOutput(score=4, justification="Grounded.", evidence=["description"])] * (n_subs * 5)
+    out = [ScoreOutput(score=4, justification="Grounded.", evidence=["description"])] * (n_subs * len(PERSONAS))
     out += [MatchupOutput(winner=winner, reasoning="Cited.")] * 4000
     return out
 
@@ -100,7 +101,7 @@ def test_published_ranking_is_headed_by_the_champion_not_the_top_seed(tmp_path: 
     # higher seed advances -- deterministic, and the champion is seed 1. Use
     # "A"/"B" alternation instead so B-side entrants actually win matchups.
     responses = [ScoreOutput(score=4, justification="Grounded.", evidence=["description"])] * (
-        len(subs) * 5
+        len(subs) * len(PERSONAS)
     )
     # For each persona pair (forward, swapped): "B" then "A" both name the
     # second-listed submission, so the B side wins every confirmed matchup.

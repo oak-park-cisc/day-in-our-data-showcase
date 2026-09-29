@@ -30,6 +30,9 @@ jobs:
       - name: Run the panel
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Read-only use: fetching linked repositories' READMEs (judging/readmes.py)
+          # without the 60-an-hour anonymous GitHub API limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JUDGE_MODEL: claude-sonnet-5
         run: |
           python -m judging.run_panel \

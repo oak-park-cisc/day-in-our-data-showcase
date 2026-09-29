@@ -3,6 +3,7 @@ from pathlib import Path
 
 from judging.client import MockJudgeClient
 from judging.models import load_submissions
+from judging.prompts import PERSONAS
 from judging.run_panel import run
 from judging.schemas import MatchupOutput, ScoreOutput
 
@@ -10,7 +11,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def responses(n_subs: int) -> list:
-    out = [ScoreOutput(score=4, justification="Grounded.", evidence=["description"])] * (n_subs * 5)
+    out = [ScoreOutput(score=4, justification="Grounded.", evidence=["description"])] * (n_subs * len(PERSONAS))
     out += [MatchupOutput(winner=w, reasoning="Cited.") for _ in range(200) for w in ("A", "B")]
     return out
 
