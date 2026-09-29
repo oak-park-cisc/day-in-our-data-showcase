@@ -1,0 +1,138 @@
+name: "Event day: open or close voting"
+
+# One button for whoever is running the event, so nobody needs Netlify access.
+# Team instructions: docs/event-day-buttons.md.
+#
+#   1 - Open voting:  final submission sync, then a Netlify deploy so the
+#                     ballot page's fallback copy holds every project.
+#   2 - Close voting: final sync, the REAL AI judging run (about $3, the only
+#                     step that spends money), the vote tally, then a deploy.
+#   0 - Rehearsal:    site owner only. The close-voting chain with MOCK judging
+#                     and no deploy: free, proves the wiring. It commits
+#                     placeholder results, which the owner deletes afterwards.
+#
+# The vote result must publish even if AI judging fails, so the tally runs
+# whenever the sync succeeded. The deploy uses the NETLIFY_TOKEN secret with
+# Netlify's "create site build" API: the same thing as Deploys -> Trigger
+# deploy in the Netlify dashboard. It spends one of the free plan's ~20
+# monthly deploys per press.
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "Which step? Open voting first; close voting when the vote ends."
+        type: choice
+        required: true
+        options:
+          - "1 - Open voting (sync projects, then deploy)"
+          - "2 - Close voting (AI judging, tally the vote, then deploy)"
+          - "0 - Rehearsal (site owner only: free test, no deploy)"
+
+permissions:
+  contents: write
+
+# A second press waits for the first to finish instead of racing it.
+concurrency:
+  group: event-day
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync projects from Netlify
+    uses: ./.github/workflows/sync-submissions.yml
+    secrets: inherit
+
+  judge:
+    name: AI judging panel (real run on close voting, about $3)
+    needs: sync
+    if: startsWith(inputs.step, '2') || startsWith(inputs.step, '0')
+    uses: ./.github/workflows/judge.yml
+    with:
+      mock: ${{ startsWith(inputs.step, '0') }}
+    secrets: inherit
+
+  tally:
+    name: Tally the participant vote
+    needs: [sync, judge]
+    # Runs even when judging failed: the vote decides the winner and must
+    # publish regardless. results.html shows the panel as "not published yet".
+    if: >-
+      always() && needs.sync.result == 'success' &&
+      (startsWith(inputs.step, '2') || startsWith(inputs.step, '0'))
+    uses: ./.github/workflows/tally.yml
+    secrets: inherit
+
+  deploy:
+    name: Deploy the site on Netlify
+    needs: [sync, judge, tally]
+    if: >-
+      always() && needs.sync.result == 'success' &&
+      (startsWith(inputs.step, '1') ||
+       (startsWith(inputs.step, '2') && needs.tally.result == 'success'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start a production deploy and wait for it
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          set -euo pipefail
+          auth="Authorization: Bearer ${NETLIFY_TOKEN}"
+          api="https://api.netlify.com/api/v1"
+          build=$(curl -sS --fail-with-body -X POST -H "$auth" "$api/sites/${NETLIFY_SITE_ID}/builds")
+          build_id=$(echo "$build" | jq -r '.id')
+          echo "Netlify build ${build_id} started."
+          for _ in $(seq 1 40); do
+            sleep 15
+            status=$(curl -sS --fail-with-body -H "$auth" "$api/builds/${build_id}")
+            if [ "$(echo "$status" | jq -r '.done')" = "true" ]; then
+              error=$(echo "$status" | jq -r '.error // empty')
+              if [ -n "$error" ]; then
+                echo "::error::Netlify deploy failed: ${error}"
+                exit 1
+              fi
+              echo "Deploy finished."
+              exit 0
+            fi
+          done
+          echo "::error::Netlify deploy did not finish within 10 minutes. Check the Netlify dashboard."
+          exit 1
+
+  summary:
+    name: Summary
+    needs: [sync, judge, tally, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write what happened
+        env:
+          STEP: ${{ inputs.step }}
+          SYNC: ${{ needs.sync.result }}
+          JUDGE: ${{ needs.judge.result }}
+          TALLY: ${{ needs.tally.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+        run: |
+          mark() { case "$1" in success) echo "✅ done";; skipped) echo "➖ not part of this step";; *) echo "❌ $1";; esac; }
+          {
+            echo "## ${STEP}"
+            echo
+            echo "| Part | Result |"
+            echo "|---|---|"
+            echo "| Sync projects | $(mark "$SYNC") |"
+            echo "| AI judging | $(mark "$JUDGE") |"
+            echo "| Tally the vote | $(mark "$TALLY") |"
+            echo "| Deploy the site | $(mark "$DEPLOY") |"
+            echo
+            if [ "${STEP:0:1}" = 0 ]; then
+              echo "**Rehearsal.** Judging was a free mock and nothing was deployed. Delete the placeholder files in data/results/ afterwards."
+            elif [ "$SYNC" = success ] && [ "$DEPLOY" = success ]; then
+              echo "**All good.** Check the live site: https://oakparkciscdiod.netlify.app/"
+              case "$STEP" in 2*) echo; echo "Results page: https://oakparkciscdiod.netlify.app/results.html";; esac
+            else
+              echo "**Something needs attention.** Press **Re-run failed jobs** (top right) once. If it fails again, message the site owner and include this page's link."
+            fi
+            if [ "$JUDGE" != success ] && [ "$JUDGE" != skipped ] && [ "$TALLY" = success ]; then
+              echo
+              echo "The vote result **was** published; only the AI comparison is missing. It can be re-run later."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
