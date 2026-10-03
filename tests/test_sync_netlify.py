@@ -233,7 +233,8 @@ def test_sync_writes_submissions_and_id_map_and_never_ballots(tmp_path):
     assert len(json.loads((tmp_path / "submissions.json").read_text())) == 2
     assert (tmp_path / sync_netlify.ID_MAP_FILENAME).exists()
     assert not (tmp_path / "ballots.json").exists()
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["id_map.json", "submissions.json"]
+    assert sorted(p.name for p in tmp_path.iterdir()) == [
+        "SUBMISSIONS.md", "id_map.json", "submissions.csv", "submissions.json"]
 
 
 def test_sync_works_before_the_ballot_form_exists(tmp_path):
@@ -458,3 +459,48 @@ def test_the_site_domain_works_as_the_site_id(tmp_path):
     }
     sync_netlify.sync("test-token", tmp_path, site_id=domain, get_json=fake_get_json(urls))
     assert len(json.loads((tmp_path / "submissions.json").read_text())) == 2
+
+
+def _export(tmp_path, submissions):
+    sync_netlify.write_exports(tmp_path, submissions)
+    return (tmp_path / "submissions.csv").read_text(encoding="utf-8"), (tmp_path / "SUBMISSIONS.md").read_text(encoding="utf-8")
+
+
+EXPORT_SUB = {
+    "id": "sub_001", "anon_id": "P-01", "team_name": "Team <b>A</b>", "project_title": "=HYPERLINK(\"x\")",
+    "description": "Built *a* map | with [links](javascript:alert(1))", "solves_for": "Riders",
+    "starter_project": "06-which-bus-stops-need-help", "data_steps": None,
+    "repo_url": "https://github.com/x/y", "demo_url": "javascript:alert(1)", "large_file_url": None,
+    "artifacts": [{"filename": "a.zip", "bytes": 10, "url": "https://files.example/a.zip"}],
+    "submitted_at": "2026-10-03T16:00:00Z",
+}
+
+
+def test_exports_cover_every_submission_and_field(tmp_path):
+    import csv, io
+    csv_text, md = _export(tmp_path, [EXPORT_SUB, {**EXPORT_SUB, "id": "sub_002", "project_title": "Two"}])
+    rows = list(csv.DictReader(io.StringIO(csv_text)))
+    assert [r["id"] for r in rows] == ["sub_001", "sub_002"]
+    assert rows[0]["files"] == "https://files.example/a.zip"
+    assert rows[0]["repo_url"] == "https://github.com/x/y"
+    assert "**2 projects.**" in md
+    assert "## sub_002" in md and "<https://files.example/a.zip>" in md
+
+
+def test_csv_export_neutralises_spreadsheet_formulas(tmp_path):
+    import csv, io
+    csv_text, _ = _export(tmp_path, [EXPORT_SUB])
+    row = next(csv.DictReader(io.StringIO(csv_text)))
+    assert row["project_title"].startswith("'=")
+
+
+def test_markdown_export_renders_participant_text_inert(tmp_path):
+    _, md = _export(tmp_path, [EXPORT_SUB])
+    assert "<b>" not in md and "&lt;b&gt;" in md
+    assert "\[links\](javascript:" in md  # brackets escaped: shown as text, never a link
+    assert "<javascript:" not in md  # only https links become clickable
+
+
+def test_exports_are_stable_so_an_unchanged_sync_commits_nothing(tmp_path):
+    first = _export(tmp_path, [EXPORT_SUB])
+    assert _export(tmp_path, [EXPORT_SUB]) == first

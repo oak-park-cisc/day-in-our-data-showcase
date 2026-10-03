@@ -38,7 +38,7 @@ jobs:
           # the next sync renumbers everything and every cast ballot re-points
           # (scripts/sync_netlify.py's assign_public_numbers).
           # [skip netlify]: pages read data live from GitHub; data commits must not spend the free plan's ~20 monthly deploys.
-          git add data/submissions.json data/id_map.json
+          git add data/submissions.json data/id_map.json data/submissions.csv data/SUBMISSIONS.md
           git diff --staged --quiet || git commit -m "chore: sync submissions from Netlify [skip netlify]"
           # A scheduled sync can land between checkout and push.
           git pull --rebase --quiet

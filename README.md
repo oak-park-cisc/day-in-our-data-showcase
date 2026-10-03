@@ -65,7 +65,10 @@ schedule:
 
 - **`sync-submissions.yml`** — polls the Netlify Forms API via
   `scripts/sync_netlify.py` and commits `data/submissions.json` and
-  `data/id_map.json`. Runs every 15 minutes during event hours (Saturdays,
+  `data/id_map.json`, plus two read-only reference copies of every entry:
+  [`data/SUBMISSIONS.md`](data/SUBMISSIONS.md) (readable on GitHub) and
+  `data/submissions.csv` (opens in Excel or Sheets). Uploaded files are linked,
+  not copied. Runs every 15 minutes during event hours (Saturdays,
   16:00-21:59 UTC) and on demand. Needs the `NETLIFY_TOKEN` secret.
 - **`judge.yml`** — runs the AI judging panel and commits `data/results/`.
   Defaults to a `mock` dry run (zero API spend); set `mock: false` on
