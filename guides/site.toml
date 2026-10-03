@@ -25,7 +25,7 @@ showcase_url = "https://oakparkciscdiod.netlify.app/"
 
 # The browser workspace built for the event. Zero install.
 workspace_name = "Civic Spark"
-workspace_url = "https://test-site-civic-spark.fly.dev/"
+workspace_url = "https://day-in-our-data.fly.dev/"
 
 # How attendees get the Anthropic credits gifted for the event. Replace this
 # sentence once the distribution method is decided (a link, a code on the
