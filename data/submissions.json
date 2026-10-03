@@ -79,5 +79,26 @@
     "artifacts": [],
     "large_file_url": null,
     "submitted_at": "2026-10-03T21:13:00.368Z"
+  },
+  {
+    "id": "sub_006",
+    "anon_id": "P-06",
+    "team_name": "Urban Forest Diversity",
+    "project_title": "How resilient is our urban forest?",
+    "description": "An interactive map and dashboard that highlights social vulnerability and urban tree diversity among Oak Park's public tree inventory",
+    "solves_for": "Can geographically identify blocks that are at greater pest, climate, or other environmental risks because of homogeneous tree species compositions; can identify areas of low shade among vulnerable populations (seniors, no car households, young children); also identifies if tree canopy is majorly homogeneous which presents greater vulnerability to disease ",
+    "starter_project": "11-how-resilient-is-our-urban-forest",
+    "data_steps": "I used my AI agent entirely to analyze the data ",
+    "repo_url": null,
+    "demo_url": null,
+    "artifacts": [
+      {
+        "filename": "urban forest diversity.zip",
+        "url": "https://d33wubrfki0l68.cloudfront.net/56500699-869c-4bee-9b44-cf91146aaf69/urban%20forest%20diversity.zip",
+        "bytes": 2561147
+      }
+    ],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T22:31:12.876Z"
   }
 ]
