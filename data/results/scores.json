@@ -1,8 +1,101 @@
 {
   "model_generated": true,
-  "scores": {},
-  "justifications": {},
+  "scores": {
+    "P-01": {
+      "civic-impact": 4,
+      "data-integrity": 5,
+      "data-provenance": 5,
+      "usability-access": 3,
+      "craft": 4,
+      "continuation": 5
+    },
+    "P-02": {
+      "civic-impact": 5,
+      "data-integrity": 5,
+      "data-provenance": 5,
+      "usability-access": 4,
+      "craft": 4,
+      "continuation": 5
+    },
+    "P-03": {
+      "civic-impact": 5,
+      "data-integrity": 5,
+      "data-provenance": 4,
+      "usability-access": 4,
+      "craft": 4,
+      "continuation": 3
+    },
+    "P-04": {
+      "civic-impact": 3,
+      "data-integrity": 5,
+      "data-provenance": 4,
+      "usability-access": 2,
+      "craft": 3,
+      "continuation": 5
+    },
+    "P-05": {
+      "civic-impact": 3,
+      "data-integrity": 3,
+      "data-provenance": 2,
+      "usability-access": 1,
+      "craft": 2,
+      "continuation": 2
+    }
+  },
+  "justifications": {
+    "P-01": {
+      "civic-impact": "The project directly addresses how ECHO's care-coordination services are distributed and where provider gaps exist, with a concrete resource directory matching categories to local services, but the named audience is institutional (Board of Health, ECHO team) rather than an explicit resident group.",
+      "data-integrity": "Sources are explicitly named per file (ECHO dashboard, crime incidents, calls-for-service, hand-built resource directory) with a dedicated data/README.md for sources and caveats, and limitations are stated unprompted throughout (suppressed small counts, partial September excluded from averages, synthetic FOIA templates never loaded, 'Counts are logged services, not people or referrals').",
+      "data-provenance": "The README names specific scripts for each data source (fetch_echo_activity.py, fetch_crime_incidents.py, crime_monthly.py) and spells out exact transformation rules (suppression, blank handling, partial-month treatment, 12-month crime windows), with unit tests that 'pin the quoted figures' confirming the pipeline is rerunnable.",
+      "usability-access": "The deliverable is a single downloadable HTML file that needs no coding (a plus for access), but the README\u2014our only window into its content\u2014reads like a data-methodology document full of jargon ('suppressed cells,' 'March\u2013February 12-month windows,' 'service_by_month') rather than resident-facing plain language, so a non-technical user would need some orientation to make sense of what they're seeing.",
+      "craft": "The README documents a complete pipeline (fetch, suppression handling, tests pinning figures) and a packaged standalone HTML demo plus a 60-entry resource directory, suggesting a finished, carefully caveated artifact rather than a rough draft.",
+      "continuation": "The README provides a detailed data-to-artifact mapping, explicit methodology notes, a project-card compliance table, and named next steps (Board of Health/ECHO review), giving staff enough to pick up Monday with minimal reconstruction."
+    },
+    "P-02": {
+      "civic-impact": "The project directly names and serves concrete resident groups (\"especially a senior or someone who uses a wheelchair\") facing a real, specific daily problem\u2014fragmented transit info across \"three agencies, two 'L' lines, Metra and fourteen bus routes\"\u2014and builds features (accessibility view, provider guide, travel time estimator) squarely aimed at answering their actual questions like \"is transit worth it for this trip?\".",
+      "data-integrity": "Sources are named with specificity throughout (GTFS feeds, Census TIGERweb, CTA Bus/Train Tracker, Pace Bus Tracker, CTA Alerts API, provider pages checked Oct 3) and caveats are stated unprompted, including Pace accessibility as Unknown, Metra times as schedule not live, and alerts possibly outside Oak Park.",
+      "data-provenance": "The submission names each transformation step and ties it to a specific script with defined inputs and outputs (e.g., build_routes.py, build_travel.py, build_boundary.py, fetch_alerts.py), making the path from GTFS/Census/OSM sources to each on-page feature reproducible.",
+      "usability-access": "The live site is a single map-based page with plain-language features (tap a stop for next arrivals, color-coded accessibility, a provider 'who to call' guide) that a resident could use on a phone with little orientation, though the heat-map travel-time estimator and multi-tab layout (Status, Routes, Travel) require a bit more exploration to fully grasp.",
+      "craft": "The team describes a very ambitious but concretely detailed build (live CTA/Pace feeds via a Cloudflare Worker, GTFS-based route/schedule processing, a travel-time heatmap computed client-side, and an honest fallback for failed feeds), and the README's file map and 'unverified' tagging system suggest a real, working codebase rather than a mockup.",
+      "continuation": "The README provides a detailed file map ('Where things live') linking each UI panel and data file to its purpose, plus explicit instructions for rebuilding each data layer via named scripts (build_routes.py, build_travel.py, build_service.py, build_boundary.py, fetch_alerts.py) and for editing content without code."
+    },
+    "P-03": {
+      "civic-impact": "The project directly answers questions Oak Park residents visibly debate \u2014 school quality comparisons and tax burden justification \u2014 and names specific audiences (parents, taxpayers, school boards) with concrete takeaways they couldn't easily get before.",
+      "data-integrity": "Sources are explicitly named (ISBE Illinois Report Card datasets 2018\u20132025, Cook County Clerk tax rate reports) with specific files and methods, and the team proactively states data limitations such as test changes, missing 2020 tests, lagging spending figures, and a verified three-year lag in tax reporting.",
+      "data-provenance": "The submission names a concrete script and a clear sequence of steps (filter, column-mapping via data/column-mapping.json, join by state ID, derive tax-per-student, trim) from named source files to named outputs (districts.json, schools.json, levies.json), making most of the pipeline traceable and rerunnable; the tax cross-check (5.14 vs 5.135) is even explicitly verified.",
+      "usability-access": "The dashboard explicitly leads with 'plain-language findings' and 'the bottom line,' and gives concrete, everyday-language takeaways (e.g., tax rate ranked 3rd of 11 towns, OPRF top 3 in Cook County) that a resident could grasp at a glance.",
+      "craft": "The write-up describes a fully fleshed-out, multi-section dashboard (findings cards, Taxes & value, Trends, Cook County scatter, Schools, Priorities, Map) with specific, verifiable-sounding numbers (e.g. '$8.37 per $100... 3rd highest of 11 nearby towns', 'D97's 5.14 in the 2025 report card matches the Clerk's 5.135 for tax year 2022') that suggest the data pipeline actually ran end-to-end and handled the stated traps (2025 test change, missing 2020 tests, one-year spending lag); a live demo URL is also provided as the finished artifact.; the main rough edge is that no repository or artifacts were included ('Repository: (not provided)', 'Artifacts: (none)'), so the only evidence of craft is the team's own detailed narrative rather than an independently inspectable file or screenshot.",
+      "continuation": "The submission description is detailed about methodology (column mapping, joins, derived fields, data traps handled) and references specific files like scripts/build_report_card_data.py and data/column-mapping.json, which would help a knowledgeable staffer, but no actual repository link is provided and no README was included to verify these artifacts exist or are organized for handoff."
+    },
+    "P-04": {
+      "civic-impact": "The project builds a well-documented map of possibly 200-year-old oaks tied to Oak Park's settlement history, which is a plausible civic/historical interest, but no resident or community group is named as asking this question, and the need is inferred by the team rather than demonstrated.",
+      "data-integrity": "Sources are explicitly named in a clear table (tree inventories, Morton Arboretum DBH tables, 1830s land cover data) and the team states unprompted caveats about the method's inherent uncertainty.",
+      "data-provenance": "The README documents a concrete rerunnable pipeline (scripts/build_data.py reading named sources, with DBH-to-age formulas and inclusion rules spelled out, plus a decision-log for methods), but the confidence score's exact combination of the three factors is only described qualitatively rather than as a precise, checkable rule.",
+      "usability-access": "The described interface (map, popups, confidence legend, plain-language 'About' panel) sounds resident-friendly, but no live demo or hosted link is provided\u2014only a zip artifact\u2014and the README's 'Run it locally' instructions require Node.js, npm, and command-line use, which a non-technical resident cannot do.",
+      "craft": "The README describes a thorough, well-structured app (map, popup cards, confidence tiers, URL-state sharing) and a clearly documented methodology, but with no live demo or repo link\u2014only a zip artifact\u2014there is no way to confirm it actually runs as described.",
+      "continuation": "The README documents methodology (DBH-to-age estimation, confidence tiers), data sources with links, and includes explicit rebuild instructions and scripts, making it clear how a staff member could reproduce or extend the work."
+    },
+    "P-05": {
+      "civic-impact": "The actual deliverable (Flask API with /api/incidents, /api/incident-types, /api/stats serving a raw crime CSV) only supports generic 'Understanding crime in Oak Park,' with no named audience in the description itself; the README's much richer 'Safe Routes for parents' framing is not reflected in the file structure (no routing engine, no school/POI data, no turn-by-turn logic), so the specific resident question is asserted but not demonstrated by the submitted code.",
+      "data-integrity": "The only clue to data provenance is the file name `crime-incidents-oak-park.csv`, with no citation of an actual source (e.g., police department or open-data portal) in the description or README, while the (likely mismatched) README does include a clear caveat that \"this app shows *reported* incidents only\" and that routes are \"suggestions, not official safe-route designations.\"",
+      "data-provenance": "The submission's own explanation of provenance is essentially empty ('How they got from raw data to the result: DIOD'), and while the API lists an endpoint that 'groups' incidents by type, no formula, script excerpt, or steps are shown to verify how counts or the README's crime-severity scoring ('one robbery counts as much as twelve thefts') were derived.",
+      "usability-access": "The actual deliverable is a Flask JSON API plus a bare HTML/JS table that a resident must run locally via command-line steps (venv, pip install, python server\\app.py) with no live demo provided, which is far beyond ordinary resident capability; the polished 'Safe Routes' narrative in the README describes a different, unbuilt product not reflected in the actual repo.",
+      "craft": "The repo's actual API (`/api/incidents`, `/api/incident-types`, `/api/stats`) only supports basic filtering and stats on a CSV, but the team README describes a far more ambitious 'Safe Routes' app with route suggestions, crime-weighted street coloring, and school destinations that have no corresponding code or data in the listed project structure; there's also no live demo, screenshots, or filled-in Tests section to confirm anything beyond the basic API actually runs.",
+      "continuation": "The submission's own description (Flask API over a crime CSV with /api/incidents, /api/incident-types, /api/stats) is contradicted by the attached README, which describes an entirely different, far more elaborate 'Oak Park Safe Routes' app with route suggestions, school/park destinations, and a severity-weighted map\u2014there is no reconciliation of which project state the repo actually reflects, no notes on data cleaning, limitations, or next steps for either version."
+    }
+  },
   "abstentions": [],
-  "means": {},
-  "readme_read": []
+  "means": {
+    "P-01": 4.333333333333333,
+    "P-02": 4.666666666666667,
+    "P-03": 4.166666666666667,
+    "P-04": 3.6666666666666665,
+    "P-05": 2.1666666666666665
+  },
+  "readme_read": [
+    "P-01",
+    "P-02",
+    "P-04",
+    "P-05"
+  ]
 }

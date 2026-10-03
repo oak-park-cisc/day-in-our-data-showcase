@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-04",
+  "justifications": {
+    "civic-impact": "The project builds a well-documented map of possibly 200-year-old oaks tied to Oak Park's settlement history, which is a plausible civic/historical interest, but no resident or community group is named as asking this question, and the need is inferred by the team rather than demonstrated.",
+    "data-integrity": "Sources are explicitly named in a clear table (tree inventories, Morton Arboretum DBH tables, 1830s land cover data) and the team states unprompted caveats about the method's inherent uncertainty.",
+    "data-provenance": "The README documents a concrete rerunnable pipeline (scripts/build_data.py reading named sources, with DBH-to-age formulas and inclusion rules spelled out, plus a decision-log for methods), but the confidence score's exact combination of the three factors is only described qualitatively rather than as a precise, checkable rule.",
+    "usability-access": "The described interface (map, popups, confidence legend, plain-language 'About' panel) sounds resident-friendly, but no live demo or hosted link is provided\u2014only a zip artifact\u2014and the README's 'Run it locally' instructions require Node.js, npm, and command-line use, which a non-technical resident cannot do.",
+    "craft": "The README describes a thorough, well-structured app (map, popup cards, confidence tiers, URL-state sharing) and a clearly documented methodology, but with no live demo or repo link\u2014only a zip artifact\u2014there is no way to confirm it actually runs as described.",
+    "continuation": "The README documents methodology (DBH-to-age estimation, confidence tiers), data sources with links, and includes explicit rebuild instructions and scripts, making it clear how a staff member could reproduce or extend the work."
+  }
+}

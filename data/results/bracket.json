@@ -1,8 +1,232 @@
 {
   "model_generated": true,
-  "mode": "ranked_list",
-  "ranking": [],
-  "seed_ranking": [],
-  "champion": null,
-  "rounds": []
+  "mode": "bracket",
+  "ranking": [
+    "P-01",
+    "P-02",
+    "P-03",
+    "P-04",
+    "P-05"
+  ],
+  "seed_ranking": [
+    "P-02",
+    "P-01",
+    "P-03",
+    "P-04",
+    "P-05"
+  ],
+  "seeds": {
+    "P-02": 1,
+    "P-01": 2,
+    "P-03": 3,
+    "P-04": 4,
+    "P-05": 5
+  },
+  "rounds": [
+    [
+      {
+        "a": "P-02",
+        "b": null,
+        "winner": "P-02",
+        "bye": true
+      },
+      {
+        "a": "P-04",
+        "b": "P-05",
+        "winner": "P-04",
+        "bye": false,
+        "votes": [
+          {
+            "persona": "civic-impact",
+            "winner": "P-05",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-integrity",
+            "winner": "P-04",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-provenance",
+            "winner": "P-04",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "usability-access",
+            "winner": "P-04",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "craft",
+            "winner": "P-04",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "continuation",
+            "winner": "P-04",
+            "swap_confirmed": true
+          }
+        ],
+        "reasoning": {
+          "civic-impact": "Submission B names a clear resident group\u2014'parents' deciding how their kids walk or bike to school, the library, or a friend's house\u2014and builds specific features (crime-weighted street coloring, time-frame filters, school/park destinations, turn-by-turn warnings) directly answering that lived question. Submission A is a well-documented historical/ecological mapping exercise ('oaks that may have been growing before the Kettlestrings arrived in 1833') that's intellectually interesting but doesn't tie to a question residents are shown to actually ask.",
+          "data-integrity": "A names every data source in a table (Village/Park District tree inventories, Morton Arboretum DBH tables, ISGS land cover) and states explicit caveats like \"These are estimates. Different published methods disagree by about 2x,\" earning a clear 5; B never identifies where its crime CSV originates (just a filename) and offers only a general safety disclaimer, leaving its core data source unstated.",
+          "data-provenance": "A's README spells out concrete, repeatable steps (DBH-to-age formulas from cited Morton Arboretum tables, confidence scoring logic, inclusion thresholds) and points to actual rerunnable scripts (`scripts/build_data.py`, `scripts/draft_narratives.py`) and a decision-log, making the path from raw tree inventory to the 61-oak output traceable. B's README appears to describe an entirely different 'Safe Routes' app than its stated Crime Web App, and its key transformation\u2014how incident severity translates into street color/risk scoring\u2014is referenced only vaguely ('see How safety is judged') with no formula, script, or step shown in the material provided.",
+          "usability-access": "Submission A's README is written entirely in plain, resident-facing language (color-coded confidence, popup cards, a tree list, an About panel explaining the method and caveats) and is designed for phones/desktop with no technical jargon required to understand the map's purpose. Submission B's own description frames the deliverable as 'Flask serves a JSON API' requiring a virtualenv/pip/python run command with no live demo, and its README describes a seemingly different, more polished 'Safe Routes' app than what the file structure and API endpoints suggest, creating confusion about what a resident would actually encounter.",
+          "craft": "Submission A delivers a coherent, detailed artifact (oaks_project.zip) matching its description\u2014a map of 61 oaks with confidence tiers, popups, and documented DBH-based age methodology\u2014showing internal consistency between pitch and implementation. Submission B's description (a simple Flask CRUD app for crime data) starkly mismatches its README (a complex 'Safe Routes' routing app with crime-weighted streets, school destinations, and turn-by-turn directions), and no artifacts were submitted at all, making it impossible to verify any of this actually works.",
+          "continuation": "A documents its method in detail (DBH-to-age formulas, confidence scoring, data source table, and a referenced docs/decision-log.md) plus concrete rebuild commands ('python3 scripts/build_data.py # writes public/data/oaks.json'), giving staff a clear path to continue. B's README describes an entirely different 'Safe Routes' routing app with turn-by-turn directions and crime-weighted street coloring, which does not match the actual repo structure (a simple Flask CSV API with /api/incidents), leaving a confusing mismatch that would require reconstruction before anyone could pick it up."
+        }
+      },
+      {
+        "a": "P-01",
+        "b": null,
+        "winner": "P-01",
+        "bye": true
+      },
+      {
+        "a": "P-03",
+        "b": null,
+        "winner": "P-03",
+        "bye": true
+      }
+    ],
+    [
+      {
+        "a": "P-02",
+        "b": "P-04",
+        "winner": "P-02",
+        "bye": false,
+        "votes": [
+          {
+            "persona": "civic-impact",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-integrity",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-provenance",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "usability-access",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "craft",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "continuation",
+            "winner": "P-02",
+            "swap_confirmed": true
+          }
+        ],
+        "reasoning": {
+          "civic-impact": "Submission A directly addresses daily, named resident needs (seniors, wheelchair users, trip planners) with live arrivals, accessibility info, and a time-saver estimator, explicitly 'useful for residents planning a trip and for the Transportation Commission looking at coverage gaps.' Submission B is a thoughtful historical curiosity about oak tree age but names no resident audience or recurring civic question beyond general interest.",
+          "data-integrity": "Both name sources and admit limits, but A states caveats in the submission body itself (not just the README) \u2014 e.g. \"Pace stop accessibility shows as Unknown, Metra times are labeled as schedule rather than live, and line-wide alerts are marked as possibly outside Oak Park\" \u2014 backed by a detailed, dated sourcing chain (GTFS feeds, TIGERweb boundary, provider pages checked Oct 3). B's README is also strong on sources/caveats, but its official \"How they got from the raw data to the result\" field just says \"Claude!\", undercutting the project-level transparency that A demonstrates throughout.",
+          "data-provenance": "A gives a step-by-step pipeline naming specific scripts (build_routes.py, build_travel.py, build_service.py, build_boundary.py, fetch_alerts.py) tied to specific sources (GTFS, TIGERweb, OSM) and even documents fallback behavior when live feeds fail, making every number traceable to a rerunnable step. B's explicit 'How they got from raw data to result' answer is just 'Claude!', and although its README later lists build_data.py and a decision-log, the dismissive primary answer undercuts confidence that the DBH-to-age and confidence-scoring steps were actually run as described rather than asserted.",
+          "usability-access": "Submission A has a live, working demo with a plain-language, one-page design (tap a stop for next arrivals, color-coded accessibility, a provider 'who to call' guide) that directly targets non-technical residents including seniors and wheelchair users, with no code or setup required to use it. Submission B has no live demo or repository link provided, only a zip artifact, and its core value (age estimates, confidence tiers, DBH methodology) requires reading a 'How age is estimated' section full of jargon like DBH and growth factors, making it far less accessible at a glance to an ordinary resident.",
+          "craft": "A ships a working, testable live demo (https://captainchemist.github.io/oak-park-transit-tracker/) backed by a public repo, with each claimed feature (live map, next-arrivals, accessibility coding, alerts, travel-time estimator) traceable to a specific data pipeline step; B provides no live demo or repository link, only a 69KB zip artifact, so its elaborate feature list (61 trees, popups, detail panels, URL-state sharing) cannot be verified as actually functioning.</n>Given the judging question is specifically about whether the thing works as presented, A's verifiable, deployed artifact outranks B's unverifiable zipped claim.",
+          "continuation": "Submission A has a detailed, mapped-out README with a 'Where things live' table pointing to specific files/scripts for each feature, plus instructions for editing content and rebuilding data, making handoff straightforward. Submission B has useful documentation (decision-log, SOURCES.md) but lacks a repository link, has a truncated README with no clear file map, and its 'How they got from raw data to result' section is just 'Claude!' which offers no methodological trail to continue from."
+        }
+      },
+      {
+        "a": "P-01",
+        "b": "P-03",
+        "winner": "P-01",
+        "bye": false,
+        "votes": [
+          {
+            "persona": "civic-impact",
+            "winner": "P-03",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-integrity",
+            "winner": "P-01",
+            "swap_confirmed": false
+          },
+          {
+            "persona": "data-provenance",
+            "winner": "P-01",
+            "swap_confirmed": false
+          },
+          {
+            "persona": "usability-access",
+            "winner": "P-03",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "craft",
+            "winner": "P-01",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "continuation",
+            "winner": "P-01",
+            "swap_confirmed": true
+          }
+        ],
+        "reasoning": {
+          "civic-impact": "Submission B directly names its audiences (parents, taxpayers, school boards) and answers concrete questions like 'are we getting value for our taxes?' with specific findings ('OPRF ranks top 3 in Cook County... D97's math has barely moved since 2019') that match what residents actually ask at board meetings.; Submission A's audience is more diffuse ('perspective on the services ECHO provides') and the README frames it as a draft awaiting Village review rather than a resident-facing answer.",
+          "usability-access": "Submission B leads with 'six plain-language findings' and a one-page mobile dashboard that opens with 'the bottom line,' explicitly designed for residents to grasp key takeaways like tax rankings and test score comparisons 'in a minute' without technical skill, and has a live demo link accessible to anyone. Submission A, while thorough, requires users to run Python scripts or a local HTTP server to view the live version, and its README is dense with technical details (suppression logic, unittest discovery, CSV schemas) that assume a level of data literacy an ordinary resident likely lacks.",
+          "craft": "Submission A ships a fully documented, self-contained artifact (echo-trends.html) with a detailed README describing exactly what was built, how suppression and partial-month handling work, and even includes a test suite to pin the figures ('Tests ... pin the quoted figures and check that no synthetic data reaches the page'), evidencing a tight, working loop from data to visualization. Submission B describes an ambitious and polished-sounding dashboard, but provides no repository ('Repository: (not provided)') and no README, leaving its claimed 870-district comparisons and multiple views unverifiable as a finished product.",
+          "continuation": "Submission A includes an explicit 'Status and next steps' section, a data/README with caveats, a project-card comparison table, and documented scripts/tests for rebuilding the output\u2014clear continuation scaffolding. Submission B's description is detailed but its README was not included ('No README was read for this submission'), leaving no equivalent handoff notes or open-questions section to build from Monday."
+        }
+      }
+    ],
+    [
+      {
+        "a": "P-02",
+        "b": "P-01",
+        "winner": "P-01",
+        "bye": false,
+        "votes": [
+          {
+            "persona": "civic-impact",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "data-integrity",
+            "winner": "P-01",
+            "swap_confirmed": false
+          },
+          {
+            "persona": "data-provenance",
+            "winner": "P-01",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "usability-access",
+            "winner": "P-02",
+            "swap_confirmed": true
+          },
+          {
+            "persona": "craft",
+            "winner": "P-02",
+            "swap_confirmed": false
+          },
+          {
+            "persona": "continuation",
+            "winner": "P-01",
+            "swap_confirmed": true
+          }
+        ],
+        "reasoning": {
+          "civic-impact": "Submission A directly names its users ('a resident, especially a senior or someone who uses a wheelchair') and answers concrete, everyday questions like 'when's the next bus,' 'is this stop accessible,' and 'is transit worth it for this trip,' with care taken to honestly flag data gaps (e.g., 'Pace stop accessibility shows as Unknown'). Submission B is more analytically ambitious but its civic question is framed institutionally ('where could service partnerships or resources be stronger') for the ECHO team/Board of Health rather than for an identifiable resident population, making its resident-facing value less direct.",
+          "data-provenance": "Submission B names a script for every transformation (fetch_echo_activity.py, crime_monthly.py), explicitly states how blanks/suppressed cells and partial months are handled, flags hand-typed data as such, and backs the figures with unit tests that 'pin the quoted figures,' giving a very concrete, checkable path from source to result. Submission A also documents many scripts (build_routes.py, build_travel.py) but the final travel-time heat map relies on in-browser computation that is described only generally, leaving one key numeric step less verifiable than B's test-backed pipeline.",
+          "usability-access": "A is built as a phone-friendly, single-page public tool with plain-language features ('tap a stop to see next arrivals', color-coded accessibility, a QR code to share') that a resident could use with little orientation, whereas B's README explicitly states it is 'a draft prototype, not an official Village product' meant for Board of Health/ECHO review before any public posting, and its interface involves suppressed data cells, percentages-of-shown-cells, and 12-month crime windows that assume analytical literacy.' Both are code-based but A's design intent and feature set (next-arrival popups, provider call guide, day/night maps) are clearly aimed at everyday resident use, while B's own status note says it isn't ready for public use.",
+          "continuation": "Submission B explicitly includes a 'Status and next steps' section mapping each project-card requirement to what was done, plus a data key, caveats file, and tests that 'pin the quoted figures'\u2014exactly the kind of handoff documentation staff need to continue Monday, e.g. 'Status: a draft prototype... goes to the Oak Park Board of Health and the ECHO team (echo@oak-park.us) for review before it's posted anywhere public.' Submission A has excellent file/script documentation but lacks an equivalent explicit statement of open questions or next steps for staff to act on."
+        }
+      }
+    ]
+  ],
+  "champion": "P-01"
 }

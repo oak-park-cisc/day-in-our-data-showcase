@@ -1,0 +1,50 @@
+{
+  "model_generated": true,
+  "round": 3,
+  "matchups": [
+    {
+      "a": "P-02",
+      "b": "P-01",
+      "winner": "P-01",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-01",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-01",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "craft",
+          "winner": "P-02",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-01",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "Submission A directly names its users ('a resident, especially a senior or someone who uses a wheelchair') and answers concrete, everyday questions like 'when's the next bus,' 'is this stop accessible,' and 'is transit worth it for this trip,' with care taken to honestly flag data gaps (e.g., 'Pace stop accessibility shows as Unknown'). Submission B is more analytically ambitious but its civic question is framed institutionally ('where could service partnerships or resources be stronger') for the ECHO team/Board of Health rather than for an identifiable resident population, making its resident-facing value less direct.",
+        "data-provenance": "Submission B names a script for every transformation (fetch_echo_activity.py, crime_monthly.py), explicitly states how blanks/suppressed cells and partial months are handled, flags hand-typed data as such, and backs the figures with unit tests that 'pin the quoted figures,' giving a very concrete, checkable path from source to result. Submission A also documents many scripts (build_routes.py, build_travel.py) but the final travel-time heat map relies on in-browser computation that is described only generally, leaving one key numeric step less verifiable than B's test-backed pipeline.",
+        "usability-access": "A is built as a phone-friendly, single-page public tool with plain-language features ('tap a stop to see next arrivals', color-coded accessibility, a QR code to share') that a resident could use with little orientation, whereas B's README explicitly states it is 'a draft prototype, not an official Village product' meant for Board of Health/ECHO review before any public posting, and its interface involves suppressed data cells, percentages-of-shown-cells, and 12-month crime windows that assume analytical literacy.' Both are code-based but A's design intent and feature set (next-arrival popups, provider call guide, day/night maps) are clearly aimed at everyday resident use, while B's own status note says it isn't ready for public use.",
+        "continuation": "Submission B explicitly includes a 'Status and next steps' section mapping each project-card requirement to what was done, plus a data key, caveats file, and tests that 'pin the quoted figures'\u2014exactly the kind of handoff documentation staff need to continue Monday, e.g. 'Status: a draft prototype... goes to the Oak Park Board of Health and the ECHO team (echo@oak-park.us) for review before it's posted anywhere public.' Submission A has excellent file/script documentation but lacks an equivalent explicit statement of open questions or next steps for staff to act on."
+      }
+    }
+  ]
+}

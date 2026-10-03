@@ -1,0 +1,96 @@
+{
+  "model_generated": true,
+  "round": 2,
+  "matchups": [
+    {
+      "a": "P-02",
+      "b": "P-04",
+      "winner": "P-02",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "craft",
+          "winner": "P-02",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-02",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "Submission A directly addresses daily, named resident needs (seniors, wheelchair users, trip planners) with live arrivals, accessibility info, and a time-saver estimator, explicitly 'useful for residents planning a trip and for the Transportation Commission looking at coverage gaps.' Submission B is a thoughtful historical curiosity about oak tree age but names no resident audience or recurring civic question beyond general interest.",
+        "data-integrity": "Both name sources and admit limits, but A states caveats in the submission body itself (not just the README) \u2014 e.g. \"Pace stop accessibility shows as Unknown, Metra times are labeled as schedule rather than live, and line-wide alerts are marked as possibly outside Oak Park\" \u2014 backed by a detailed, dated sourcing chain (GTFS feeds, TIGERweb boundary, provider pages checked Oct 3). B's README is also strong on sources/caveats, but its official \"How they got from the raw data to the result\" field just says \"Claude!\", undercutting the project-level transparency that A demonstrates throughout.",
+        "data-provenance": "A gives a step-by-step pipeline naming specific scripts (build_routes.py, build_travel.py, build_service.py, build_boundary.py, fetch_alerts.py) tied to specific sources (GTFS, TIGERweb, OSM) and even documents fallback behavior when live feeds fail, making every number traceable to a rerunnable step. B's explicit 'How they got from raw data to result' answer is just 'Claude!', and although its README later lists build_data.py and a decision-log, the dismissive primary answer undercuts confidence that the DBH-to-age and confidence-scoring steps were actually run as described rather than asserted.",
+        "usability-access": "Submission A has a live, working demo with a plain-language, one-page design (tap a stop for next arrivals, color-coded accessibility, a provider 'who to call' guide) that directly targets non-technical residents including seniors and wheelchair users, with no code or setup required to use it. Submission B has no live demo or repository link provided, only a zip artifact, and its core value (age estimates, confidence tiers, DBH methodology) requires reading a 'How age is estimated' section full of jargon like DBH and growth factors, making it far less accessible at a glance to an ordinary resident.",
+        "craft": "A ships a working, testable live demo (https://captainchemist.github.io/oak-park-transit-tracker/) backed by a public repo, with each claimed feature (live map, next-arrivals, accessibility coding, alerts, travel-time estimator) traceable to a specific data pipeline step; B provides no live demo or repository link, only a 69KB zip artifact, so its elaborate feature list (61 trees, popups, detail panels, URL-state sharing) cannot be verified as actually functioning.</n>Given the judging question is specifically about whether the thing works as presented, A's verifiable, deployed artifact outranks B's unverifiable zipped claim.",
+        "continuation": "Submission A has a detailed, mapped-out README with a 'Where things live' table pointing to specific files/scripts for each feature, plus instructions for editing content and rebuilding data, making handoff straightforward. Submission B has useful documentation (decision-log, SOURCES.md) but lacks a repository link, has a truncated README with no clear file map, and its 'How they got from raw data to result' section is just 'Claude!' which offers no methodological trail to continue from."
+      }
+    },
+    {
+      "a": "P-01",
+      "b": "P-03",
+      "winner": "P-01",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-03",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-01",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-01",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-03",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "craft",
+          "winner": "P-01",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-01",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "Submission B directly names its audiences (parents, taxpayers, school boards) and answers concrete questions like 'are we getting value for our taxes?' with specific findings ('OPRF ranks top 3 in Cook County... D97's math has barely moved since 2019') that match what residents actually ask at board meetings.; Submission A's audience is more diffuse ('perspective on the services ECHO provides') and the README frames it as a draft awaiting Village review rather than a resident-facing answer.",
+        "usability-access": "Submission B leads with 'six plain-language findings' and a one-page mobile dashboard that opens with 'the bottom line,' explicitly designed for residents to grasp key takeaways like tax rankings and test score comparisons 'in a minute' without technical skill, and has a live demo link accessible to anyone. Submission A, while thorough, requires users to run Python scripts or a local HTTP server to view the live version, and its README is dense with technical details (suppression logic, unittest discovery, CSV schemas) that assume a level of data literacy an ordinary resident likely lacks.",
+        "craft": "Submission A ships a fully documented, self-contained artifact (echo-trends.html) with a detailed README describing exactly what was built, how suppression and partial-month handling work, and even includes a test suite to pin the figures ('Tests ... pin the quoted figures and check that no synthetic data reaches the page'), evidencing a tight, working loop from data to visualization. Submission B describes an ambitious and polished-sounding dashboard, but provides no repository ('Repository: (not provided)') and no README, leaving its claimed 870-district comparisons and multiple views unverifiable as a finished product.",
+        "continuation": "Submission A includes an explicit 'Status and next steps' section, a data/README with caveats, a project-card comparison table, and documented scripts/tests for rebuilding the output\u2014clear continuation scaffolding. Submission B's description is detailed but its README was not included ('No README was read for this submission'), leaving no equivalent handoff notes or open-questions section to build from Monday."
+      }
+    }
+  ]
+}

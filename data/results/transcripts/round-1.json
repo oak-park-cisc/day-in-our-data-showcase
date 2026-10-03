@@ -1,0 +1,70 @@
+{
+  "model_generated": true,
+  "round": 1,
+  "matchups": [
+    {
+      "a": "P-02",
+      "b": null,
+      "winner": "P-02",
+      "bye": true
+    },
+    {
+      "a": "P-04",
+      "b": "P-05",
+      "winner": "P-04",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-05",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-04",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-04",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-04",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "craft",
+          "winner": "P-04",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-04",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "Submission B names a clear resident group\u2014'parents' deciding how their kids walk or bike to school, the library, or a friend's house\u2014and builds specific features (crime-weighted street coloring, time-frame filters, school/park destinations, turn-by-turn warnings) directly answering that lived question. Submission A is a well-documented historical/ecological mapping exercise ('oaks that may have been growing before the Kettlestrings arrived in 1833') that's intellectually interesting but doesn't tie to a question residents are shown to actually ask.",
+        "data-integrity": "A names every data source in a table (Village/Park District tree inventories, Morton Arboretum DBH tables, ISGS land cover) and states explicit caveats like \"These are estimates. Different published methods disagree by about 2x,\" earning a clear 5; B never identifies where its crime CSV originates (just a filename) and offers only a general safety disclaimer, leaving its core data source unstated.",
+        "data-provenance": "A's README spells out concrete, repeatable steps (DBH-to-age formulas from cited Morton Arboretum tables, confidence scoring logic, inclusion thresholds) and points to actual rerunnable scripts (`scripts/build_data.py`, `scripts/draft_narratives.py`) and a decision-log, making the path from raw tree inventory to the 61-oak output traceable. B's README appears to describe an entirely different 'Safe Routes' app than its stated Crime Web App, and its key transformation\u2014how incident severity translates into street color/risk scoring\u2014is referenced only vaguely ('see How safety is judged') with no formula, script, or step shown in the material provided.",
+        "usability-access": "Submission A's README is written entirely in plain, resident-facing language (color-coded confidence, popup cards, a tree list, an About panel explaining the method and caveats) and is designed for phones/desktop with no technical jargon required to understand the map's purpose. Submission B's own description frames the deliverable as 'Flask serves a JSON API' requiring a virtualenv/pip/python run command with no live demo, and its README describes a seemingly different, more polished 'Safe Routes' app than what the file structure and API endpoints suggest, creating confusion about what a resident would actually encounter.",
+        "craft": "Submission A delivers a coherent, detailed artifact (oaks_project.zip) matching its description\u2014a map of 61 oaks with confidence tiers, popups, and documented DBH-based age methodology\u2014showing internal consistency between pitch and implementation. Submission B's description (a simple Flask CRUD app for crime data) starkly mismatches its README (a complex 'Safe Routes' routing app with crime-weighted streets, school destinations, and turn-by-turn directions), and no artifacts were submitted at all, making it impossible to verify any of this actually works.",
+        "continuation": "A documents its method in detail (DBH-to-age formulas, confidence scoring, data source table, and a referenced docs/decision-log.md) plus concrete rebuild commands ('python3 scripts/build_data.py # writes public/data/oaks.json'), giving staff a clear path to continue. B's README describes an entirely different 'Safe Routes' routing app with turn-by-turn directions and crime-weighted street coloring, which does not match the actual repo structure (a simple Flask CSV API with /api/incidents), leaving a confusing mismatch that would require reconstruction before anyone could pick it up."
+      }
+    },
+    {
+      "a": "P-01",
+      "b": null,
+      "winner": "P-01",
+      "bye": true
+    },
+    {
+      "a": "P-03",
+      "b": null,
+      "winner": "P-03",
+      "bye": true
+    }
+  ]
+}
