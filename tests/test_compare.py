@@ -1,13 +1,6 @@
 from judging.prompts import PERSONAS
 from voting.compare import build_comparison
-from voting.generate_codes import generate_codes
 from voting.tally import TallyResult
-
-
-def test_codes_are_unique_and_long_enough_to_resist_guessing():
-    codes = generate_codes(40)
-    assert len(set(codes)) == 40
-    assert all(len(c) >= 10 for c in codes)
 
 
 def test_comparison_reports_both_rankings_and_agreement():

@@ -7,8 +7,8 @@ shape) and data/id_map.json.
 
 Ballots are NEVER written to disk. tally.yml calls fetch_ballots() and holds
 them in memory only (spec 2026-09-24-free-tier-deployment-design.md §4.4):
-the repo is public, and a committed ballot file lets anyone holding a slip
-code read how that person voted.
+the repo is public, and a committed ballot file would publish every voter's
+picks alongside their device id.
 
 Netlify assigns form ids only after the site is created and the form is
 first detected (Task 16 Step 4, not done yet as of this script), so this
@@ -69,8 +69,8 @@ def _http_get_json(url: str, token: str, *, include_body_in_errors: bool = False
     body is withheld from the raised error's message *unless a caller opts
     in explicitly, per call*. This matters because GET .../submissions
     responses carry submitted form data, and for the ballot form that
-    includes a voter's raw `code`. GitHub Actions only masks registered
-    `secrets.*` values in a log; a voter's submitted code is never
+    includes a voter's raw device id and picks. GitHub Actions only masks
+    registered `secrets.*` values in a log; submitted ballot data is never
     registered as one, so nothing redacts it if it ends up in a printed
     exception on a public repo's Actions log. Status code, method, and the
     endpoint path are always safe to include and always are.
@@ -277,24 +277,24 @@ def build_submissions(
     return [map_submission(r, numbers[r["id"]]) for r in ordered]
 
 
-def _hash_code(code: str) -> str:
-    """One-way hash a ballot code so the tally compares hashes, not codes.
+def _hash_voter(device: str) -> str:
+    """One-way hash the random per-browser id vote.js attaches to a ballot.
 
-    tally.yml hashes every BALLOT_CODES entry with this same normalisation and
-    compares for equality; voting/tally.py never copies a code into its
-    result. Ballots are held in memory by tally.yml and never written to the
+    The tally keeps the first valid ballot per hash, so each device votes
+    once. Ballots are held in memory by tally.yml and never written to the
     repo or the site (spec 2026-09-24 §4.4), which is what protects ballot
     secrecy. The hash is not a secrecy mechanism and makes no claim to be one.
+    A ballot with no device id hashes to "" and the tally rejects it.
     """
-    normalized = code.strip().upper()
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    device = device.strip()
+    return hashlib.sha256(device.encode("utf-8")).hexdigest() if device else ""
 
 
 def map_ballot(raw: dict) -> dict:
     data = raw.get("data", {}) or {}
     picks = [data.get("pick_1", ""), data.get("pick_2", ""), data.get("pick_3", "")]
     return {
-        "code_hash": _hash_code(data.get("code", "")),
+        "voter_hash": _hash_voter(data.get("device", "") or ""),
         "picks": picks,
         "cast_at": raw.get("created_at"),
     }
@@ -321,7 +321,7 @@ def fetch_ballots(token: str, site_id: str | None = None, get_json: GetJSON = _h
 
     Only the site's forms listing opts into include_body_in_errors (it
     carries no voter data). The ballot /submissions fetch takes _http_get_json's safe
-    default, because its error body can echo a voter's raw code.
+    default, because its error body can echo a voter's raw ballot.
     """
     forms = _site_forms(get_json, token, site_id)
     # Already scoped to the site; match by name only (a domain given as

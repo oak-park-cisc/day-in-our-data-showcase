@@ -42,7 +42,7 @@ def _ballot(n: int) -> dict:
     return {
         "id": f"nl-b-{n:04d}",
         "created_at": f"2026-10-03T16:00:{n % 60:02d}.{n:04d}Z",
-        "data": {"code": f"CODE{n:04d}", "pick_1": "sub_001", "pick_2": "sub_002", "pick_3": "sub_003"},
+        "data": {"device": f"DEV{n:04d}", "pick_1": "sub_001", "pick_2": "sub_002", "pick_3": "sub_003"},
     }
 
 
@@ -87,7 +87,7 @@ def test_every_page_of_ballots_is_fetched():
     ballots = sync_netlify.fetch_ballots("test-token", site_id="site-abc", get_json=api)
 
     assert len(ballots) == 150
-    assert len({b["code_hash"] for b in ballots}) == 150
+    assert len({b["voter_hash"] for b in ballots}) == 150
 
 
 def test_an_exactly_full_page_still_asks_for_the_next_one(tmp_path):

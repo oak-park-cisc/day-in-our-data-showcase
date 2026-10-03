@@ -32,15 +32,12 @@ owner; no prior context assumed. Design: `docs/superpowers/specs/2026-09-24-free
 4. Deploy once. Submit one test entry through the submission form and confirm it
    appears under Site → Forms → submission.
 
-## 2. Generate the ballot codes — offline
+## 2. Voting is one ballot per device
 
-```
-python -m voting.generate_codes --count <N>
-```
-
-Run it on a machine that will not commit its output. It prints the slip sheet and
-the comma-joined string for the `BALLOT_CODES` secret. **Never paste the codes
-into a file in this repository.** It is public.
+There are no ballot codes. `vote.js` gives each browser a random id, stored on
+that device and sent with the ballot; the tally keeps the first valid ballot per
+id. Anyone with the vote link can vote, and a private window gets a fresh id.
+That is accepted: the rankings are for fun.
 
 ## 3. Add the repository secrets
 
@@ -49,7 +46,6 @@ GitHub repo → Settings → Secrets and variables → Actions.
 | Secret | Required | Used by |
 |---|---|---|
 | `NETLIFY_TOKEN` | yes | `sync-submissions.yml` **and `tally.yml`** (the tally reads ballots from Netlify). Create it at Netlify → User settings → Applications → New access token |
-| `BALLOT_CODES` | yes | `tally.yml` |
 | `ANTHROPIC_API_KEY` | only for the real judging run | `judge.yml` with `mock` unticked |
 | `NETLIFY_SITE_ID` | yes | `sync-submissions.yml` and `tally.yml`. Netlify lists forms per site. The site's domain works, e.g. `oakparkciscdiod.netlify.app` |
 
@@ -66,14 +62,12 @@ GitHub repo → Settings → Secrets and variables → Actions.
 `data/results/bracket.json` with no new deploy. `results.html` stays on "not
 available yet" until the tally below has also run: the page needs both.
 
-**Tally.** Visit `vote.html` and cast one ballot with a **made-up code that is
-not in `BALLOT_CODES`** (for example `TESTTEST01`). Never use a real slip: the
-tally keeps only the first ballot per code, so the attendee later handed that
-slip would have their vote thrown away. Then Actions → `tally.yml` → Run
-workflow. The test ballot is counted as invalid, which still exercises the whole
-path. The tally needs `data/submissions.json` and the `NETLIFY_TOKEN` and
-`NETLIFY_SITE_ID` and `BALLOT_CODES` secrets, and fails with one clear line if any
-is missing.
+**Tally.** Visit `vote.html` **in a private window** and cast one test ballot.
+The private window keeps the test from using up your own device's vote. Then
+Actions → `tally.yml` → Run workflow. The test ballot is counted, so delete it
+in the clean-up below. The tally needs `data/submissions.json` and the
+`NETLIFY_TOKEN` and `NETLIFY_SITE_ID` secrets, and fails with one clear line if
+either is missing.
 
 **Before the event: clean up.** The checks above leave test data behind that
 would otherwise show publicly or count on the day.

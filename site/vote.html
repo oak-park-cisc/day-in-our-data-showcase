@@ -37,14 +37,13 @@
   <main class="wrap">
     <h1>Vote</h1>
     <p class="vote__lede">
-      Pick your three favourite projects. Your ballot code is on the slip you were
-      handed at check-in. One ballot per code.
+      Pick your three favourite projects. One ballot per device.
     </p>
     <p class="ai-label">The participant vote decides the winner</p>
 
     <form name="ballot" method="POST" data-netlify="true" id="ballot-form">
       <input type="hidden" name="form-name" value="ballot" />
-      <label>Ballot code <input type="text" name="code" required autocomplete="off" /></label>
+      <input type="hidden" name="device" />
       <label>First pick <select name="pick_1" required></select></label>
       <label>Second pick <select name="pick_2" required></select></label>
       <label>Third pick <select name="pick_3" required></select></label>

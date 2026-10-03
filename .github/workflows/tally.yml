@@ -3,12 +3,11 @@ name: Tally participant vote
 # workflow_dispatch only. Ballots are read from Netlify Forms at tally time
 # (scripts/sync_netlify.py's fetch_ballots) and held in memory by this job
 # only -- nothing ballot-level is ever written or committed; only the
-# aggregates in data/results/ are. The BALLOT_CODES secret (comma-joined,
-# printed by `python -m voting.generate_codes`) validates them: each entry is
-# hashed the same way fetch_ballots hashes submitted codes, so
-# voting/tally.py's equality checks work unchanged. The repo is public; a
-# committed ballot file would let anyone holding a slip code read that
-# person's picks (spec 2026-09-24-free-tier-deployment-design.md §4.6).
+# aggregates in data/results/ are. One vote per device: vote.js attaches a
+# random per-browser id, fetch_ballots hashes it, and voting/tally.py keeps
+# the first valid ballot per hash. The repo is public; a committed ballot
+# file would publish every voter's picks
+# (spec 2026-09-24-free-tier-deployment-design.md §4.6).
 on:
   workflow_dispatch:
   workflow_call:
@@ -30,14 +29,12 @@ jobs:
       - run: pip install -e .
       - name: Tally ballots and build the crowd-vs-panel comparison
         env:
-          BALLOT_CODES: ${{ secrets.BALLOT_CODES }}
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           # Makes scripts/sync_netlify.py importable as `sync_netlify`.
           PYTHONPATH: scripts
         run: |
           python - <<'PY'
-          import hashlib
           import json
           import os
           import sys
@@ -48,9 +45,6 @@ jobs:
           from voting.ranking import ranking_summary
           from voting.tally import Ballot, tally
           from sync_netlify import NetlifySyncError, fetch_ballots
-
-          def hash_code(code: str) -> str:
-              return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
 
           # submissions.json is written by sync-submissions.yml. Fail with one
           # clear line naming the fix rather than a FileNotFoundError traceback.
@@ -68,8 +62,7 @@ jobs:
           id_of = {s["anon_id"]: s["id"] for s in submissions}
 
           # Ballots come straight from Netlify Forms and live only in this
-          # process. They are never written: the repo is public, and a ballot
-          # file lets anyone holding a slip code read that person's picks.
+          # process. They are never written: the repo is public.
           token = os.environ.get("NETLIFY_TOKEN")
           if not token:
               print(
@@ -87,24 +80,14 @@ jobs:
 
           ballots = [
               Ballot(
-                  code=b["code_hash"],
+                  voter=b["voter_hash"],
                   picks=b["picks"],
                   cast_at=datetime.fromisoformat(b["cast_at"].replace("Z", "+00:00")),
               )
               for b in raw_ballots
           ]
 
-          codes = os.environ.get("BALLOT_CODES", "")
-          valid_code_hashes = {hash_code(c) for c in codes.split(",") if c.strip()}
-          if not valid_code_hashes:
-              print(
-                  "tally.yml: BALLOT_CODES is empty or not set, so every ballot would be "
-                  "invalid. Add the BALLOT_CODES repository secret.",
-                  file=sys.stderr,
-              )
-              sys.exit(1)
-
-          result = tally(ballots, valid_code_hashes, known_ids)
+          result = tally(ballots, known_ids)
 
           out_dir = Path("data/results")
           out_dir.mkdir(parents=True, exist_ok=True)

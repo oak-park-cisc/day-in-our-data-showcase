@@ -68,3 +68,59 @@ test("an empty project list shows the not-available message and builds no select
   assert.match(error.textContent, /not available yet/);
   assert.deepEqual(selectsBuilt, []);
 });
+
+// One ballot per device: vote.js attaches a stored random id and, once a
+// ballot is sent, hides the form on that device.
+function createBallotSandbox(store) {
+  const error = { textContent: "", hidden: true };
+  const fields = { device: { value: "" } };
+  let submitHandler = null;
+  const form = {
+    hidden: false,
+    elements: new Proxy(fields, {
+      get: (t, name) => t[name] || (t[name] = { value: "sub_" + name.slice(-1), innerHTML: "", appendChild() {} }),
+    }),
+    addEventListener: (evt, fn) => { if (evt === "submit") submitHandler = fn; },
+  };
+  let readyHandler = null;
+  const sandbox = {
+    fetch: async () => ({ ok: true, status: 200, json: async () => [{ id: "sub_1", project_title: "A", team_name: "T" }] }),
+    crypto: { randomUUID: () => "uuid-" + Math.random() },
+    localStorage: {
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v); },
+    },
+    document: {
+      getElementById: (id) => (id === "ballot-form" ? form : id === "ballot-error" ? error : null),
+      createElement: () => ({}),
+      addEventListener: (evt, fn) => { if (evt === "DOMContentLoaded") readyHandler = fn; },
+    },
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(ESCAPE_JS, sandbox);
+  vm.runInContext(DATA_JS, sandbox);
+  vm.runInContext(VOTE_JS, sandbox);
+  return { form, fields, error, ready: () => readyHandler(), submit: () => submitHandler({ preventDefault() {} }) };
+}
+
+test("the ballot carries the same stored device id across page loads", async () => {
+  const store = {};
+  const first = createBallotSandbox(store);
+  await first.ready();
+  assert.match(first.fields.device.value, /^uuid-/);
+  const second = createBallotSandbox(store);
+  await second.ready();
+  assert.equal(second.fields.device.value, first.fields.device.value);
+});
+
+test("after a ballot is sent, the form is hidden on that device", async () => {
+  const store = {};
+  const first = createBallotSandbox(store);
+  await first.ready();
+  first.submit();
+  const again = createBallotSandbox(store);
+  await again.ready();
+  assert.equal(again.form.hidden, true);
+  assert.match(again.error.textContent, /already voted/);
+});

@@ -43,11 +43,8 @@ def _extract_tally_script() -> str:
     return textwrap.dedent(body)
 
 
-def _hash_code(code: str) -> str:
-    return hashlib.sha256(code.strip().upper().encode("utf-8")).hexdigest()
-
-
-DEFAULT_CODES = "CODE001,CODE002,CODE003"
+def _hash_voter(device: str) -> str:
+    return hashlib.sha256(device.strip().encode("utf-8")).hexdigest()
 
 
 STUB_SYNC_NETLIFY = '''
@@ -67,7 +64,7 @@ def fetch_ballots(token, site_id=None):
 '''
 
 
-def _run_script(cwd: Path, codes: str = DEFAULT_CODES, *, token: str | None = "test-token",
+def _run_script(cwd: Path, *, token: str | None = "test-token",
                 real_module: bool = False, fail: str | None = None) -> subprocess.CompletedProcess:
     script = _extract_tally_script()
     script_path = cwd / "_extracted_tally.py"
@@ -78,7 +75,6 @@ def _run_script(cwd: Path, codes: str = DEFAULT_CODES, *, token: str | None = "t
     first = REPO_ROOT / "scripts" if real_module else stub_dir
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join([str(first), str(REPO_ROOT)])
-    env["BALLOT_CODES"] = codes
     env["STUB_BALLOTS_FILE"] = str(cwd / "stub_ballots.json")
     env.pop("NETLIFY_SITE_ID", None)
     env.pop("STUB_FAIL", None)
@@ -149,7 +145,7 @@ def test_tally_writes_no_ballot_level_data(tmp_path):
     assert _run_script(tmp_path).returncode == 0
     for path in (tmp_path / "data").rglob("*.json"):
         text = path.read_text(encoding="utf-8")
-        assert "code_hash" not in text, path
+        assert "voter_hash" not in text, path
         assert '"cast_at"' not in text, path
     assert not (tmp_path / "data" / "ballots.json").exists()
 
@@ -163,7 +159,7 @@ def _write_fixture_data(data_dir: Path) -> None:
     ]), encoding="utf-8")
     ballots = [
         {
-            "code_hash": _hash_code("CODE001"),
+            "voter_hash": _hash_voter("DEV001"),
             "picks": ["sub_001", "sub_002", "sub_003"],
             "cast_at": "2026-10-03T16:05:00Z",
         },
@@ -240,13 +236,13 @@ def _write_tied_fixture_data(data_dir: Path) -> None:
         {"id": f"sub_00{i}", "anon_id": f"P-0{i}"} for i in range(1, 5)
     ]), encoding="utf-8")
     ballots = [
-        {"code_hash": _hash_code("CODE001"),
+        {"voter_hash": _hash_voter("DEV001"),
          "picks": ["sub_001", "sub_002", "sub_003"],
          "cast_at": "2026-10-03T16:05:00Z"},
-        {"code_hash": _hash_code("CODE002"),
+        {"voter_hash": _hash_voter("DEV002"),
          "picks": ["sub_001", "sub_002", "sub_004"],
          "cast_at": "2026-10-03T16:06:00Z"},
-        {"code_hash": _hash_code("CODE003"),
+        {"voter_hash": _hash_voter("DEV003"),
          "picks": ["sub_001", "sub_003", "sub_004"],
          "cast_at": "2026-10-03T16:07:00Z"},
     ]
@@ -281,13 +277,13 @@ def _write_first_place_tie_fixture_data(data_dir: Path) -> None:
         {"id": f"sub_00{i}", "anon_id": f"P-0{i}"} for i in range(1, 5)
     ]), encoding="utf-8")
     ballots = [
-        {"code_hash": _hash_code("CODE001"),
+        {"voter_hash": _hash_voter("DEV001"),
          "picks": ["sub_001", "sub_002", "sub_003"],
          "cast_at": "2026-10-03T16:05:00Z"},
-        {"code_hash": _hash_code("CODE002"),
+        {"voter_hash": _hash_voter("DEV002"),
          "picks": ["sub_001", "sub_002", "sub_004"],
          "cast_at": "2026-10-03T16:06:00Z"},
-        {"code_hash": _hash_code("CODE003"),
+        {"voter_hash": _hash_voter("DEV003"),
          "picks": ["sub_001", "sub_002", "sub_003"],
          "cast_at": "2026-10-03T16:07:00Z"},
     ]
@@ -324,17 +320,13 @@ def _write_below_floor_fixture(data_dir: Path, ballots_cast: int) -> None:
     ]), encoding="utf-8")
     ballots = [
         {
-            "code_hash": _hash_code(f"CODE{i:03d}"),
+            "voter_hash": _hash_voter(f"DEV{i:03d}"),
             "picks": ["sub_001", "sub_002", "sub_003"],
             "cast_at": f"2026-10-03T16:{i:02d}:00Z",
         }
         for i in range(1, ballots_cast + 1)
     ]
     (data_dir.parent / "stub_ballots.json").write_text(json.dumps(ballots), encoding="utf-8")
-
-
-def _codes(n: int) -> str:
-    return ",".join(f"CODE{i:03d}" for i in range(1, n + 1))
 
 
 def test_nine_ballots_without_a_panel_still_publish_the_turnout_floor_caveat(tmp_path):
@@ -346,7 +338,7 @@ def test_nine_ballots_without_a_panel_still_publish_the_turnout_floor_caveat(tmp
     data_dir = tmp_path / "data"
     _write_below_floor_fixture(data_dir, 9)
 
-    result = _run_script(tmp_path, codes=_codes(9))
+    result = _run_script(tmp_path)
     assert result.returncode == 0, result.stderr
 
     comparison = json.loads((data_dir / "results" / "comparison.json").read_text())
@@ -362,7 +354,7 @@ def test_ten_ballots_without_a_panel_carry_the_note_but_no_floor_caveat(tmp_path
     data_dir = tmp_path / "data"
     _write_below_floor_fixture(data_dir, 10)
 
-    result = _run_script(tmp_path, codes=_codes(10))
+    result = _run_script(tmp_path)
     assert result.returncode == 0, result.stderr
 
     comparison = json.loads((data_dir / "results" / "comparison.json").read_text())
@@ -376,7 +368,7 @@ def test_the_crowd_only_branch_has_the_same_shape_as_a_full_comparison(tmp_path)
     # build_comparison. Both branches must now produce the same keys.
     data_dir = tmp_path / "data"
     _write_below_floor_fixture(data_dir, 9)
-    assert _run_script(tmp_path, codes=_codes(9)).returncode == 0
+    assert _run_script(tmp_path).returncode == 0
     crowd_only = json.loads((data_dir / "results" / "comparison.json").read_text())
 
     results_dir = data_dir / "results"
@@ -390,18 +382,15 @@ def test_the_crowd_only_branch_has_the_same_shape_as_a_full_comparison(tmp_path)
             "P-03": {p: 2 for p in PERSONAS},
         },
     }), encoding="utf-8")
-    assert _run_script(tmp_path, codes=_codes(9)).returncode == 0
+    assert _run_script(tmp_path).returncode == 0
     full = json.loads((results_dir / "comparison.json").read_text())
 
     assert sorted(crowd_only) == sorted(full)
 
 
-def test_empty_ballot_codes_exits_with_one_line_and_writes_nothing(tmp_path):
-    # Final review: an unset BALLOT_CODES secret used to publish a tally with
-    # every ballot invalid. It must fail like a missing NETLIFY_TOKEN does.
+def test_tally_no_longer_needs_a_ballot_codes_secret(tmp_path):
+    # Voting is one ballot per device; there is no code list to configure.
     _write_fixture_data(tmp_path / "data")
-    result = _run_script(tmp_path, codes="")
-    assert result.returncode == 1
-    assert "BALLOT_CODES" in result.stderr
-    assert "Traceback" not in result.stderr
-    assert not (tmp_path / "data" / "results").exists()
+    result = _run_script(tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert "BALLOT_CODES" not in _extract_tally_script()

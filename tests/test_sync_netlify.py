@@ -83,7 +83,7 @@ BALLOTS_PAYLOAD = [
         "created_at": "2026-10-03T16:05:00.000Z",
         "data": {
             "form-name": "ballot",
-            "code": "abcdefghj2",
+            "device": "3f6c1e0a-device-one",
             "pick_1": "sub_001",
             "pick_2": "sub_002",
             "pick_3": "sub_003",
@@ -206,23 +206,24 @@ def test_missing_artifact_field_yields_empty_artifacts_list():
     assert submissions[0]["artifacts"] == []
 
 
-def test_build_ballots_hashes_code_and_never_stores_it_raw():
+def test_build_ballots_hashes_device_and_never_stores_it_raw():
     ballots = sync_netlify.build_ballots(BALLOTS_PAYLOAD)
     assert len(ballots) == 1
     ballot = ballots[0]
-    assert "code" not in ballot
-    assert ballot["code_hash"] == hashlib.sha256(b"ABCDEFGHJ2").hexdigest()
+    assert "device" not in ballot
+    assert ballot["voter_hash"] == hashlib.sha256(b"3f6c1e0a-device-one").hexdigest()
     assert ballot["picks"] == ["sub_001", "sub_002", "sub_003"]
     assert ballot["cast_at"] == "2026-10-03T16:05:00.000Z"
 
 
-def test_hash_code_normalizes_case_and_whitespace():
-    assert sync_netlify._hash_code("abc123") == sync_netlify._hash_code(" ABC123 ")
+def test_hash_voter_is_deterministic_and_distinct_per_device():
+    assert sync_netlify._hash_voter("dev-1") == sync_netlify._hash_voter(" dev-1 ")
+    assert sync_netlify._hash_voter("dev-1") != sync_netlify._hash_voter("dev-2")
 
 
-def test_hash_code_is_deterministic_and_distinct_per_code():
-    assert sync_netlify._hash_code("CODE001") == sync_netlify._hash_code("CODE001")
-    assert sync_netlify._hash_code("CODE001") != sync_netlify._hash_code("CODE002")
+def test_ballot_without_a_device_id_maps_to_an_empty_voter():
+    raw = {"created_at": "t", "data": {"pick_1": "a", "pick_2": "b", "pick_3": "c"}}
+    assert sync_netlify.map_ballot(raw)["voter_hash"] == ""
 
 
 def test_sync_writes_submissions_and_id_map_and_never_ballots(tmp_path):
@@ -249,7 +250,7 @@ def test_fetch_ballots_returns_hashed_ballots_in_tally_shape():
         "test-token", site_id="site-abc", get_json=fake_get_json(ballot_urls())
     )
     assert ballots == [{
-        "code_hash": hashlib.sha256(b"ABCDEFGHJ2").hexdigest(),
+        "voter_hash": hashlib.sha256(b"3f6c1e0a-device-one").hexdigest(),
         "picks": ["sub_001", "sub_002", "sub_003"],
         "cast_at": "2026-10-03T16:05:00.000Z",
     }]

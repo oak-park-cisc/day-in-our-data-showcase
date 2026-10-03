@@ -10,7 +10,7 @@ PICKS_PER_BALLOT = 3
 
 @dataclass(frozen=True)
 class Ballot:
-    code: str
+    voter: str  # hashed per-device id; "" when the ballot carried none
     picks: list[str]
     cast_at: datetime
 
@@ -25,17 +25,16 @@ class TallyResult:
 
 def tally(
     ballots: list[Ballot],
-    valid_codes: set[str],
     known_ids: set[str],
     floor: int = TURNOUT_FLOOR,
 ) -> TallyResult:
     """Count votes per project and validate ballots.
 
-    Ballots are processed in timestamp order. For each code, the first VALID
-    ballot is counted; any subsequent ballot with the same code (valid or not)
-    is rejected. This means a voter whose first attempt is malformed (e.g.,
-    duplicate picks) does not forfeit their right to vote — a second valid
-    attempt on the same code will be counted instead.
+    Ballots are processed in timestamp order. For each voter (one per device),
+    the first VALID ballot is counted; any subsequent ballot from the same
+    voter (valid or not) is rejected. A ballot with no voter id is rejected.
+    A voter whose first attempt is malformed (e.g., duplicate picks) does not
+    forfeit their vote — a second valid attempt will be counted instead.
 
     Returns TallyResult with vote counts, valid/invalid ballot counts, and an
     indicative flag (True if valid votes < floor, indicating insufficient
@@ -46,7 +45,7 @@ def tally(
     valid = invalid = 0
 
     for b in sorted(ballots, key=lambda x: x.cast_at):
-        if b.code not in valid_codes or b.code in seen:
+        if not b.voter or b.voter in seen:
             invalid += 1
             continue
         if len(b.picks) != PICKS_PER_BALLOT or len(set(b.picks)) != PICKS_PER_BALLOT:
@@ -55,7 +54,7 @@ def tally(
         if any(p not in known_ids for p in b.picks):
             invalid += 1
             continue
-        seen.add(b.code)
+        seen.add(b.voter)
         counts.update(b.picks)
         valid += 1
 
