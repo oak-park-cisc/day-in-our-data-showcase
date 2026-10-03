@@ -385,3 +385,20 @@ test("smoke test against locally generated mock panel output, if present", async
   assert.ok(elements.glass.innerHTML.length > 0);
   assert.ok(elements["side-by-side"].innerHTML.length > 0);
 });
+
+test("the bracket renders before the vote is tallied", async () => {
+  const elements = await render({
+    "/data/submissions.json": baseSubmissions(),
+    "/data/results/bracket.json": {
+      model_generated: true,
+      mode: "bracket",
+      ranking: ["P-02", "P-03"],
+      champion: "P-02",
+      rounds: [[{ a: "P-02", b: "P-03", winner: "P-02", votes: [] }]],
+    },
+    "/data/results/comparison.json": new Error("404"),
+  });
+  assert.match(elements.agreement.innerHTML, /not been tallied yet/);
+  assert.match(elements.glass.innerHTML, /Canopy Count/);
+  assert.doesNotMatch(elements.glass.innerHTML, /not available yet/);
+});

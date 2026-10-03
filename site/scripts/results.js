@@ -288,12 +288,10 @@ function attachToggles(mount) {
 async function init() {
   let submissions;
   let bracket;
-  let comparison;
   try {
-    [submissions, bracket, comparison] = await Promise.all([
+    [submissions, bracket] = await Promise.all([
       fetchData("submissions.json"),
       fetchData("results/bracket.json"),
-      fetchData("results/comparison.json"),
     ]);
   } catch {
     const message = '<p class="bracket__empty">Results are not available yet.</p>';
@@ -302,8 +300,22 @@ async function init() {
     return;
   }
 
+  // The bracket can publish before the vote is tallied; show it on its own
+  // rather than hold the whole page back until comparison.json exists.
+  let comparison = null;
+  try {
+    comparison = await fetchData("results/comparison.json");
+  } catch {
+    comparison = null;
+  }
+
   const { byPublic, byAnon } = buildTitleMaps(submissions);
-  renderAgreement(comparison, byPublic);
+  if (comparison) {
+    renderAgreement(comparison, byPublic);
+  } else {
+    document.getElementById("agreement").innerHTML =
+      '<p class="bracket__empty">The participant vote has not been tallied yet. The AI panel&rsquo;s bracket is below.</p>';
+  }
   renderBracket(bracket, byAnon);
 }
 

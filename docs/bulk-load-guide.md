@@ -168,6 +168,23 @@ the path with wherever your `entries.csv` is.
    with `N sent, 0 failed.` If any row says `ERROR`, run the same command
    again: rows that already went through are skipped.
 
+### Re-running is safe
+
+- **Run it as many times as you like.** A row is skipped if that team and
+  title are already on the site, or if this CSV already sent it. The script
+  records every successful send in a file next to your CSV called
+  `entries.sent.json`. **Do not delete that file**: until the next sync
+  (Part 4), it is the only record of what was already sent.
+- **Adding late projects:** add rows to the same `entries.csv` and run it
+  again. Only the new rows are sent.
+- **Nothing is ever deleted or overwritten.** The script only adds entries.
+  The sync (Part 4) rebuilds the project list from every entry in Netlify,
+  keeps each project's number the same, and never drops one. Re-judging
+  (Part 5) re-scores everything and replaces only the bracket.
+- **The one way an entry goes missing** is Netlify flagging it as spam. The
+  sync only reads entries Netlify accepted. Check the **Spam** tab (Part 3,
+  step 3) after every batch.
+
 ---
 
 ## Part 4 — Pull the projects into the site

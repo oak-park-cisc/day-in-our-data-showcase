@@ -12,8 +12,11 @@ docs/bulk-load-guide.md.
 Columns: see docs/bulk-load-template.csv. `artifact_path` is a local file
 (the team's Civic Spark zip), relative to the CSV's folder or absolute.
 
-Rows whose team name + project title already appear on the live site are
-skipped, so re-running after a partial failure does not create duplicates.
+Re-running is safe. A row is skipped if its team name + project title is
+already on the live site, OR is recorded in `<csv name>.sent.json` beside the
+CSV. That record is written after every successful send, because the live
+list only catches up after the next sync: without it, a re-run before the
+sync would submit every row a second time. Nothing is ever deleted.
 """
 from __future__ import annotations
 
@@ -104,6 +107,21 @@ def existing_keys(url: str = LIVE_SUBMISSIONS) -> set[tuple[str, str]]:
         return {_key(s.get("team_name", ""), s.get("project_title", "")) for s in json.load(r)}
 
 
+def sent_log_path(csv_path: Path) -> Path:
+    return csv_path.with_name(csv_path.stem + ".sent.json")
+
+
+def load_sent(csv_path: Path) -> set[tuple[str, str]]:
+    path = sent_log_path(csv_path)
+    if not path.exists():
+        return set()
+    return {tuple(k) for k in json.loads(path.read_text(encoding="utf-8"))}
+
+
+def record_sent(csv_path: Path, sent: set[tuple[str, str]]) -> None:
+    sent_log_path(csv_path).write_text(json.dumps(sorted(sent), indent=2), encoding="utf-8")
+
+
 def encode_multipart(fields: dict[str, str], artifact: Path | None) -> tuple[bytes, str]:
     boundary = f"----diod{uuid.uuid4().hex}"
     parts: list[bytes] = []
@@ -141,10 +159,12 @@ def main(argv: list[str] | None = None) -> int:
         print("No rows found.")
         return 1
     try:
-        already = existing_keys()
+        on_site = existing_keys()
     except (urllib.error.URLError, ValueError) as exc:
         print(f"Could not read the live project list to check for duplicates: {exc}")
         return 1
+    sent_before = load_sent(args.csv)
+    already = on_site | sent_before
 
     bad = [e for e in entries if e.problems]
     for e in entries:
@@ -153,8 +173,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FIX   {label}")
             for p in e.problems:
                 print(f"        - {p}")
-        elif e.key in already:
+        elif e.key in on_site:
             print(f"SKIP  {label} (already on the site)")
+        elif e.key in sent_before:
+            print(f"SKIP  {label} (already sent from this CSV; appears on the site after the next sync)")
         else:
             file_note = f", file {e.artifact.name}" if e.artifact else ", no file"
             print(f"READY {label}{file_note}")
@@ -168,9 +190,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     failed = 0
+    sent = set(sent_before)
     for e in to_send:
+        if e.key in sent:  # the same team + title twice in one CSV
+            print(f"SKIP  row {e.row} (duplicate of an earlier row)")
+            continue
         try:
             status = post(e)
+            sent.add(e.key)
+            record_sent(args.csv, sent)
             print(f"SENT  row {e.row} (HTTP {status})")
         except urllib.error.URLError as exc:
             failed += 1

@@ -111,3 +111,42 @@ def test_any_bad_row_blocks_sending(tmp_path, monkeypatch):
     monkeypatch.setattr(bulk_submit, "post", lambda e: sent.append(e) or 200)
     assert bulk_submit.main([str(path), "--send"]) == 1
     assert sent == []
+
+
+def test_rerun_before_sync_does_not_send_twice(tmp_path, monkeypatch, capsys):
+    """The live list lags until the next sync; the local sent record covers the gap."""
+    path = write_csv(tmp_path, [GOOD, {**GOOD, "team_name": "Team B", "project_title": "Two"}])
+    monkeypatch.setattr(bulk_submit, "existing_keys", lambda: set())  # sync has not run
+    sent = []
+    monkeypatch.setattr(bulk_submit, "post", lambda e: sent.append(e.fields["team_name"]) or 200)
+    assert bulk_submit.main([str(path), "--send"]) == 0
+    assert bulk_submit.main([str(path), "--send"]) == 0
+    assert sent == ["Team A", "Team B"]
+    assert "already sent from this CSV" in capsys.readouterr().out
+
+
+def test_a_failed_send_is_retried_and_successes_are_not(tmp_path, monkeypatch):
+    import urllib.error
+    path = write_csv(tmp_path, [GOOD, {**GOOD, "team_name": "Team B", "project_title": "Two"}])
+    monkeypatch.setattr(bulk_submit, "existing_keys", lambda: set())
+    calls = []
+
+    def flaky(e):
+        calls.append(e.fields["team_name"])
+        if e.fields["team_name"] == "Team B" and calls.count("Team B") == 1:
+            raise urllib.error.URLError("network down")
+        return 200
+
+    monkeypatch.setattr(bulk_submit, "post", flaky)
+    assert bulk_submit.main([str(path), "--send"]) == 1
+    assert bulk_submit.main([str(path), "--send"]) == 0
+    assert calls == ["Team A", "Team B", "Team B"]
+
+
+def test_the_same_project_twice_in_one_csv_is_sent_once(tmp_path, monkeypatch):
+    path = write_csv(tmp_path, [GOOD, GOOD])
+    monkeypatch.setattr(bulk_submit, "existing_keys", lambda: set())
+    sent = []
+    monkeypatch.setattr(bulk_submit, "post", lambda e: sent.append(e) or 200)
+    assert bulk_submit.main([str(path), "--send"]) == 0
+    assert len(sent) == 1
