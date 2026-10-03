@@ -98,6 +98,75 @@ errors — the awards are simply wrong. The safe way to remove a spam entry once
 voting has begun is to leave it in place and exclude it at the tally, or to
 delete it and confirm `data/id_map.json` still holds its old number.
 
+## Bulk-loading projects from Civic Spark
+
+For teams that built in Civic Spark but never pressed "Enter project".
+Full step-by-step, written for someone who has not used the repo before:
+**[`docs/bulk-load-guide.md`](docs/bulk-load-guide.md)**.
+
+Entries go in through Netlify Forms, not into `data/` directly: every sync
+rebuilds `data/submissions.json` from Netlify, so a hand-added entry would be
+overwritten. `scripts/bulk_submit.py` posts one CSV row per project to the
+live site's `submission` form, exactly as the browser form does, zip included.
+It needs only Python's standard library.
+
+1. Download each team's project zip from Civic Spark (8 MB maximum; larger
+   ones go in as a Drive or Dropbox link in `large_file_url`).
+2. Copy [`docs/bulk-load-template.csv`](docs/bulk-load-template.csv), delete
+   the example row, and add one row per project. `artifact_path` is the zip's
+   path relative to the CSV.
+3. Check without sending anything:
+   ```
+   python scripts/bulk_submit.py path/to/entries.csv
+   ```
+   Every row prints `READY`, `SKIP` (already entered) or `FIX` (with the
+   reason). Nothing is sent while any row says `FIX`.
+4. Send one row first, confirm it under Netlify → Forms → submission (and
+   check the **Spam** tab), then send the rest:
+   ```
+   python scripts/bulk_submit.py path/to/entries.csv --send
+   ```
+5. Run **Actions → Sync Netlify submissions → Run workflow** and confirm the
+   new projects appear in the gallery.
+
+Re-running is safe and never loses a submission. A row is skipped if its team
+and title are already on the site or were already sent from that CSV. Each
+successful send is recorded in `<csv name>.sent.json` beside the CSV, which
+covers the gap before the next sync; do not delete that file. A failed row is
+retried on the next run. The script only ever adds entries. The one way an
+entry goes missing is Netlify flagging it as spam, because the sync reads only
+accepted entries: check the Spam tab after every batch.
+
+## Re-running the AI judging
+
+Re-judging scores **every** synced project again and replaces
+`data/results/bracket.json` and `scores.json`. It never removes a submission.
+It calls the Claude API and costs money on every run that gets past the first
+API call, so run it once per batch of new entries.
+
+1. **Sync first.** Actions → **Sync Netlify submissions** → Run workflow →
+   wait for the green check. Judging only sees projects already in
+   `data/submissions.json`.
+2. Actions → **Run AI judging panel** → Run workflow, branch `main`.
+3. **Untick "Dry run with no API calls"**, then click **Run workflow**.
+   Ticked, it is a free mock run and judges nothing for real.
+4. When it finishes, open the **Run the panel** step. It should end with
+   `README read for X of Y submissions` and `Wrote results to data/results`,
+   where Y is the number of projects in the gallery. The bracket shows on
+   `/results.html` within about 5 minutes, with no deploy needed.
+5. If voting has happened, run Actions → **Tally participant vote** so the
+   vote and the new bracket appear side by side. Do not use the event-day
+   **2 - Close voting** button for this: it re-runs (and pays for) the
+   judging again.
+
+If the run fails, the last line of **Run the panel** says why:
+
+| Message | Fix |
+|---|---|
+| `credit balance is too low` | Add credit under Plans & Billing in the Console organization that owns the key |
+| `not scoped to a workspace` | Replace the `ANTHROPIC_API_KEY` secret with a key created inside a Console workspace |
+| `README read for 0 of 0 submissions` (green, but empty bracket) | The sync had not run; do step 1, then judge again |
+
 ## Ground rules inherited from the event
 
 - Use public data and record where it came from.
