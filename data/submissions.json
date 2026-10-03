@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "id": "sub_001",
+    "anon_id": "P-01",
+    "team_name": "Team ECHO",
+    "project_title": "What ECHO Sees",
+    "description": "We built a series of visualizations of the services provided by ECHO, the Village of Oak Park's care-coordination program. We also built a list of service providers for each of the major categories of services that ECHO offers.",
+    "solves_for": "Mostly this provides some perspective on the services ECHO provides and how they've changed over time.",
+    "starter_project": "15-what-does-echo-see",
+    "data_steps": "We used the datasets provided and found some additional data on crime. ",
+    "repo_url": "https://github.com/nikolai-laba/what-does-echo-see",
+    "demo_url": "https://github.com/nikolai-laba/what-does-echo-see/releases/download/hackathon-2026-10-03/echo-trends.html",
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T20:02:41.839Z"
+  },
+  {
+    "id": "sub_002",
+    "anon_id": "P-02",
+    "team_name": "Oak Park Transit Team",
+    "project_title": "Oak Park Transit",
+    "description": "A free, one-page transit map for Oak Park that works on phones.\r\n\r\n- Live map: every CTA and Pace bus and every Green and Blue Line train near the Village, updated every 30 seconds. Each one leaves a fading trail of where it went in the last 15 minutes.\r\n- Next arrivals: tap a CTA station or bus stop to see the next trains or buses in each direction. The Oak Park Metra station shows its scheduled departures.\r\n- Accessibility view: stops colored accessible, not accessible or unknown. Unknown is never shown as inaccessible.\r\n- Status tab: CTA elevator outages and service alerts for the lines serving Oak Park.\r\n- Routes tab: hours, how often each route runs, fares and that route's alerts.\r\n- Provider guide: CTA, Pace, Metra, Pace ADA Paratransit and Township Senior Services rides. Each row was checked against the provider's official page on October 3.\r\n-  Day and night maps.\r\n-  Travel time estimator: drop a pin anywhere in Oak Park to see a heat map of how long it takes to reach every part of the Village by walking plus transit. Drop two pins for the fastest trip, with walk, wait and ride legs drawn on the map and compared with just walking. A \"Transit Time Saver\" view shows where transit actually beats walking, and by how many minutes.",
+    "solves_for": "Oak Park is served by three agencies, two 'L' lines, Metra and fourteen bus routes, plus paratransit and Township rides. Each publishes its information separately. A resident, especially a senior or someone who uses a wheelchair, has to piece together which stops are accessible, what's running right now, when the next train comes and who to call when fixed routes don't work. This page answers those questions in one place, for Oak Park specifically. It's honest about gaps: Pace stop accessibility shows as Unknown, Metra times are labeled as schedule rather than live, and line-wide alerts are marked as possibly outside Oak Park. It also answers \"is transit worth it for this trip?\" The estimator shows where in the Village transit saves time over walking and where it doesn't. That's useful for residents planning a trip and for the Transportation Commission looking at coverage gaps.",
+    "starter_project": "08-build-the-oak-park-transit-dashboard",
+    "data_steps": "1) Stops and accessibility: started from the Day in Our Data stops file (225 CTA, Pace and Metra stops). Accessibility comes from its GTFS wheelchair field, with blanks shown as Unknown. The one exception is the Metra station, which Metra's own page lists as accessible; the map shows that with a link to the source.\r\n2) Village boundary: the Oak Park outline from the U.S. Census Bureau (TIGERweb). It's used to draw the Village line and to apply one rule throughout: show everything within a quarter mile of Oak Park.\r\n3) Route lines and schedules: downloaded the CTA, Pace and Metra GTFS schedule files. Python scripts cut each route's shape a quarter mile past the Village line, compute each route's hours and trips per hour, and export the Oak Park Metra timetable with its calendar.\r\n4) Live data: a small Cloudflare Worker calls CTA Bus Tracker and Train Tracker (keys kept server-side) and the JSON behind Pace's own Bus Tracker map. It's needed because those feeds can't be called directly from a web page. The page shows a saved, clearly labeled sample if a feed is down.\r\n5) Alerts: the CTA Customer Alerts API, filtered to Oak Park routes and stations and refreshed every 15 minutes by a GitHub Action.\r\n6) Provider guide: checked every row against the official CTA, Pace, Metra and Township pages, which corrected several details, such as the paratransit phone line and eligibility rules.\r\n7) The app itself: React and Leaflet, published on GitHub Pages. Code and notes are at https://github.com/CaptainChemist/oak-park-transit-tracker\r\n8) Travel times: a Python script combines the CTA, Pace and Metra schedules with OpenStreetMap's street network. It divides Oak Park into 100-meter cells, measures real walking routes to nearby stops, and routes around the Eisenhower and rail lines to actual bridges and underpasses. The browser then works out the fastest trips (up to three rides, with realistic waits based on departures in the next half hour). This runs on the phone in under a second, with no server.",
+    "repo_url": "https://github.com/CaptainChemist/oak-park-transit-tracker",
+    "demo_url": "https://captainchemist.github.io/oak-park-transit-tracker/",
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T20:14:41.028Z"
+  },
+  {
+    "id": "sub_003",
+    "anon_id": "P-03",
+    "team_name": "Report Card Oak Park",
+    "project_title": "Report Card Oak Park",
+    "description": "How are our schools doing? is a one-page, mobile-friendly dashboard about Oak Park's two school districts: D97 (K\u20138) and OPRF D200 (high school). It opens with the bottom line: six plain-language findings, three strengths and three areas to improve. Each card opens to show its argument: the evidence, a counterpoint, and a link to a chart already set up to make that point.\r\n\r\nBelow that, Learn more has:\r\n\r\nTaxes & value: school tax rates across 11 nearby towns, 20 years of levy history, and taxes against results for similar districts.\r\nTrends: 46 measures from 2018\u20132025, with any Illinois district available for comparison.\r\nCook County: a scatter plot of every Cook County district, with your choice of measure on each axis.\r\nSchools: D97's schools side by side.\r\nTeammates' additions: a Priorities view and a Map of attendance zones.\r\nA slide-deck version is in docs/presentation.md.",
+    "solves_for": "The state publishes everything needed to judge how Oak Park's schools are doing, but it's spread across eight 15\u201355 MB spreadsheets with hundreds of columns that are renamed every year. Answering \"how do we compare to similar towns, and are we getting value for our taxes?\" takes hours of spreadsheet work. On top of that, the data has traps: the 2025 test changes, no 2020 tests, and spending figures that lag a year. The dashboard answers the question directly, handles those traps, and shows its evidence.\r\n\r\nWho has this problem, and what can they do now that they could not before?\r\n\r\nParents and residents can see in a minute where the districts stand and why. For example: OPRF ranks top 3 in Cook County in every core subject, while D97's math has barely moved since 2019 even as reading rose 13 points.\r\nTaxpayers can see that Oak Park's combined school tax rate ($8.37 per $100) is 3rd highest of 11 nearby towns. They can also see why: a small tax base, not overspending. Spending per student grew 7% at OPRF and 40% at D97 from FY2018 to FY2024, against 46% statewide.\r\nThe D97 and D200 boards, and the residents who address them, get a \"then vs. now\" table, comparisons against similar districts, and specific questions to raise. One example: why OPRF's instructional spending fell while total spending rose.\r\nAnyone can compare D97 or OPRF against any of 870 Illinois districts.",
+    "starter_project": "10-how-are-our-schools-doing",
+    "data_steps": "School data. We used the ISBE Illinois Report Card public data sets, 2018\u20132025: eight statewide Excel workbooks, about 200 MB.\r\n\r\nScript: scripts/build_report_card_data.py, adapted from the event repo's fetch_report_card_d97_d200.py.\r\nFiltered: kept district and statewide rows from the General, Finance and ELA/Math/Science sheets, plus school rows for D97 and D200 only.\r\nMatched columns across years: the column names change every year, so each measure has a list of possible names to look for. data/column-mapping.json records which column was used for each measure in each year.\r\nJoined the years by each district's state ID into one 2018\u20132025 series per measure.\r\nDerived: local property tax per student (tax revenue divided by enrollment).\r\nTrimmed: unused columns removed.\r\nOutput: public/data/districts.json (870 districts plus the state) and public/data/schools.json.\r\nTax data. Cook County Clerk tax rate reports for D97 and D200, tax years 2006\u20132025, taken from the event repo's cached oak-park-levies.csv and saved as public/data/levies.json. We also confirmed that the report card's tax rate is three tax years old: D97's 5.14 in the 2025 report card matches the Clerk's 5.135 for tax year 2022.",
+    "repo_url": null,
+    "demo_url": "https://civic-spark-e501e7de-c188-4b92-91cb-b0f98c740fb4-biglv.sprites.app/",
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T20:22:06.371Z"
+  },
+  {
+    "id": "sub_004",
+    "anon_id": "P-04",
+    "team_name": "Presettlement Oaks",
+    "project_title": "Presettlement Oaks",
+    "description": "A map (roughly) identifying oak trees that were likely present at the time the Kettlestring family settled in the Oak Park area. ",
+    "solves_for": "Key filter: Estimating age from DBH (diameter at breast height) in OP tree data.",
+    "starter_project": "pitch-your-own",
+    "data_steps": "Claude! ",
+    "repo_url": null,
+    "demo_url": null,
+    "artifacts": [
+      {
+        "filename": "oaks_project.zip",
+        "url": "https://d33wubrfki0l68.cloudfront.net/61d0f258-7616-4780-918c-d6407c15162f/oaks_project.zip",
+        "bytes": 69644
+      }
+    ],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T20:35:16.162Z"
+  },
+  {
+    "id": "sub_005",
+    "anon_id": "P-05",
+    "team_name": "Team Shadowbat",
+    "project_title": "Oak Park Crime Web App",
+    "description": "Oak Park Crime Web App\r\nA web app for exploring reported crime incidents in Oak Park, IL. Flask serves a JSON API over the incident CSV; the front end is plain HTML/CSS/JS.\r\n\r\nProject structure\r\nOakParkCrimeWebApp/\r\n\u251c\u2500\u2500 server/\r\n\u2502   \u2514\u2500\u2500 app.py              # Flask app + JSON API\r\n\u251c\u2500\u2500 templates/\r\n\u2502   \u2514\u2500\u2500 index.html          # Main page\r\n\u251c\u2500\u2500 static/\r\n\u2502   \u251c\u2500\u2500 css/styles.css\r\n\u2502   \u2514\u2500\u2500 js/\r\n\u2502       \u251c\u2500\u2500 api.js          # Fetch helpers for the backend API\r\n\u2502       \u2514\u2500\u2500 main.js         # Filters + incident table rendering\r\n\u251c\u2500\u2500 data/\r\n\u2502   \u2514\u2500\u2500 crime-incidents-oak-park.csv\r\n\u251c\u2500\u2500 tests/\r\n\u2502   \u2514\u2500\u2500 test_api.py\r\n\u2514\u2500\u2500 requirements.txt\r\nGetting started\r\npython -m venv .venv\r\n.venv\\Scripts\\Activate.ps1\r\npip install -r requirements.txt\r\npython server\\app.py\r\nThen open http://localhost:5000.\r\n\r\nAPI\r\nEndpoint\tDescription\r\n/api/incidents\tIncidents; filter with type, start, end, limit\r\n/api/incident-types\tDistinct incident types\r\n/api/stats\tIncident counts grouped by type\r\nTests",
+    "solves_for": "Understanding crime in Oak Park",
+    "starter_project": "pitch-your-own",
+    "data_steps": "DIOD",
+    "repo_url": "https://github.com/Shawdowbat/OakParkCrimeWebApp",
+    "demo_url": null,
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-10-03T21:13:00.368Z"
+  }
+]
