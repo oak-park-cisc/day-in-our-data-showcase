@@ -16,6 +16,10 @@ Duplicates are judged against data/submissions.json in this checkout, not the
 raw.githubusercontent.com copy, which can lag a fresh sync by minutes. Run
 `git pull` first when running it by hand.
 
+Projects that are not in the gallery (a straggler shared some other way) go
+in imports/extra-entries.csv, in docs/bulk-load-template.csv's format with
+no artifact_path; they are entered, deduplicated and verified the same way.
+
 Run by .github/workflows/import-spark-projects.yml. Safe to re-run: a project
 already on the site, by team repository, title or team name, is skipped.
 """
@@ -201,14 +205,39 @@ def load_submissions(path: Path = REPO_SUBMISSIONS) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
+EXTRA_ENTRIES = Path(__file__).resolve().parent.parent / "imports" / "extra-entries.csv"
+
+
+def extra_entries(path: Path = EXTRA_ENTRIES) -> list[bulk_submit.Entry]:
+    """Hand-listed projects, validated exactly as bulk_submit validates a CSV."""
+    if not path.exists():
+        return []
+    entries = bulk_submit.read_entries(path, bulk_submit.starter_projects())
+    bad = [e for e in entries if e.problems]
+    if bad:
+        details = "; ".join(f"row {e.row}: {', '.join(e.problems)}" for e in bad)
+        raise SystemExit(f"{path} has rows to fix: {details}")
+    return entries
+
+
 def plan(submissions: list[dict]) -> tuple[list[bulk_submit.Entry], list[tuple[Project, dict]]]:
     projects = parse_manifest(fetch_text(f"{RAW}/README.md") or "")
     if not projects:
         raise SystemExit("Could not read the project table from the event repo's projects/README.md.")
     topics = parse_gallery_topics(fetch_text(GALLERY) or "")
     options = starter_options()
+    extras = extra_entries()
+    # A hand-listed entry overrides the same project in the gallery (it
+    # carries details the gallery lacks, such as a team name).
+    extra_titles = {_norm(e.fields["project_title"]) for e in extras}
     to_enter, skipped = [], []
     for n, p in enumerate(projects, start=1):
+        if _norm(p.title) in extra_titles:
+            continue
+        if not p.team.strip():
+            print(f"HOLD  {p.title}: the gallery gives no team name. Add it to "
+                  "imports/extra-entries.csv with one, and it is entered on the next run.")
+            continue
         existing = already_entered(p, submissions)
         if existing:
             skipped.append((p, existing))
@@ -216,6 +245,13 @@ def plan(submissions: list[dict]) -> tuple[list[bulk_submit.Entry], list[tuple[P
         fields = build_fields(p, topics.get(p.slug), fetch_text(f"{RAW}/{p.slug}/README.md"),
                               fetch_text(f"{RAW}/{p.slug}/PROJECT.md"), options)
         to_enter.append(bulk_submit.Entry(row=n, fields=fields, artifact=None))
+    for e in extras:
+        p = Project("", e.fields["project_title"], e.fields["team_name"], e.fields["repo_url"] or None)
+        existing = already_entered(p, submissions)
+        if existing:
+            skipped.append((p, existing))
+        else:
+            to_enter.append(e)
     return to_enter, skipped
 
 

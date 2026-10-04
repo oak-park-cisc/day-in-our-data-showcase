@@ -196,3 +196,50 @@ def test_without_a_token_it_sends_without_checking_spam(monkeypatch, tmp_path):
     monkeypatch.setattr(isp.bulk_submit, "post", lambda e: sent.append(e) or 200)
     assert isp.main(["--send", "--submissions", str(tmp_path / "none.json")]) == 0
     assert len(sent) == 1
+
+
+def test_the_committed_extra_entries_file_is_valid():
+    entries = isp.extra_entries()
+    assert all(e.problems == [] for e in entries)
+    assert all(e.artifact is None for e in entries)
+
+
+def test_extra_entries_are_skipped_once_entered(monkeypatch, tmp_path):
+    import csv
+    path = tmp_path / "extra.csv"
+    row = {c: "" for c in isp.bulk_submit.COLUMNS}
+    row.update(team_name="Team Architecture Walk", project_title="Oak Park Architecture Walks",
+               description="d", solves_for="s", data_steps="x",
+               starter_project="12-build-an-architecture-walking-tour")
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=isp.bulk_submit.COLUMNS)
+        w.writeheader()
+        w.writerow(row)
+    monkeypatch.setattr(isp, "EXTRA_ENTRIES", path)
+    monkeypatch.setattr(isp, "extra_entries", lambda path=path: isp.bulk_submit.read_entries(
+        path, isp.bulk_submit.starter_projects()))
+    monkeypatch.setattr(isp, "fetch_text", lambda url: "" if url.endswith("README.md") else "")
+    monkeypatch.setattr(isp, "parse_manifest", lambda md: [])
+    with __import__("pytest").raises(SystemExit):
+        isp.plan([])  # an empty gallery table is an error by design
+    monkeypatch.setattr(isp, "parse_manifest", lambda md: [isp.Project("lorax", "Lorax", "Lorax team", None)])
+    monkeypatch.setattr(isp, "build_fields", lambda *a: {"team_name": "Lorax team", "project_title": "Lorax"})
+    to_enter, _ = isp.plan([])
+    assert [e.fields["project_title"] for e in to_enter] == ["Lorax", "Oak Park Architecture Walks"]
+    entered = [{"id": "sub_011", "team_name": "Team Architecture Walk",
+                "project_title": "Oak Park Architecture Walks", "repo_url": None},
+               {"id": "sub_007", "team_name": "Lorax team", "project_title": "Lorax", "repo_url": None}]
+    to_enter, skipped = isp.plan(entered)
+    assert to_enter == []
+    assert {s["id"] for _, s in skipped} == {"sub_007", "sub_011"}
+
+
+def test_a_hand_listed_entry_overrides_the_same_gallery_project(monkeypatch):
+    extra = isp.bulk_submit.Entry(row=2, artifact=None, fields={
+        "team_name": "Team Architecture Walk", "project_title": "Oak Park Architecture Walks", "repo_url": ""})
+    monkeypatch.setattr(isp, "extra_entries", lambda: [extra])
+    monkeypatch.setattr(isp, "fetch_text", lambda url: "")
+    monkeypatch.setattr(isp, "parse_manifest", lambda md: [
+        isp.Project("oak-park-architecture-walks", "Oak Park Architecture Walks", "", None)])
+    to_enter, _ = isp.plan([])
+    assert [e.fields["team_name"] for e in to_enter] == ["Team Architecture Walk"]
