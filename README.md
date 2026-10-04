@@ -101,6 +101,30 @@ errors — the awards are simply wrong. The safe way to remove a spam entry once
 voting has begun is to leave it in place and exclude it at the tally, or to
 delete it and confirm `data/id_map.json` still holds its old number.
 
+## Importing the Spark gallery
+
+The event's project gallery (<https://oak-park-cisc.github.io/Oak_Park_Day_in_our_Data/>)
+lists every app built in Civic Spark, with the code in the event repo under
+`projects/<slug>/`. To put all of them on the ranking site with no manual
+steps: **Actions → Import Spark gallery projects → Run workflow**, ticking
+**Also re-run the AI judging** if the bracket should include them (real run,
+costs money).
+
+The workflow (`import-spark-projects.yml`) syncs, runs
+`scripts/import_spark_projects.py --send`, syncs again, and fails unless every
+gallery project is now on the site (the usual cause is Netlify's Spam tab).
+For each project not already entered, the script fills the form from the
+project's own README: the gallery's one-line topic plus the README's opening
+as *What did you build?*, a "civic question" / "bottom line"-style section (or
+the starter question) as *What does it solve for?*, and a "Data" / "Method"
+section as *How did you get from the raw data…*. Where a README says nothing,
+the field says so rather than inventing an answer, and every imported
+description ends by noting it was entered on the team's behalf. The repository
+link points at the project's own folder, so the AI judges read that folder's
+README. A project already entered under another name is recognised by its team
+repository, title or team name, so pressing the button again never duplicates
+an entry. To preview without sending: `python scripts/import_spark_projects.py`.
+
 ## Bulk-loading projects from Civic Spark
 
 For teams that built in Civic Spark but never pressed "Enter project".

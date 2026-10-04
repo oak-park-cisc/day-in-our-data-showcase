@@ -106,10 +106,20 @@ def test_github_readme_is_read_when_there_is_no_zip():
     assert fetch.calls[0][1]["Accept"] == "application/vnd.github.raw+json"
 
 
-def test_github_url_with_a_path_still_resolves_to_the_repo():
+def test_github_folder_link_falls_back_to_the_repo_readme():
     fetch = fake_fetch({"https://api.github.com/repos/team/repo/readme": b"# From GitHub"})
     s = sub(repo_url="https://github.com/team/repo/tree/main/src")
     assert readme_for(s, fetch) == "# From GitHub"
+
+
+def test_github_folder_link_reads_that_folders_readme_first():
+    """A project in a subfolder of the shared event repo is judged on its own README."""
+    fetch = fake_fetch({
+        "https://api.github.com/repos/org/event/readme/projects/lorax?ref=main": b"# Lorax",
+        "https://api.github.com/repos/org/event/readme": b"# The whole event",
+    })
+    s = sub(repo_url="https://github.com/org/event/tree/main/projects/lorax")
+    assert readme_for(s, fetch) == "# Lorax"
 
 
 def test_images_and_pdfs_are_never_downloaded():

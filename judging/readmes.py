@@ -9,7 +9,10 @@ order:
    read; every other entry, including Civic Spark's shared PROJECT.md starter
    card, is ignored.
 2. The linked GitHub repository's README, via the GitHub API (any README name,
-   default branch).
+   default branch). A link to a folder (`/tree/<branch>/<path>`) reads that
+   folder's README first, so a project kept in a subfolder of a shared repo
+   (the event repo's `projects/<name>`) is judged on its own README, not the
+   repo's front page. The repository's root README is the fallback.
 
 Anything that fails -- a dead link, a private repo, a non-zip upload, an
 oversized entry -- yields no README for that team, and the panel scores the
@@ -50,6 +53,7 @@ CIVIC_SPARK_TEMPLATE_MARKERS = (
     "start with a question your team cares about",
 )
 
+_GITHUB_TREE = re.compile(r"^https://github\.com/[^/]+/[^/]+/tree/([^/?#]+)/([^?#]+?)/?(?:[?#].*)?$")
 _GITHUB_REPO = re.compile(r"^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?/?(?:[/#?].*)?$")
 
 Fetch = Callable[[str, dict[str, str]], bytes]
@@ -137,11 +141,18 @@ def _from_github(sub: Submission, fetch: Fetch) -> str | None:
     token = os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    try:
-        data = fetch(f"https://api.github.com/repos/{owner}/{repo}/readme", headers)
-    except FetchError:
-        return None
-    return _clean(data[:MAX_ENTRY_BYTES])
+    urls = [f"https://api.github.com/repos/{owner}/{repo}/readme"]
+    tree = _GITHUB_TREE.match(sub.repo_url or "")
+    if tree:
+        ref, path = tree.groups()
+        urls.insert(0, f"https://api.github.com/repos/{owner}/{repo}/readme/{path}?ref={ref}")
+    for url in urls:
+        try:
+            data = fetch(url, headers)
+        except FetchError:
+            continue
+        return _clean(data[:MAX_ENTRY_BYTES])
+    return None
 
 
 def readme_for(sub: Submission, fetch: Fetch = http_get) -> str | None:

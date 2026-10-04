@@ -1,0 +1,76 @@
+name: Import Spark gallery projects
+
+# One button: enter every project from the event's project gallery
+# (https://oak-park-cisc.github.io/Oak_Park_Day_in_our_Data/) that is not on
+# the ranking site yet, sync, confirm they all arrived, and optionally re-run
+# the AI judging. scripts/import_spark_projects.py skips anything already
+# entered, so pressing it again is safe. README: "Importing the Spark gallery".
+on:
+  workflow_dispatch:
+    inputs:
+      judge:
+        description: "Also re-run the AI judging afterwards (real run, costs money)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Two presses at once could both see a project as missing and enter it twice.
+concurrency:
+  group: import-spark-projects
+  cancel-in-progress: false
+
+jobs:
+  # Sync first, so the duplicate check sees every entry Netlify already has,
+  # including any sent by an earlier press that has not been synced yet.
+  presync:
+    name: Sync before importing
+    uses: ./.github/workflows/sync-submissions.yml
+    secrets: inherit
+
+  import:
+    name: Enter missing gallery projects
+    needs: presync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Enter missing projects through the Netlify form
+        run: python scripts/import_spark_projects.py --send
+      # Netlify records a form post within seconds; give it a margin before
+      # the sync reads the submissions back.
+      - run: sleep 30
+
+  sync:
+    name: Sync the new entries
+    needs: import
+    uses: ./.github/workflows/sync-submissions.yml
+    secrets: inherit
+
+  verify:
+    name: Confirm every gallery project is on the site
+    needs: sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Every gallery project is entered
+        run: python scripts/import_spark_projects.py --check
+
+  judge:
+    name: Re-run the AI judging (real run)
+    needs: verify
+    if: inputs.judge
+    uses: ./.github/workflows/judge.yml
+    with:
+      mock: false
+    secrets: inherit
