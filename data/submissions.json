@@ -160,20 +160,5 @@
     "artifacts": [],
     "large_file_url": null,
     "submitted_at": "2026-10-04T13:35:03.419Z"
-  },
-  {
-    "id": "sub_011",
-    "anon_id": "P-11",
-    "team_name": "Oak Park Architecture Walks",
-    "project_title": "Oak Park Architecture Walks",
-    "description": "A mapping tool that allows the user to plan Oak Park architectural walks.",
-    "solves_for": "A mapping tool that allows the user to plan Oak Park architectural walks.",
-    "starter_project": "pitch-your-own",
-    "data_steps": "Unknown",
-    "repo_url": null,
-    "demo_url": "https://claude.ai/artifact/Njn9DEGuYTsabA76HMtQUT",
-    "artifacts": [],
-    "large_file_url": null,
-    "submitted_at": "2026-10-04T17:37:20.192Z"
   }
 ]
