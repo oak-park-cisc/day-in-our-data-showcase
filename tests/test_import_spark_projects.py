@@ -127,3 +127,72 @@ def test_check_mode_fails_when_a_project_is_still_missing(monkeypatch, tmp_path)
     assert sent == []
     monkeypatch.setattr(isp, "plan", lambda subs: ([], []))
     assert isp.main(["--check", "--submissions", str(tmp_path / "none.json")]) == 0
+
+
+def _spam_fakes(spam_entries):
+    forms = [{"id": "form-sub", "name": "submission"}]
+    puts = []
+
+    def get_json(url, token, **_):
+        if url.endswith("/forms"):
+            return forms
+        assert "state=spam" in url
+        return spam_entries if "page=1" in url else []
+
+    return get_json, puts
+
+
+def test_only_gallery_projects_are_released_from_spam():
+    spam = [
+        {"id": "s1", "data": {"team_name": "Lorax team", "project_title": "Lorax"}},
+        {"id": "s2", "data": {"team_name": "Casino Bonus", "project_title": "WIN NOW"}},
+    ]
+    get_json, puts = _spam_fakes(spam)
+    released = isp.release_from_spam({isp.bulk_submit._key("Lorax team", "Lorax")}, "tok", "site",
+                                     get_json=get_json, put=lambda url, token: puts.append(url))
+    assert released == {isp.bulk_submit._key("Lorax team", "Lorax")}
+    assert puts == [f"{isp.sync_netlify.NETLIFY_API}/submissions/s1/ham"]
+
+
+def test_a_project_held_in_spam_is_released_not_sent_again(monkeypatch, tmp_path):
+    lorax = isp.parse_manifest(MANIFEST)[0]
+    entry = isp.bulk_submit.Entry(row=1, fields=isp.build_fields(lorax, None, None, None, isp.starter_options()),
+                                  artifact=None)
+    monkeypatch.setattr(isp, "plan", lambda subs: ([entry], []))
+    monkeypatch.setenv("NETLIFY_TOKEN", "tok")
+    monkeypatch.setattr(isp, "release_from_spam", lambda keys, token, site_id: set(keys))
+    sent = []
+    monkeypatch.setattr(isp.bulk_submit, "post", lambda e: sent.append(e) or 200)
+    assert isp.main(["--send", "--submissions", str(tmp_path / "none.json")]) == 0
+    assert sent == []
+
+
+def test_an_unreadable_spam_folder_stops_before_sending(monkeypatch, tmp_path, capsys):
+    """Sending blind could duplicate an entry an earlier run left held in spam."""
+    lorax = isp.parse_manifest(MANIFEST)[0]
+    entry = isp.bulk_submit.Entry(row=1, fields=isp.build_fields(lorax, None, None, None, isp.starter_options()),
+                                  artifact=None)
+    monkeypatch.setattr(isp, "plan", lambda subs: ([entry], []))
+    monkeypatch.setenv("NETLIFY_TOKEN", "tok")
+
+    def broken(keys, token, site_id):
+        raise isp.SpamCheckError("HTTP 404")
+
+    monkeypatch.setattr(isp, "release_from_spam", broken)
+    sent = []
+    monkeypatch.setattr(isp.bulk_submit, "post", lambda e: sent.append(e) or 200)
+    assert isp.main(["--send", "--submissions", str(tmp_path / "none.json")]) == 1
+    assert sent == []
+    assert "STOP" in capsys.readouterr().out
+
+
+def test_without_a_token_it_sends_without_checking_spam(monkeypatch, tmp_path):
+    lorax = isp.parse_manifest(MANIFEST)[0]
+    entry = isp.bulk_submit.Entry(row=1, fields=isp.build_fields(lorax, None, None, None, isp.starter_options()),
+                                  artifact=None)
+    monkeypatch.setattr(isp, "plan", lambda subs: ([entry], []))
+    monkeypatch.delenv("NETLIFY_TOKEN", raising=False)
+    sent = []
+    monkeypatch.setattr(isp.bulk_submit, "post", lambda e: sent.append(e) or 200)
+    assert isp.main(["--send", "--submissions", str(tmp_path / "none.json")]) == 0
+    assert len(sent) == 1

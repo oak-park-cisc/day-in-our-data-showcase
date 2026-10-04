@@ -40,11 +40,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # With the token, the script also releases these projects (and only
+      # these) from Netlify's spam folder, where scripted form posts can land,
+      # and never re-sends one an earlier press left there.
       - name: Enter missing projects through the Netlify form
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: python scripts/import_spark_projects.py --send
-      # Netlify records a form post within seconds; give it a margin before
-      # the sync reads the submissions back.
-      - run: sleep 30
 
   sync:
     name: Sync the new entries

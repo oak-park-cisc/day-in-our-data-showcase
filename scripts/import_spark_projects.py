@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bulk_submit  # noqa: E402
+import sync_netlify  # noqa: E402
 
 EVENT_REPO = "oak-park-cisc/Oak_Park_Day_in_our_Data"
 RAW = f"https://raw.githubusercontent.com/{EVENT_REPO}/main/projects"
@@ -39,6 +40,7 @@ GALLERY = "https://oak-park-cisc.github.io/Oak_Park_Day_in_our_Data/"
 TREE = f"https://github.com/{EVENT_REPO}/tree/main/projects"
 MAX_FIELD_CHARS = 1200
 DISCLOSURE = "(Entered on the team's behalf from the Day in Our Data project gallery.)"
+SPAM_SETTLE_SECONDS = 30
 NOT_STATED = "Not stated in the team's README; see the project README and code."
 
 SOLVES_HEADINGS = re.compile(r"civic question|bottom line|key findings|why|problem|potential users|purpose", re.I)
@@ -217,6 +219,68 @@ def plan(submissions: list[dict]) -> tuple[list[bulk_submit.Entry], list[tuple[P
     return to_enter, skipped
 
 
+class SpamCheckError(RuntimeError):
+    pass
+
+
+def _netlify_put(url: str, token: str) -> None:
+    req = urllib.request.Request(url, data=b"", method="PUT", headers={"Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(req, timeout=30):
+            pass
+    except urllib.error.HTTPError as exc:
+        raise SpamCheckError(f"PUT {url} returned HTTP {exc.code}") from exc
+    except urllib.error.URLError as exc:
+        raise SpamCheckError(f"PUT {url} failed: {exc.reason}") from exc
+
+
+def release_from_spam(keys: set[tuple[str, str]], token: str, site_id: str | None,
+                      get_json=sync_netlify._http_get_json, put=_netlify_put) -> set[tuple[str, str]]:
+    """Mark as Not spam every `submission` entry in Netlify's spam folder whose
+    team + title is one of `keys` (the gallery projects this script enters).
+    Anything else in the spam folder is left alone. Returns the keys released.
+
+    Netlify's spam filter can hold form posts that did not come from a browser;
+    the sync only reads accepted entries, so a held import never reaches the site.
+    """
+    try:
+        forms = sync_netlify._site_forms(get_json, token, site_id)
+        form_id = sync_netlify.resolve_form_id(forms, sync_netlify.SUBMISSION_FORM_NAME, None)
+        released: set[tuple[str, str]] = set()
+        for page in range(1, sync_netlify.MAX_PAGES + 1):
+            url = (f"{sync_netlify.NETLIFY_API}/forms/{form_id}/submissions"
+                   f"?state=spam&per_page={sync_netlify.PAGE_SIZE}&page={page}")
+            batch = get_json(url, token)
+            if not isinstance(batch, list):
+                raise SpamCheckError("the spam listing was not a list")
+            for raw in batch:
+                data = raw.get("data") or {}
+                key = bulk_submit._key(data.get("team_name", ""), data.get("project_title", ""))
+                if key in keys:
+                    put(f"{sync_netlify.NETLIFY_API}/submissions/{raw['id']}/ham", token)
+                    released.add(key)
+            if len(batch) < sync_netlify.PAGE_SIZE:
+                break
+        return released
+    except sync_netlify.NetlifySyncError as exc:
+        raise SpamCheckError(str(exc)) from exc
+
+
+def _release(keys, token, site_id, label: str) -> set[tuple[str, str]]:
+    if not keys or not token:
+        return set()
+    try:
+        released = release_from_spam(keys, token, site_id)
+    except SpamCheckError as exc:
+        print(f"WARN  could not check Netlify's spam folder {label}: {exc}. "
+              "If projects are missing after the sync, mark them Not spam in "
+              "Netlify -> Forms -> submission -> Spam.")
+        return set()
+    for key in sorted(released):
+        print(f"FREED {key[1]} ({key[0]}): released from Netlify's spam folder {label}")
+    return released
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Enter gallery projects that are not on the ranking site yet.")
     mode = parser.add_mutually_exclusive_group()
@@ -245,15 +309,45 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n{len(to_enter)} project(s) would be entered. Re-run with --send to submit.")
         return 0
 
+    import os
+    import time
+
+    token = os.environ.get("NETLIFY_TOKEN")
+    site_id = os.environ.get("NETLIFY_SITE_ID") or None
+    if not token:
+        print("NOTE  NETLIFY_TOKEN is not set, so Netlify's spam folder is not checked.")
+
+    # An earlier run may have sent these already and Netlify held them as spam:
+    # release those instead of sending them a second time. If the spam folder
+    # cannot be read, stop: sending blind could duplicate a held entry.
+    held: set[tuple[str, str]] = set()
+    if token:
+        try:
+            held = release_from_spam({e.key for e in to_enter}, token, site_id)
+        except SpamCheckError as exc:
+            print(f"STOP  could not read Netlify's spam folder ({exc}), so nothing was sent: an "
+                  "earlier run's entries may be held there. Mark them Not spam in Netlify -> Forms "
+                  "-> submission -> Spam and run the sync, or run this without NETLIFY_TOKEN to send anyway.")
+            return 1
+        for key in sorted(held):
+            print(f"FREED {key[1]} ({key[0]}): released from Netlify's spam folder (sent by an earlier run)")
+    to_send = [e for e in to_enter if e.key not in held]
+
     failed = 0
-    for e in to_enter:
+    sent = []
+    for e in to_send:
         try:
             status = bulk_submit.post(e)
+            sent.append(e)
             print(f"SENT  {e.fields['project_title']} (HTTP {status})")
         except urllib.error.URLError as exc:
             failed += 1
             print(f"ERROR {e.fields['project_title']}: {exc}")
-    print(f"\n{len(to_enter) - failed} entered, {failed} failed.")
+
+    if sent and token:
+        time.sleep(SPAM_SETTLE_SECONDS)  # Netlify files a post as spam or not within seconds
+        _release({e.key for e in sent}, token, site_id, "(just sent)")
+    print(f"\n{len(sent)} entered, {len(held)} released from spam, {failed} failed.")
     return 1 if failed else 0
 
 
