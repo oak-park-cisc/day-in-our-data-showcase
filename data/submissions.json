@@ -160,5 +160,20 @@
     "artifacts": [],
     "large_file_url": null,
     "submitted_at": "2026-10-04T13:35:03.419Z"
+  },
+  {
+    "id": "sub_012",
+    "anon_id": "P-12",
+    "team_name": "Team Architecture Walk",
+    "project_title": "Oak Park Architecture Walks",
+    "description": "An interactive guide for self-guided walking tours of Oak Park's surveyed historic buildings. Visitors filter by survey area, historic district, architectural style and construction period, choose a tour from 30 minutes to an hour, and open the Village's photos and survey forms for each stop. (Entered on the team's behalf by the organizers.)",
+    "solves_for": "Makes the Village's architectural heritage easy for residents and visitors to discover on foot, drawing on the whole Historic Resources Survey rather than a short list of famous homes.",
+    "starter_project": "12-build-an-architecture-walking-tour",
+    "data_steps": "Built from the Village of Oak Park Historic Resources Survey on the Oak Park open data portal. Surveyed properties are mapped by address, grouped by survey area and historic district, and filtered by style and construction decade. Walking times are estimated from the street grid, plus about 3 minutes at each stop.",
+    "repo_url": "https://github.com/oak-park-cisc/Oak_Park_Day_in_our_Data/tree/main/projects/oak-park-architecture-walks",
+    "demo_url": "https://claude.ai/artifact/Njn9DEGuYTsabA76HMtQUT",
+    "artifacts": [],
+    "large_file_url": null,
+    "submitted_at": "2026-10-04T20:24:58.720Z"
   }
 ]
