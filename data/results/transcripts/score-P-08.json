@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-08",
+  "justifications": {
+    "civic-impact": "The project tackles a concrete, practical question\u2014species diversity and resilience of Oak Park's public tree canopy\u2014which matters to residents concerned about tree loss from pests like emerald ash borer, even though no specific audience (e.g., 'homeowners near Ash-heavy blocks') is named.",
+    "data-integrity": "The submission points to a SOURCES.md file documenting sources and methods, suggesting sources are identifiable, but no README was available to confirm how clearly they are stated or whether limitations are acknowledged.",
+    "data-provenance": "The submission names a concrete rerunnable step (python3 scripts/preparedata.py) and points to a SOURCES.md documenting sources and methods, suggesting a reproducible pipeline, but since no README or artifact content was actually provided to inspect, the specific transformations (filtering, aggregation choices for diversity/resilience metrics) remain unverified from the submitted text itself.",
+    "usability-access": "The only access path described is a developer workflow (\"Run npm install, then npm run dev\", rebuild data with a python script) with no plain-language walkthrough for a resident, though a live demo link does exist which could in principle be clicked by anyone.",
+    "craft": "The description lists multiple working features (tree filters, i-Tree Eco/Stormwater data, Street View) and clear setup/rebuild instructions, suggesting a functioning app, but with no README, no artifacts, and no stated data pipeline, there's no way to verify completeness or confirm the live demo is free of rough edges.",
+    "continuation": "There are concrete operational instructions (npm install/run, python3 scripts/preparedata.py, and a SOURCES.md for sources/methods) that a staffer could follow to rebuild the data pipeline, but the submission explicitly states the analytic reasoning ('How they got from the raw data to the result') is 'Not stated in the team's README; see the project README and code,' leaving intent and next steps to be reconstructed from the codebase."
+  }
+}

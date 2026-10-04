@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-07",
+  "justifications": {
+    "civic-impact": "The project operationalizes a clear civic question\u2014where is Oak Park's street tree population at risk from overreliance on a few species\u2014into block-level, address-searchable, and zone-level tools (e.g., 'Near me: type an Oak Park address... to see every public tree within 150\u2013600 ft', 'Zones: compares the 8 D97 elementary attendance zones') that a resident, arborist, or school-zone parent could directly use, though no specific resident or advocacy group is named as having asked this.",
+    "data-integrity": "Sources, retrieval dates and calculation notes are explicitly pointed to in public/data/SOURCES.md, and the team volunteers multiple specific, unprompted caveats about data gaps and methodology.",
+    "data-provenance": "The team names concrete, rerunnable pipeline steps (`npm run data` rebuilds `public/data/blocks.csv` and `zones.csv` from source files, `npm run fetch:modis` re-downloads the MODIS subset) and documents key calculation choices (canopy from crown spread treated as circles with overlaps counted once, MODIS Collection 6.1 chosen over 6.0), pointing to `public/data/SOURCES.md` for full provenance and retrieval dates., but the exact formula for 'species diversity' and some ranking/threshold mechanics are described only descriptively rather than shown, leaving one quantitative step unverified from the submission text alone.",
+    "usability-access": "The map/list/search interface uses color, labels, and non-color cues (thicker lines) that a resident could follow, but concepts like 'top genus share,' 'species diversity,' 'D97 zones,' MODIS cells, and the 10-20-30 guideline assume some orientation or willingness to read the help popup before the data becomes meaningful.",
+    "craft": "The submission describes a feature-complete, deployed app (map, ranked list, block detail, filters, near-me, zones, satellite comparison, area tool, downloads) with explicit, honest documentation of limits and data provenance, suggesting a well-finished build; minor concerns are the untestable live-demo claims and the ambiguous 'top 20%...' cutoff in the description.",
+    "continuation": "The README and SOURCES.md document data sources, retrieval dates, calculation notes, explicit limits, and reproducible build/fetch/check commands, giving staff a clear path to continue; it lacks an explicit 'next steps/open questions' section but the stated limits function similarly."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-09",
+  "justifications": {
+    "civic-impact": "The game layer (tribes, idols, tribal council) dominates and has no civic question behind it; the only resident-facing content is a 'Higher or Lower' mini-game using real assessed values with a card linking to the Assessor, which only loosely touches the starter question of fair assessment.",
+    "data-integrity": "The description explicitly names the source as \"real 2025 Cook County assessed values\" with links to \"the Assessor,\" and the README points to a dedicated `public/data/SOURCES.md` file for sourcing, but neither the README nor the provided material states any caveats about data currency, assessment methodology limits, or what the challenge data does and doesn't capture.",
+    "data-provenance": "The submission explicitly states the transformation steps are 'Not stated in the team's README' and no artifacts are provided, despite claims of using 'real 2025 Cook County assessed values' in the Higher/Lower challenge and Assessor photos.",
+    "usability-access": "The live demo requires no coding and ties directly to real assessment data with a plain-language 'Higher or Lower' challenge and an explanatory card linking back to the Assessor, but the overall game (tribes, alliances, idols, Extra Vote, Steal-a-Vote, Shot in the Dark, jury, merge, tie-breaking bonus points) has enough rules that a resident would need real orientation before the data insight becomes clear.",
+    "craft": "The scope is extremely ambitious for a 4-hour hackathon (full Survivor game with alliances, idols, jury, merge mechanics, map-based challenges), and the submission gives no evidence the live demo actually functions as described\u2014no screenshots, no artifacts, and the 'how they got from data to result' section is explicitly blank ('Not stated in the team's README').",
+    "continuation": "The README documents gameplay mechanics and dev tooling (npm scripts, a simulate invariant-checker, pointer to public/data/SOURCES.md) but gives no explicit account of what's finished, what's left, or open questions, and the data-to-result pipeline is explicitly 'not stated.'"
+  }
+}

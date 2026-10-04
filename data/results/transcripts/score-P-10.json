@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-10",
+  "justifications": {
+    "civic-impact": "The project names three concrete audiences (resident organizers, vendors, and Public Works reviewers) and ties each to a specific, verifiable civic question\u2014block eligibility, petition deadlines, and traffic-impact review\u2014derived from the Village's actual 2026 block party rules and real street/tree/parking data.",
+    "data-integrity": "Sources are clearly named (event repo under MIT license, Village's 2026 Block Parties and Sales page, specific datasets listed as used vs. 'included for later'), and the team distinguishes real computed data from sample data ('What's real and what's sample'), but the README is truncated before fully elaborating limitations and no caveats about data recency, completeness, or methodology gaps are given beyond this real/sample split.",
+    "data-provenance": "The README names a specific script (scripts/probe_reference.py) that reproduces the headline numbers (887/342/441, median/percentile distances, shade list) and explicitly separates 'real, computed in code' data from 'fictional sample' data used for the demo, giving a clear, named pipeline from source files to results.",
+    "usability-access": "The resident-facing concepts (type an address, see petition due date, track a request) are described in plain language, but the only way to actually get a working build is the README's local-only path requiring \"Docker, uv and Node 20.19+\", Postgres on a custom port, and manually copying a dev token like `dev-resident-a` to view a role\u2014nothing an ordinary resident could do unaided, and no evidence is given that the GitHub Pages live demo offers this functionality without that backend.",
+    "craft": "The ambitious three-role flow (resident/vendor/reviewer with AI traffic planner) requires a full Docker/Postgres/FastAPI/Node stack to actually function, but the only reachable artifact is a static GitHub Pages 'live demo' that cannot run that backend, and no screenshots or artifacts are provided to show the real functionality in action.",
+    "continuation": "The README documents data provenance, setup/run instructions, scripts to reproduce key findings (e.g., 'the 887 / 342 / 441 and the shade list are reproduced by scripts/probe_reference.py'), and a clear split of 'what's real and what's sample,' giving a knowledgeable staff member enough to continue with modest effort."
+  }
+}

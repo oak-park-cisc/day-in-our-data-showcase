@@ -1,0 +1,51 @@
+{
+  "model_generated": true,
+  "round": 4,
+  "matchups": [
+    {
+      "a": "P-01",
+      "b": "P-03",
+      "winner": "P-01",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-03",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-01",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-01",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-03",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "craft",
+          "winner": "P-01",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-01",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "B names concrete resident groups (parents, taxpayers, school boards) and answers specific questions they ask out loud, e.g. 'is Oak Park's combined school tax rate $8.37 per $100 ... 3rd highest of 11 nearby towns' and 'why OPRF's instructional spending fell while total spending rose,' turning an opaque multi-spreadsheet dataset into a direct answer. A's ECHO dashboard is methodologically careful but its civic question is vaguer ('where could service partnerships be stronger') and framed as a draft for internal Village review rather than a resident-facing answer.",
+        "data-integrity": "Submission A names its sources per-file (ECHO dashboard, crime data, hand-typed call totals) and states explicit caveats unprompted\u2014suppressed small counts, partial September handling, 'Counts are logged services, not people,' and a 'draft prototype, not an official Village product' status\u2014while B's strong source citations (ISBE Report Card, Cook County Clerk) and caveats (2025 test change, no 2020 tests) exist only in the description with no README or repo to verify documentation depth.' Both name sources, but A's caveats are more thorough and verifiably embedded in the actual deliverable.",
+        "data-provenance": "A names concrete scripts for each stage (fetch_echo_activity.py, fetch_crime_incidents.py, crime_monthly.py, build_standalone.py), documents exactly how suppression, blanks, and partial months are handled, and even has tests that 'pin the quoted figures' and verify no synthetic data reaches the page\u2014giving a fully rerunnable, checkable path from source to output. B's description also lists clear steps (filtered, matched columns, joined, derived) and names a script, but its repository is 'not provided' and no README was available to confirm these claims, leaving the trace less verifiable than A's documented, test-backed pipeline.",
+        "usability-access": "Submission B offers a one-click hosted live demo described as a \"one-page, mobile-friendly dashboard\" that \"opens with the bottom line: six plain-language findings,\" requiring no downloads or technical steps, whereas Submission A's only way to view results is to download an HTML release asset or run `python3 -m http.server` locally, which demands technical comfort a typical resident may lack.",
+        "continuation": "Submission A provides a working repo with scripts, data provenance, tests, and an explicit 'Status and next steps' section naming who reviews it next (e.g. 'goes to the Oak Park Board of Health and the ECHO team... before it's posted anywhere public'), making handoff concrete. Submission B's description is detailed but its repository is marked 'not provided' and no README was retrievable, so staff would have no code or documented next steps to pick up Monday."
+      }
+    }
+  ]
+}

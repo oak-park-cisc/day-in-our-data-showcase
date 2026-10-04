@@ -1,0 +1,12 @@
+{
+  "model_generated": true,
+  "anon_id": "P-06",
+  "justifications": {
+    "civic-impact": "The project names concrete audiences (Environment & Energy Commission, Public Works, residents) and identifies a specific, actionable equity question\u2014'census block groups with more seniors... or residents with a disability... have fewer public trees per acre'\u2014plus '24 blocks to look at first' for field visits.",
+    "data-integrity": "The README names its two datasets \"Oak Park's public tree inventory\" and the \"Village's Social Vulnerability Index\" and repeatedly flags limitations (e.g., canopy is an \"upper bound,\" \"size isn't age, so this is a hint, not a trend,\" and the 24 flagged blocks are \"candidates for a field visit, not conclusions\"), though it stops short of citing exact data sources (e.g., URLs or file names) for either dataset.",
+    "data-provenance": "The only stated method is 'I used my AI agent entirely to analyze the data,' with no script, notebook, formula, or documented steps describing how raw tree inventory and SVI data were filtered, joined, or aggregated into metrics like the 10-20-30 shares or canopy percentages.",
+    "usability-access": "The README describes a feature-rich interactive app (Findings tab, Dashboard, drilldowns, slicers, map with genus-colored dots) that could be genuinely useful but demands real orientation\u2014terms like '10-20-30 line', 'genus mix by trunk size', and '\u03c1 = \u22120.38' assume some statistical literacy, and no live demo or screenshot was provided to verify how plain-language the actual interface is.",
+    "craft": "The README describes an elaborate, well-structured app with maps, dashboards, and filters, but there is no live demo or repository link to verify any of this functionality\\u2014only a single zip artifact is provided, leaving the actual execution unverified.",
+    "continuation": "The README offers detailed, specific findings (e.g., \"188 are at risk,\" \"Canopy cover shows no gradient by social vulnerability\") and a thorough description of the app's tabs, filters, and drilldowns, which would let a staff member reconstruct the logic and continue work, though the lack of a repo/live demo and the truncated README (cutting off mid-sentence) means some technical continuity details are missing."
+  }
+}

@@ -9,9 +9,9 @@
       "bye": true
     },
     {
-      "a": "P-04",
+      "a": "P-08",
       "b": "P-05",
-      "winner": "P-04",
+      "winner": "P-08",
       "bye": false,
       "votes": [
         {
@@ -21,37 +21,35 @@
         },
         {
           "persona": "data-integrity",
-          "winner": "P-04",
-          "swap_confirmed": true
+          "winner": "P-08",
+          "swap_confirmed": false
         },
         {
           "persona": "data-provenance",
-          "winner": "P-04",
+          "winner": "P-08",
           "swap_confirmed": true
         },
         {
           "persona": "usability-access",
-          "winner": "P-04",
+          "winner": "P-08",
           "swap_confirmed": true
         },
         {
           "persona": "craft",
-          "winner": "P-04",
+          "winner": "P-08",
           "swap_confirmed": true
         },
         {
           "persona": "continuation",
-          "winner": "P-04",
-          "swap_confirmed": true
+          "winner": "P-08",
+          "swap_confirmed": false
         }
       ],
       "reasoning": {
-        "civic-impact": "Submission B names a clear resident group\u2014'parents' deciding how their kids walk or bike to school, the library, or a friend's house\u2014and builds specific features (crime-weighted street coloring, time-frame filters, school/park destinations, turn-by-turn warnings) directly answering that lived question. Submission A is a well-documented historical/ecological mapping exercise ('oaks that may have been growing before the Kettlestrings arrived in 1833') that's intellectually interesting but doesn't tie to a question residents are shown to actually ask.",
-        "data-integrity": "A names every data source in a table (Village/Park District tree inventories, Morton Arboretum DBH tables, ISGS land cover) and states explicit caveats like \"These are estimates. Different published methods disagree by about 2x,\" earning a clear 5; B never identifies where its crime CSV originates (just a filename) and offers only a general safety disclaimer, leaving its core data source unstated.",
-        "data-provenance": "A's README spells out concrete, repeatable steps (DBH-to-age formulas from cited Morton Arboretum tables, confidence scoring logic, inclusion thresholds) and points to actual rerunnable scripts (`scripts/build_data.py`, `scripts/draft_narratives.py`) and a decision-log, making the path from raw tree inventory to the 61-oak output traceable. B's README appears to describe an entirely different 'Safe Routes' app than its stated Crime Web App, and its key transformation\u2014how incident severity translates into street color/risk scoring\u2014is referenced only vaguely ('see How safety is judged') with no formula, script, or step shown in the material provided.",
-        "usability-access": "Submission A's README is written entirely in plain, resident-facing language (color-coded confidence, popup cards, a tree list, an About panel explaining the method and caveats) and is designed for phones/desktop with no technical jargon required to understand the map's purpose. Submission B's own description frames the deliverable as 'Flask serves a JSON API' requiring a virtualenv/pip/python run command with no live demo, and its README describes a seemingly different, more polished 'Safe Routes' app than what the file structure and API endpoints suggest, creating confusion about what a resident would actually encounter.",
-        "craft": "Submission A delivers a coherent, detailed artifact (oaks_project.zip) matching its description\u2014a map of 61 oaks with confidence tiers, popups, and documented DBH-based age methodology\u2014showing internal consistency between pitch and implementation. Submission B's description (a simple Flask CRUD app for crime data) starkly mismatches its README (a complex 'Safe Routes' routing app with crime-weighted streets, school destinations, and turn-by-turn directions), and no artifacts were submitted at all, making it impossible to verify any of this actually works.",
-        "continuation": "A documents its method in detail (DBH-to-age formulas, confidence scoring, data source table, and a referenced docs/decision-log.md) plus concrete rebuild commands ('python3 scripts/build_data.py # writes public/data/oaks.json'), giving staff a clear path to continue. B's README describes an entirely different 'Safe Routes' routing app with turn-by-turn directions and crime-weighted street coloring, which does not match the actual repo structure (a simple Flask CSV API with /api/incidents), leaving a confusing mismatch that would require reconstruction before anyone could pick it up."
+        "civic-impact": "Submission B's README names a specific resident group (\"parents\" planning safer walking/biking routes for kids) and details concrete resident-facing features like crime-colored streets and route warnings, clearly meeting the 'named group' bar for a 5. Submission A addresses a plausible civic question about tree diversity but offers no README explanation of methodology, leaving the resident need largely assumed rather than demonstrated.",
+        "data-provenance": "A names a concrete rerunnable artifact\u2014\"Rebuild the data in public/data with python3 scripts/preparedata.py; sources and methods are in public/data/SOURCES.md\"\u2014giving a script and docs that could be traced even though the README summary is missing, whereas B's own account of its data pipeline is just \"DIOD\" with no filtering, joining, or scoring logic described despite mentioning a crime\u2011severity weighting scheme that is never explained or linked to code.* \n*B's README is also about a different app (Safe Routes) than the described Crime Web App, further undermining traceability of the actual submitted artifact.",
+        "usability-access": "Submission A offers a live, click-through demo link (https://oak-park-cisc.github.io/.../lorax-alison/) that a resident could open directly without any command-line setup, even though the README documentation is sparse. Submission B, despite its polished, resident-friendly README describing a 'Safe Routes' app, lists no live demo and requires a resident to run `python -m venv`, activate a virtual environment, and start a Flask server from the command line\u2014steps clearly beyond a non-technical audience's reach.",
+        "craft": "Submission A has a live demo link and a description that matches its stated scope (tree filters, i-Tree data, Street View), suggesting a working deployed artifact even though documentation is thin. Submission B provides no live demo, and its README describes an elaborate 'Safe Routes' app with route planning, crime-weighted street coloring, and turn-by-turn directions, while the actual project structure only shows a basic Flask API for incident filtering/stats\u2014a stark mismatch suggesting the ambitious features described were not actually built."
       }
     },
     {
@@ -61,9 +59,72 @@
       "bye": true
     },
     {
+      "a": "P-07",
+      "b": null,
+      "winner": "P-07",
+      "bye": true
+    },
+    {
       "a": "P-03",
       "b": null,
       "winner": "P-03",
+      "bye": true
+    },
+    {
+      "a": "P-10",
+      "b": "P-09",
+      "winner": "P-10",
+      "bye": false,
+      "votes": [
+        {
+          "persona": "civic-impact",
+          "winner": "P-10",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-integrity",
+          "winner": "P-10",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "data-provenance",
+          "winner": "P-10",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "usability-access",
+          "winner": "P-10",
+          "swap_confirmed": false
+        },
+        {
+          "persona": "craft",
+          "winner": "P-09",
+          "swap_confirmed": true
+        },
+        {
+          "persona": "continuation",
+          "winner": "P-10",
+          "swap_confirmed": true
+        }
+      ],
+      "reasoning": {
+        "civic-impact": "Submission A directly addresses a concrete process residents, vendors, and Village staff navigate ('how can Oak Park make block parties easier to plan and approve'), naming each user group's workflow and grounding it in real rule checks (petition due dates, 10-address minimum, 30-event cap) computed from public data. Submission B gamifies the assessment-fairness question into a Survivor-style game, which is creative but buries the civic question ('do similar homes get similar assessments') under entertainment mechanics (tribes, idols, tribal council) rather than clearly answering it for a named resident audience.",
+        "data-integrity": "Submission A names specific sources (Village's 2026 Block Parties page, event repo with MIT license, specific datasets used vs. deferred) and includes an explicit 'What's real and what's sample' section distinguishing computed facts from illustrative data, satisfying both source-naming and limitation-stating unprompted. Submission B only points to an unseen 'SOURCES.md' and explicitly states 'How they got from the raw data to the result: Not stated,' leaving sourcing and limitations unverified in the material provided.",
+        "data-provenance": "Submission A explicitly names its data sources, lists which datasets were used, and points to a reproducible script (`scripts/probe_reference.py`) that regenerates the stated counts (887/342/441) and the shade list, giving a traceable path from raw data to result. Submission B's own 'How they got from the raw data to the result' field states 'Not stated in the team's README; see the project README and code,' and its README only vaguely points to a SOURCES.md without describing any transformation steps, leaving the path from assessment data to in-game values untraceable.",
+        "craft": "B ships a self-contained client-side app (saves in browser, static build) that can plausibly run as presented on the GitHub Pages live demo, and even includes a stress-test script (\"npm run simulate # play 300 headless seasons and check invariants\") suggesting verified correctness. A's \"Party in a Box\" requires a full Docker/Postgres/FastAPI backend to function (\"Needs Docker, uv ... runs on Postgres\"), which cannot run on its static GitHub Pages live demo link, making the core approve/submit/match flows almost certainly non-functional as presented.",
+        "continuation": "Submission A documents its data pipeline in detail (specific counts like 887/342/441 segments, reproducible via scripts/probe_reference.py), lists exact datasets used vs. deferred, and gives clear setup/run instructions plus a design spec link, making it feasible for staff to pick up Monday. Submission B's README describes gameplay mechanics but explicitly states 'Not stated in the team's README; see the project README and code' for how data was processed, leaving the core civic-data methodology undocumented."
+      }
+    },
+    {
+      "a": "P-04",
+      "b": null,
+      "winner": "P-04",
+      "bye": true
+    },
+    {
+      "a": "P-06",
+      "b": null,
+      "winner": "P-06",
       "bye": true
     }
   ]
